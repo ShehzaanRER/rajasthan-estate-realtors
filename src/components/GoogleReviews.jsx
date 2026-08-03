@@ -11,11 +11,21 @@ export default function GoogleReviews() {
   const [slide, setSlide] = useState(0);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/google-reviews")
-      .then((res) => res.json())
-      .then((data) => setData(data))
-      .catch(console.error);
-  }, []);
+  console.log("Fetching Google Reviews...");
+
+  fetch("http://localhost:5000/api/google-reviews")
+    .then((res) => {
+      console.log("Response Status:", res.status);
+      return res.json();
+    })
+    .then((data) => {
+      console.log("Received Data:", data);
+      setData(data);
+    })
+    .catch((err) => {
+      console.error("Fetch Error:", err);
+    });
+}, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -25,12 +35,32 @@ export default function GoogleReviews() {
     return () => clearInterval(timer);
   }, []);
 
-  if (!data) return null;
+  if (!data) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: "48px",
+        background: "red",
+        color: "white",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 9999,
+      }}
+    >
+      Loading Google Reviews...
+    </div>
+  );
+}
 
   return (
     <div className="fixed top-0 left-0 w-full z-[60] bg-[#0F172A] border-b border-slate-700">
 
-      <div className="mx-auto flex h-12 max-w-7xl items-center justify-between px-8">
+      <div className="mx-auto flex h-10 max-w-7xl items-center justify-between px-8">
 
         {/* LEFT */}
 
