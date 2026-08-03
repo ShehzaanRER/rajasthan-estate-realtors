@@ -1,0 +1,64 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  background: rgba(5, 10, 25, 0.95);
+  backdrop-filter: blur(12px);
+
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.navbar-container{
+  max-width:1200px;
+  margin:auto;
+
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  padding:18px 24px;
+}
+
+.logo img{
+  height:60px;
+}
+
+.nav-links{
+  display:flex;
+  gap:35px;
+}
+
+.nav-links a{
+  color:white;
+  text-decoration:none;
+  font-size:16px;
+  font-weight:500;
+
+  transition:.3s;
+}
+
+.nav-links a:hover{
+  color:#D4AF37;
+}
+
+.whatsapp-btn{
+  background:#D4AF37;
+  color:#05101F;
+
+  text-decoration:none;
+
+  padding:12px 24px;
+
+  border-radius:8px;
+
+  font-weight:600;
+
+  transition:.3s;
+}
+
+.whatsapp-btn:hover{
+
+  transform:translateY(-2px);
+
+}
