@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-  "dev": "concurrently \"npm run frontend\" \"npm run backend\"",
-  "frontend": "vite",
-  "backend": "cd server && npm run dev"
-},
+    "dev": "concurrently \"npm run frontend\" \"npm run backend\"",
+    "frontend": "vite",
+    "backend": "cd server && npm run dev"
+  },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "lucide-react": "^1.28.0",

@@ -1,23 +1,21 @@
-import GoogleReviews from "./components/GoogleReviews";
 import Navbar from "./layouts/Navbar";
-import Hero from "./components/home/Hero";
+import HeroSlider from "./components/home/HeroSlider";
 import FloatingWhatsapp from "./components/FloatingWhatsapp";
 import PropertySearch from "./components/home/PropertySearch";
 import FeaturedProperties from "./components/home/FeaturedProperties";
-import WhyChoose from "./components/home/WhyChoose";
-import Areas from "./components/home/Areas";
+import AboutSection from "./components/home/AboutTeaser"
+import Footer from "./layouts/Footer";
 
 function App() {
   return (
     <>
-      <GoogleReviews />
       <Navbar />
-      <Hero />
+      <HeroSlider />
        <FloatingWhatsapp />
        <PropertySearch />
       <FeaturedProperties />
-      <WhyChoose />
-      <Areas />
+      <AboutSection />
+      <Footer />
   
     </>
   );
