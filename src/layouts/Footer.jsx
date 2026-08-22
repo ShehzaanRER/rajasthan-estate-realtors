@@ -6,6 +6,8 @@ import {
   Clock,
 } from "lucide-react";
 
+import { useLocation } from "react-router-dom";
+
 import {
   FaInstagram,
   FaFacebookF,
@@ -15,80 +17,83 @@ import {
 } from "react-icons/fa";
 
 function Footer() {
+  const location = useLocation();
+
+  const showFooterCTA = location.pathname === "/";
+
   return (
     <footer className="bg-[#081221] text-white">
 
       {/* =========================================================
-          PREMIUM CTA
-      ========================================================= */}
+    PREMIUM CTA
+    Show on homepage only
+========================================================= */}
 
-      <section className="border-b border-white/10 bg-[#F5F0E8]">
+{showFooterCTA && (
+  <section className="border-b border-white/10 bg-[#F5F0E8]">
 
-        <div className="mx-auto max-w-7xl px-6 py-16 sm:px-10 md:px-16 lg:px-8">
+    <div className="mx-auto max-w-7xl px-6 py-16 sm:px-10 md:px-16 lg:px-8">
 
-          <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
+      <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
 
-            <div className="max-w-2xl">
+        <div className="max-w-2xl">
 
-              <div className="mb-4 flex items-center gap-4">
+          <div className="mb-4 flex items-center gap-4">
 
-                <span className="h-px w-10 bg-[#B8862F]" />
+            <span className="h-px w-10 bg-[#B8862F]" />
 
-                <span className="text-xs font-medium uppercase tracking-[0.35em] text-[#B8862F]">
-                  Let's Find The Right Property
-                </span>
-
-              </div>
-
-              <h2 className="font-serif text-4xl font-light leading-tight text-[#081221] sm:text-5xl">
-
-                Looking for the right property
-
-                <span className="block italic text-[#B8862F]">
-                  in Mumbai?
-                </span>
-
-              </h2>
-
-              <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">
-                Whether you are buying, selling, renting or exploring a
-                commercial opportunity, our team is here to guide you.
-              </p>
-
-            </div>
-
-
-            {/* CTA BUTTONS */}
-
-            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-
-              <a
-                href="#properties"
-                className="group inline-flex items-center justify-center gap-3 rounded-lg bg-[#B8862F] px-7 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#CCA251] hover:shadow-[0_15px_35px_rgba(184,134,47,0.25)]"
-              >
-                Explore Properties
-
-                <ArrowRight
-                  size={17}
-                  className="transition-transform duration-300 group-hover:translate-x-1"
-                />
-              </a>
-
-
-              <a
-                href="tel:+919892371329"
-                className="inline-flex items-center justify-center gap-3 rounded-lg border border-[#081221]/20 px-7 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
-              >
-                Speak With Us
-              </a>
-
-            </div>
+            <span className="text-xs font-medium uppercase tracking-[0.35em] text-[#B8862F]">
+              Let's Find The Right Property
+            </span>
 
           </div>
 
+          <h2 className="font-serif text-4xl font-light leading-tight text-[#081221] sm:text-5xl">
+
+            Looking for the right property
+
+            <span className="block italic text-[#B8862F]">
+              in Mumbai?
+            </span>
+
+          </h2>
+
+          <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">
+            Whether you are buying, selling, renting or exploring a
+            commercial opportunity, our team is here to guide you.
+          </p>
+
         </div>
 
-      </section>
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+
+          <a
+            href="#properties"
+            className="group inline-flex items-center justify-center gap-3 rounded-lg bg-[#B8862F] px-7 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#CCA251] hover:shadow-[0_15px_35px_rgba(184,134,47,0.25)]"
+          >
+            Explore Properties
+
+            <ArrowRight
+              size={17}
+              className="transition-transform duration-300 group-hover:translate-x-1"
+            />
+          </a>
+
+          <a
+            href="tel:+919892371329"
+            className="inline-flex items-center justify-center gap-3 rounded-lg border border-[#081221]/20 px-7 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+          >
+            Speak With Us
+          </a>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+)}
 
 
       {/* =========================================================

@@ -1,38 +1,4 @@
-const properties = [
-  {
-    id: 1,
-    title: "3 BHK Luxury Apartment",
-    location: "Lokhandwala, Andheri West",
-    price: "₹3.25 Cr",
-    image:
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85",
-    status: "For Sale",
-    type: "Residential",
-    area: "1,250 sq. ft.",
-  },
-  {
-    id: 2,
-    title: "Luxury Independent Villa",
-    location: "Mira Road, Mumbai",
-    price: "₹5.80 Cr",
-    image:
-      "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1200&q=85",
-    status: "Premium",
-    type: "Residential",
-    area: "3,200 sq. ft.",
-  },
-  {
-    id: 3,
-    title: "2 BHK Premium Residence",
-    location: "Jogeshwari West",
-    price: "₹1.65 Cr",
-    image:
-      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=85",
-    status: "New",
-    type: "Residential",
-    area: "950 sq. ft.",
-  },
-];
+import properties from "../../data/properties";
 
 function FeaturedProperties() {
   return (

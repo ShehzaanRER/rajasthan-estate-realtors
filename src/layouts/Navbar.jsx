@@ -55,7 +55,7 @@ function Navbar() {
 
           <li>
             <a
-              href="#properties"
+              href="/properties"
               className="text-base tracking-wide transition-colors duration-200 hover:text-amber-600"
             >
               Properties
@@ -82,7 +82,7 @@ function Navbar() {
 
           <li>
             <a
-              href="#about"
+              href="/about"
               className="text-base tracking-wide transition-colors duration-200 hover:text-amber-600"
             >
               About
