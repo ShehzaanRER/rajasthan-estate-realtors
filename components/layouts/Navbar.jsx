@@ -4,7 +4,7 @@ function Navbar() {
   return (
     <nav className="relative z-50 w-full bg-white border-b border-slate-200 shadow-sm">
 
-      <div className="mx-auto flex h-[110px] max-w-7xl items-center justify-between px-6 lg:px-8">
+      <div className="mx-auto flex h-[88px] max-w-7xl items-center justify-between px-4 sm:h-[110px] sm:px-6 lg:px-8">
 
         {/* =========================================================
             BRAND
@@ -12,7 +12,7 @@ function Navbar() {
 
         <Link
           href="/"
-          className="flex shrink-0 items-center gap-6"
+          className="flex min-w-0 items-center gap-3 sm:gap-6"
         >
 
           {/* House Logo */}
@@ -20,18 +20,18 @@ function Navbar() {
           <img
             src="/logo-HOUSE.svg"
             alt="Rajasthan Estate Realtors"
-            className="h-[100px] w-auto object-contain"
+            className="h-16 w-auto shrink-0 object-contain sm:h-[100px]"
           />
 
           {/* Business Name */}
 
-          <div className="flex flex-col justify-center">
+          <div className="min-w-0 flex flex-col justify-center">
 
-            <h1 className="font-cormorant text-2xl font-semibold leading-tight tracking-[-0.02em] text-slate-900">
+            <h1 className="font-cormorant text-lg font-semibold leading-tight tracking-[-0.02em] text-slate-900 sm:text-2xl">
               Rajasthan Estate Realtors
             </h1>
 
-            <p className="mt-1 text-xs font-medium uppercase tracking-[0.35em] text-amber-600">
+            <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.22em] text-amber-600 sm:text-xs sm:tracking-[0.35em]">
               Since 1988
             </p>
 
