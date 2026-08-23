@@ -1,0 +1,43 @@
+---
+description: SEO principles for the RER website
+globs: ["app/**/*"]
+alwaysApply: false
+---
+
+# RER SEO Principles
+
+## Objective
+
+Build local real-estate authority for Mumbai's Western Suburbs, especially Jogeshwari and genuinely served nearby markets. SEO should support discovery and enquiries.
+
+Do not treat specific keyword lists or a full location-page architecture as approved until that phase.
+
+## Technical
+
+Prefer server-rendered content, semantic HTML, unique titles/descriptions, canonicals, crawlable routes, sitemap, robots.txt, optimized images, descriptive alt text, accessible headings, fast pages, and structured data only when it fits.
+
+Do not use hash links as stand-ins for important SEO pages.
+
+Property URLs should eventually be `/properties/[slug]`, one unique URL per listing.
+
+## On-page
+
+One clear H1 where appropriate; logical H2/H3. Do not pick headings only for visual size.
+
+Important pages should eventually have unique title, description, canonical, and Open Graph. Do not copy one generic metadata block onto every route.
+
+## Local and properties
+
+Mention Jogeshwari, Andheri, Goregaon, Lokhandwala, and other served areas only where true. No keyword stuffing. No location pages unless RER actually serves that place.
+
+Property pages need unique copy, details, metadata, and alt text. Do not duplicate descriptions across listings.
+
+## Schema, links, performance
+
+Later, consider LocalBusiness / agent, Organization, BreadcrumbList, and listing schema only if accurate. Do not add schema for its own sake.
+
+Internal links should help people as well as crawlers.
+
+Do not trade performance for SEO theatre: optimized images, little client JS, Server Components, efficient fonts, few extra dependencies.
+
+Never invent reviews, stats, awards, market claims, property facts, or experience.

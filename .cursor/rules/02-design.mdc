@@ -1,0 +1,41 @@
+---
+description: RER visual design and UX principles
+globs: ["app/**/*", "components/**/*", "src/**/*"]
+alwaysApply: false
+---
+
+# RER Design Principles
+
+## Brand
+
+RER should feel established, trustworthy, premium, professional, local, warm, and approachable — modern without being trendy. Communicate 1988 heritage without looking dated.
+
+## Minimalism
+
+Do not add sections only to lengthen a page. A section should help visitors understand RER, find property, build trust, enquire, or improve SEO in a real way.
+
+Homepage section count and order are **not** locked. A later redesign may change structure after competitor/UX review. During migration, copy the current Vite composition rather than inventing a new homepage.
+
+## Properties
+
+Keep cards and detail pages readable. Avoid badge/metadata clutter, crowded cards, and long text blocks. Prioritize title, location, price, types, key specs, images, a short description, and enquiry.
+
+Example tags (not a final taxonomy): New, Featured, For Sale, For Rent, New Development. Tags must stay meaningful and visually quiet.
+
+## Hero
+
+Keep a clear hierarchy. Future hero imagery may use professional AI images; that is not approved as the current hero. Crop for mobile, not desktop-only banners. Prefer HTML text over text baked into images.
+
+## Mobile, type, colour, motion
+
+Mobile is first-class: cropping, wrapping, nav, cards, spacing, forms, CTAs, footer. Do not only shrink desktop.
+
+Type should be elegant and readable, with a restrained hierarchy.
+
+Current colour direction: deep navy/slate, white, warm neutrals, restrained gold/amber. Do not add prominent extra brand colours without approval.
+
+Motion: opacity, small translation, gentle scale, quiet hovers. Avoid heavy parallax, large motion, and mobile-unfriendly auto-animation.
+
+## UX
+
+Users should quickly see who RER is, where they operate, what they offer, how to find property, and how to contact them. Clarity beats decoration.

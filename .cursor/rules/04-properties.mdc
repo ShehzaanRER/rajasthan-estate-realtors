@@ -1,0 +1,51 @@
+---
+description: Property data, presentation, tagging and future admin architecture
+globs: ["app/properties/**/*", "src/data/**/*", "src/components/properties/**/*", "components/**/properties/**/*"]
+alwaysApply: false
+---
+
+# RER Property System
+
+## Objective
+
+Eventually the team should manage listings without editing code. Admin is a **later phase**. Do not implement it until the property model, page structure, tagging, database, and auth are approved. Do not build admin on temporary static data.
+
+## Model
+
+A later model may include id, title, slug, location/locality, address, property type, transaction type, price, area, beds/baths, floor data, images, description, amenities, status, tags, featured, project name, dates, published state.
+
+Add only useful fields.
+
+## Transaction vs property type
+
+**Transaction type** (deal): examples — Buy, Rent, Sell, Lease. Final labels TBD.
+
+**Property type** (asset): Residential or Commercial, then more specific types (Apartment, Villa, Independent House, Office, Retail, Industrial, Land) only if they match real inventory.
+
+Do not treat "Commercial" as a transaction type.
+
+## Tags
+
+Tags should be controlled, not free-text. Example labels (not finalized): New, Featured, For Sale, For Rent, New Development, Under Construction, Ready to Move, Premium, Price Reduced, Residential, Commercial.
+
+Do not auto-assign tags without rules. Exact taxonomy is still open.
+
+## New developments and featured
+
+A concise homepage block for Jogeshwari-area new projects is desired later, distinct from resale/rental listings.
+
+Featured flags belong in data, not hardcoded in components.
+
+## UI and URLs
+
+Cards: image, status/tag, title, location, key spec, price, action — without crowding.
+
+Detail pages: `/properties/[slug]`. The slug selects the listing. Never show one hardcoded property for every slug. Server-render where practical.
+
+Images: sensible ratios, optimized, descriptive alt, mobile-friendly, not huge downloads.
+
+Enquiry actions (WhatsApp / Call / Enquire) will be defined later; make them obvious when that phase starts.
+
+## Integrity
+
+Never invent prices, sizes, amenities, project facts, possession dates, developers, approvals, or location claims. Leave gaps empty or flag them.

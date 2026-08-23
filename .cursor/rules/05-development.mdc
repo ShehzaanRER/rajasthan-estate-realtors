@@ -1,0 +1,36 @@
+---
+description: Coding workflow, Git, testing and documentation update rules
+globs: ["app/**/*", "components/**/*", "src/**/*", "server/**/*"]
+alwaysApply: false
+---
+
+# RER Development Workflow
+
+## Before editing
+
+Inspect the files, imports, Server vs Client, and knock-on routes. Change the smallest appropriate surface.
+
+Do not refactor or redesign unrelated code, mass-rename, install packages without reason, delete old implementations during migration, or change backend architecture without approval.
+
+## Dependencies and tests
+
+Prefer the existing stack. If a package is needed, say why and avoid duplicates.
+
+After meaningful work: run the relevant check; run `npm run build` for architectural changes; watch the console; check responsive UI. Compilation alone is not success.
+
+## Git
+
+Never commit, push, force-push, rewrite history, or delete branches unless explicitly instructed.
+
+Before a requested commit, list changed/created/deleted files and build/test status.
+
+## Migration
+
+Keep Vite files until verification. Migrate one area at a time. Do not mix migration with redesign unless asked. Checkpoint after stable phases.
+
+## Documentation
+
+- `docs/PRD.md` — product direction only; edit when requirements actually change.
+- `docs/PHASES.md` — roadmap and phase status; update when a phase completes or materially changes.
+- `docs/COMPETITORS.md` — competitor research only; no unsupported claims.
+- `docs/MEMORY.md` — curated memory. **Do not edit automatically.** If something should persist, report `Potential Memory Update` (see `00-core.mdc`) and wait for approval. Do not log bugfixes, CSS, routine migration progress, or experiments there.

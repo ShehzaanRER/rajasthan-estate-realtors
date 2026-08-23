@@ -1,0 +1,63 @@
+---
+description: Next.js App Router architecture for the RER website
+globs: ["app/**/*", "components/**/*", "src/**/*", "next.config.*"]
+alwaysApply: false
+---
+
+# RER Technical Architecture
+
+## Framework
+
+Use Next.js App Router, React, and Tailwind CSS v4 for new work.
+
+Do not reintroduce Vite or React Router into the Next.js app. The Vite implementation under `src/` may remain during migration as a reference/rollback source.
+
+Current Next.js config file: `next.config.mjs`.
+
+Current static property data (temporary): `src/data/properties.js`.
+
+## Target routes
+
+Intended long-term App Router shape (build only when that phase is in progress):
+
+```text
+app/layout.jsx
+app/page.jsx                 → /
+app/about/page.jsx           → /about
+app/properties/page.jsx      → /properties
+app/properties/[slug]/page.jsx → /properties/[slug]
+```
+
+Other routes (`/areas`, `/services`, `/faq`, `/privacy-policy`, `/terms`, and similar) are optional later. Do not create them just because they appear in the Footer.
+
+Today: only the root layout/page exist in `app/`, plus shared Navbar/Footer under `components/layouts/`.
+
+## Components
+
+Prefer `components/layouts/`, `components/home/`, `components/properties/`, `components/ui/` as those areas are migrated. Keep modules small. Do not wrap trivial markup.
+
+## Server vs Client
+
+Server Components are the default (listings, detail pages, static content, SEO, data fetching). Navbar/Footer should stay Server unless a small child needs the client.
+
+Use `"use client"` only for interactive sliders, filters, search, mobile menus, browser APIs, or client state/effects. Keep those boundaries small.
+
+A small client wrapper (for example pathname-gated Footer CTA) is preferred over making an entire layout Client.
+
+## Images, fonts, links
+
+Use `next/image` where appropriate. Local assets live in `public/`. Configure remote hosts in `next.config.mjs`.
+
+Use `next/font` for production typography when that phase starts. Use `next/link` for internal routes; keep hash and external URLs as `<a>`.
+
+## Data and backend
+
+Static property data is temporary. Do not add a database only because that file exists. A later model should support slugs, images, details, transaction type, property type, locations, tags, status, and metadata — exact fields TBD.
+
+The Express `server/` is temporary. Do not remove it until its jobs are migrated and verified. Route Handlers may later replace simple Express APIs. Never expose server-only keys.
+
+## SEO and migration
+
+Use Next.js metadata APIs when implementing SEO. Canonicals, OG, robots, sitemap, and JSON-LD are later work unless requested.
+
+During migration: preserve behaviour and approved visuals, fix migration bugs, do not redesign in the same step, keep Vite code until verification.

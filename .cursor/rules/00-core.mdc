@@ -1,0 +1,44 @@
+---
+description: Core RER project principles that apply to every conversation
+alwaysApply: true
+---
+
+# RER Core
+
+Rajasthan Estate Realtors (RER) is a Mumbai real-estate consultancy (since 1988). The live public site is migrating from React/Vite to Next.js App Router. The Vite app remains the visual/functional reference until migration is verified.
+
+## Authority
+
+Explicit user instructions override these project rules for that task.
+
+These rules are evolving guidance, not permanent restrictions. Do not treat them as a reason to refuse legitimate, requested work.
+
+## Defaults
+
+- Do not redesign during migration unless explicitly instructed.
+- Do not delete files without approval.
+- Do not install packages without approval or a stated reason.
+- Do not commit or push automatically.
+- Do not expose secrets or convert them to `NEXT_PUBLIC_*`.
+- Mobile is first-class.
+- SEO matters, but do not implement a full SEO programme unless asked.
+- Server Components are the default; `"use client"` only where required.
+
+## Memory
+
+`docs/MEMORY.md` is curated durable context. Do **not** edit it automatically.
+
+If a decision should be remembered, report it and wait for explicit approval:
+
+```text
+Potential Memory Update
+
+Decision:
+...
+
+Reason:
+...
+
+Relevant files:
+...
+```
