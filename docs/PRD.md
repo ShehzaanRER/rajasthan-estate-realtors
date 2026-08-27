@@ -226,25 +226,223 @@ Potential content:
 
 ---
 
-# 11. Property Tags
+# 11. Property Data & Tags
 
-The system should support controlled tags.
+The property system must use structured data rather than relying on hardcoded property objects.
+
+Every property must have a permanent, unique RER Property ID.
+
+Example:
+
+RER-000001
+
+The RER Property ID must:
+
+- be automatically generated
+- be unique
+- remain permanently associated with the property
+- never be reused
+- not depend on the property title or URL slug
+- not be manually editable during normal administration
+
+## Core Property Classification
+
+Properties should support:
+
+- Residential
+- Commercial
+
+Property types should be appropriate to the selected category.
 
 Examples:
 
-- New
+Residential:
+- Apartment
+- Villa
+- Bungalow
+- Penthouse
+- Plot
+
+Commercial:
+- Office
+- Shop
+- Showroom
+- Warehouse
+- Commercial Building
+- Plot
+
+## Transaction Type
+
+Properties should support:
+
+- Sale
+- Rent
+
+The system should remain extensible for future transaction types where justified.
+
+## Website Controls
+
+The following controls are separate from property tags:
+
+- Active / Inactive
 - Featured
-- For Sale
-- For Rent
+- New Listing
+
+Active / Inactive controls whether the property is publicly available.
+
+Featured controls whether the property can appear in Featured Properties.
+
+New Listing controls whether the property can appear in New Listings.
+
+These controls should not be implemented merely as ordinary marketing tags.
+
+## Controlled Property Tags
+
+Properties should support multiple controlled tags.
+
+Initial tag vocabulary:
+
+### Listing / Opportunity
+
+- Exclusive
+- Hot Property
+- Price Reduced
+- Investment Opportunity
+- Value Buy
+- High Rental Yield
+- Distress Sale
+- Urgent Sale
+- Below Market Value
+
+### Development
+
+- New Build
 - New Development
 - Under Construction
+- Near Possession
 - Ready to Move
-- Premium
-- Price Reduced
-- Commercial
-- Residential
+- Redevelopment
+- Redevelopment Opportunity
+- Pre-Launch
+- Recently Completed
 
-The final controlled vocabulary will be approved before database implementation.
+### Property Condition
+
+- Resale
+- Brand New
+- Fully Renovated
+- Partly Renovated
+- Fully Furnished
+- Semi-Furnished
+- Unfurnished
+- Bare Shell
+
+The controlled tag vocabulary should be reviewed periodically and expanded only when useful for RER's actual inventory and user journeys.
+
+Tags should be reusable and selectable rather than manually typed for every property.
+
+## Features & Amenities
+
+Features and amenities should remain separate from marketing/opportunity tags.
+
+Examples:
+
+- Parking
+- Lift
+- Security
+- Power Backup
+- Gym
+- Swimming Pool
+- Clubhouse
+- Garden
+- Balcony
+- Modular Kitchen
+- Air Conditioning
+- Natural Light
+- Sea View
+
+The final feature taxonomy should remain manageable and relevant to RER's inventory.
+
+## Property Relationships
+
+Properties should support relationships to:
+
+- Area
+- Project
+- Builder
+- Features/Amenities
+- Media
+
+Project and Builder relationships should be optional because not every resale or independent property will belong to a defined project or builder.
+
+## Development / Project Information
+
+New developments and projects should support project-level information such as:
+
+- Project name
+- Builder
+- Area
+- Project description
+- Configurations
+- Amenities
+- Builder schemes/offers
+- Possession information
+- Project images
+- Active/inactive status
+
+Builder schemes should initially support flexible descriptive content rather than a complex financial system.
+
+## Property Images
+
+The property system must support:
+
+- multiple image uploads
+- image reordering
+- cover image selection
+- image removal
+- appropriate image optimisation
+- image metadata such as alt text where appropriate
+
+The original uploaded image should not necessarily be served directly to every website visitor. Responsive/optimised versions should be used where appropriate.
+
+## Property Publication State
+
+Properties should support:
+
+- Draft
+- Published
+
+A published property can then be:
+
+- Active
+- Inactive
+
+An inactive property should be hidden from public property listings while remaining in the database.
+
+Properties should not be deleted merely because they are sold, rented, leased or otherwise unavailable.
+
+Where useful, future availability statuses may include:
+
+- Available
+- Sold
+- Rented
+- Leased
+
+The final relationship between publication state, visibility and availability should be established during technical implementation.
+
+## Database as Source of Truth
+
+The long-term property source of truth must be the database.
+
+The existing:
+
+src/data/properties.js
+
+file is temporary migration data.
+
+Once database integration is verified, public property components should read from the database rather than relying on hardcoded property inventory.
+
+Existing property UI components should be reused where practical rather than unnecessarily rebuilt.
 
 ---
 
