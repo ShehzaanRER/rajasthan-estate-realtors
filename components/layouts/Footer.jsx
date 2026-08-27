@@ -346,7 +346,7 @@ function Footer() {
               CONTACT
           ===================================================== */}
 
-          <div>
+          <div id="contact">
 
             <h4 className="mb-6 text-xs font-semibold uppercase tracking-[0.3em] text-[#D4AF37]">
               Get In Touch

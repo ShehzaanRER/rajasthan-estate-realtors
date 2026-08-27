@@ -46,12 +46,16 @@ function PropertySearch() {
 
             <div className="flex flex-col">
 
-              <label className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+              <label
+                htmlFor="property-search-purpose"
+                className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"
+              >
                 Looking For
               </label>
 
               <select
-                className="h-14 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-800 outline-none transition focus:border-[#B8862F] focus:ring-1 focus:ring-[#B8862F]"
+                id="property-search-purpose"
+                className="h-14 rounded-lg border border-slate-300 bg-white px-4 text-base font-medium text-slate-800 outline-none transition focus:border-[#B8862F] focus:ring-1 focus:ring-[#B8862F] md:text-sm"
                 defaultValue="Buy"
               >
                 <option value="Buy">Buy</option>
@@ -68,12 +72,16 @@ function PropertySearch() {
 
             <div className="flex flex-col">
 
-              <label className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+              <label
+                htmlFor="property-search-type"
+                className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"
+              >
                 Property Type
               </label>
 
               <select
-                className="h-14 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-800 outline-none transition focus:border-[#B8862F] focus:ring-1 focus:ring-[#B8862F]"
+                id="property-search-type"
+                className="h-14 rounded-lg border border-slate-300 bg-white px-4 text-base font-medium text-slate-800 outline-none transition focus:border-[#B8862F] focus:ring-1 focus:ring-[#B8862F] md:text-sm"
                 defaultValue="Residential"
               >
                 <option value="Residential">
@@ -95,12 +103,16 @@ function PropertySearch() {
 
             <div className="flex flex-col">
 
-              <label className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+              <label
+                htmlFor="property-search-location"
+                className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"
+              >
                 Location
               </label>
 
               <select
-                className="h-14 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-800 outline-none transition focus:border-[#B8862F] focus:ring-1 focus:ring-[#B8862F]"
+                id="property-search-location"
+                className="h-14 rounded-lg border border-slate-300 bg-white px-4 text-base font-medium text-slate-800 outline-none transition focus:border-[#B8862F] focus:ring-1 focus:ring-[#B8862F] md:text-sm"
                 defaultValue=""
               >
                 <option value="" disabled>
@@ -142,14 +154,18 @@ function PropertySearch() {
 
             <div className="flex flex-col">
 
-              <label className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+              <label
+                htmlFor="property-search-budget"
+                className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500"
+              >
                 Budget
               </label>
 
               <div className="flex h-14 gap-2">
 
                 <select
-                  className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-800 outline-none transition focus:border-[#B8862F] focus:ring-1 focus:ring-[#B8862F]"
+                  id="property-search-budget"
+                  className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-4 text-base font-medium text-slate-800 outline-none transition focus:border-[#B8862F] focus:ring-1 focus:ring-[#B8862F] md:text-sm"
                   defaultValue=""
                 >
                   <option value="" disabled>

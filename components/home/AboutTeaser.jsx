@@ -105,7 +105,7 @@ function AboutTeaser() {
             <div className="relative overflow-hidden bg-[#081221]">
 
               <img
-                src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1400&q=85"
+                src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1000&q=80"
                 alt="Premium Mumbai residential property"
                 className="h-[360px] w-full object-cover transition duration-700 hover:scale-105 sm:h-[400px]"
               />

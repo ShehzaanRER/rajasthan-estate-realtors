@@ -32,7 +32,7 @@ const properties = [
       "A thoughtfully designed 3 BHK residence offering generous living spaces, contemporary interiors and a comfortable lifestyle in one of Mumbai's established residential neighbourhoods.",
 
     images: [
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1800&q=90",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1100&q=80",
 
       "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=85",
 
@@ -118,7 +118,7 @@ const properties = [
       "A spacious independent villa offering generous interiors, private outdoor space and a premium residential setting in Mira Road.",
 
     images: [
-      "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1800&q=90",
+      "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1100&q=80",
 
       "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1200&q=85",
 
@@ -204,7 +204,7 @@ const properties = [
       "A well-planned 2 BHK residence in Jogeshwari West, offering comfortable living spaces and convenient access to the surrounding neighbourhood.",
 
     images: [
-      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1800&q=90",
+      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1100&q=80",
 
       "https://images.unsplash.com/photo-1600607688969-a5bfcd646154?auto=format&fit=crop&w=1200&q=85",
 

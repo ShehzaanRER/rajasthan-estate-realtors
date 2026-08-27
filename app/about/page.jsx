@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export const metadata = {
   title: "About | Rajasthan Estate Realtors, Jogeshwari since 1988",
@@ -79,10 +80,14 @@ export default function AboutPage() {
 
           <figure className="order-1 lg:order-2">
             <div className="overflow-hidden bg-[#081221]/5">
-              <img
-                src="/Hanif_AboutUs.png"
+              <Image
+                src="/Hanif_AboutUs.jpg"
                 alt="Mr. Hanif Zamindar, Founder and Proprietor of Rajasthan Estate Realtors"
+                width={1200}
+                height={800}
+                sizes="(min-width: 1024px) 560px, 100vw"
                 className="block h-auto w-full"
+                priority
               />
             </div>
             <figcaption className="mt-4 text-xs uppercase tracking-[0.2em] text-slate-500">

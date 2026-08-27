@@ -101,7 +101,7 @@ function HeroSlider() {
           </p>
 
           {/* SERVICES */}
-          <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+          <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
 
             {/* BUY */}
             <div className="group border border-slate-300 bg-white/70 p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[#B8862F] hover:bg-white">
@@ -247,7 +247,7 @@ function HeroSlider() {
           </p>
 
           {/* EXPERIENCE CARDS */}
-          <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+          <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
 
             {/* 35+ */}
             <div className="border border-white/15 bg-[#101b2c]/70 p-5 backdrop-blur-sm">
@@ -348,11 +348,47 @@ function HeroSlider() {
   // =========================================================
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 7000);
+    const nodes = document.querySelectorAll("[data-hero-slide]");
+    nodes.forEach((node) => {
+      const index = Number(node.getAttribute("data-hero-slide"));
+      const inactive = index !== currentSlide;
+      node.inert = inactive;
+      if (inactive) {
+        node.setAttribute("aria-hidden", "true");
+      } else {
+        node.removeAttribute("aria-hidden");
+      }
+    });
+  }, [currentSlide]);
 
-    return () => clearInterval(interval);
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    const startAutoplay = () => {
+      return setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % slides.length);
+      }, 7000);
+    };
+
+    if (media.matches) {
+      return undefined;
+    }
+
+    let interval = startAutoplay();
+
+    const onChange = (event) => {
+      clearInterval(interval);
+      if (!event.matches) {
+        interval = startAutoplay();
+      }
+    };
+
+    media.addEventListener("change", onChange);
+
+    return () => {
+      clearInterval(interval);
+      media.removeEventListener("change", onChange);
+    };
   }, [slides.length]);
 
   // =========================================================
@@ -371,13 +407,9 @@ function HeroSlider() {
 
   return (
     <section
-      className="
-        relative
-        min-h-[650px]
-        h-[calc(100vh-160px)]
-        w-full
-        overflow-hidden
-      "
+      aria-roledescription="carousel"
+      aria-label="Homepage highlights"
+      className="relative w-full overflow-x-hidden md:h-[calc(100vh-160px)] md:min-h-[650px] md:overflow-hidden"
     >
 
       {/* =======================================================
@@ -391,16 +423,15 @@ function HeroSlider() {
         return (
           <div
             key={slide.id}
+            data-hero-slide={index}
             className={`
-              absolute
-              inset-0
-              transition-opacity
-              duration-700
-              ease-in-out
+              motion-safe:transition-opacity
+              motion-safe:duration-700
+              motion-safe:ease-in-out
               ${
                 isActive
-                  ? "z-10 opacity-100"
-                  : "z-0 opacity-0 pointer-events-none"
+                  ? "relative z-10 opacity-100 md:absolute md:inset-0"
+                  : "pointer-events-none absolute inset-0 z-0 hidden opacity-0 md:block"
               }
             `}
           >
@@ -413,7 +444,7 @@ function HeroSlider() {
               <div className="absolute inset-0">
 
                 <img
-                  src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=2200&q=85"
+                  src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=80"
                   alt="Premium residential architecture in Mumbai"
                   className="h-full w-full object-cover"
                 />
@@ -463,7 +494,7 @@ function HeroSlider() {
     CONTENT VIEWPORT
 ================================================= */}
 
-<div className="relative z-10 flex h-full w-full items-center">
+<div className="relative z-10 flex h-full w-full items-start md:items-center">
 
   <div
     className="
@@ -473,9 +504,11 @@ function HeroSlider() {
       max-w-[1600px]
       items-center
       px-6
-      py-16
+      pb-14
+      pt-8
       sm:px-10
       md:px-16
+      md:py-16
       lg:px-20
       xl:px-24
     "
@@ -484,11 +517,9 @@ function HeroSlider() {
     <div
       className={`w-full max-w-6xl ${
         slide.id === 1
-          ? "-translate-y-18"
-          : slide.id === 2
-          ? "-translate-y--100"
+          ? "md:-translate-y-18"
           : slide.id === 3
-          ? "-translate-y-4"
+          ? "md:-translate-y-4"
           : ""
       }`}
     >
@@ -534,7 +565,7 @@ function HeroSlider() {
 
           <ArrowDown
             size={17}
-            className="animate-bounce text-[#D4AF37]"
+            className="motion-safe:animate-bounce text-[#D4AF37]"
           />
 
         </div>
@@ -544,13 +575,14 @@ function HeroSlider() {
           NAVIGATION
       ======================================================= */}
 
-      <div className="absolute bottom-7 right-6 z-30 flex items-center gap-3 sm:right-10 md:right-16 lg:right-20">
+      <div className="absolute bottom-6 right-24 z-30 flex items-center gap-1 sm:bottom-7 md:right-16 lg:right-20">
 
         <button
+          type="button"
           onClick={previousSlide}
           aria-label="Previous slide"
           className={`
-            flex h-9 w-9 items-center justify-center rounded-full
+            flex h-11 w-11 items-center justify-center rounded-full
             border transition-all duration-300
             ${
               currentSlide === 1
@@ -564,33 +596,40 @@ function HeroSlider() {
 
         {/* DOTS */}
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center" role="tablist" aria-label="Slides">
 
           {slides.map((slide, index) => (
             <button
               key={slide.id}
+              type="button"
               onClick={() => setCurrentSlide(index)}
               aria-label={`Go to slide ${index + 1}`}
-              className={`
-                h-1.5 rounded-full transition-all duration-300
-                ${
-                  currentSlide === index
-                    ? "w-7 bg-[#D4AF37]"
-                    : currentSlide === 1
-                    ? "w-1.5 bg-slate-400"
-                    : "w-1.5 bg-white/40"
-                }
-              `}
-            />
+              aria-current={currentSlide === index ? "true" : undefined}
+              className="flex h-11 w-11 items-center justify-center"
+            >
+              <span
+                className={`
+                  h-1.5 rounded-full transition-all duration-300
+                  ${
+                    currentSlide === index
+                      ? "w-7 bg-[#D4AF37]"
+                      : currentSlide === 1
+                      ? "w-1.5 bg-slate-400"
+                      : "w-1.5 bg-white/40"
+                  }
+                `}
+              />
+            </button>
           ))}
 
         </div>
 
         <button
+          type="button"
           onClick={nextSlide}
           aria-label="Next slide"
           className={`
-            flex h-9 w-9 items-center justify-center rounded-full
+            flex h-11 w-11 items-center justify-center rounded-full
             border transition-all duration-300
             ${
               currentSlide === 1

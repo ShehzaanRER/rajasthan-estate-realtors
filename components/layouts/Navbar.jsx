@@ -1,6 +1,39 @@
+"use client";
+
+import { useEffect, useId, useState } from "react";
 import Link from "next/link";
+import { Menu, X } from "lucide-react";
+
+const locateUsHref =
+  "https://www.google.com/maps/search/?api=1&query=Rajasthan+Estate+Realtors+Mumbai";
 
 function Navbar() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuId = useId();
+
+  useEffect(() => {
+    if (!menuOpen) {
+      return undefined;
+    }
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [menuOpen]);
+
+  const closeMenu = () => setMenuOpen(false);
+
   return (
     <nav className="relative z-50 w-full bg-white border-b border-slate-200 shadow-sm">
 
@@ -13,13 +46,14 @@ function Navbar() {
         <Link
           href="/"
           className="flex min-w-0 items-center gap-3 sm:gap-6"
+          onClick={closeMenu}
         >
 
           {/* House Logo */}
 
           <img
             src="/logo-HOUSE.svg"
-            alt="Rajasthan Estate Realtors"
+            alt=""
             className="h-16 w-auto shrink-0 object-contain sm:h-[100px]"
           />
 
@@ -27,9 +61,9 @@ function Navbar() {
 
           <div className="min-w-0 flex flex-col justify-center">
 
-            <h1 className="font-cormorant text-lg font-semibold leading-tight tracking-[-0.02em] text-slate-900 sm:text-2xl">
+            <p className="font-cormorant text-lg font-semibold leading-tight tracking-[-0.02em] text-slate-900 sm:text-2xl">
               Rajasthan Estate Realtors
-            </h1>
+            </p>
 
             <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.22em] text-amber-600 sm:text-xs sm:tracking-[0.35em]">
               Since 1988
@@ -108,7 +142,7 @@ function Navbar() {
         ========================================================= */}
 
         <a
-          href="https://www.google.com/maps/search/?api=1&query=Rajasthan+Estate+Realtors+Mumbai"
+          href={locateUsHref}
           target="_blank"
           rel="noopener noreferrer"
           className="group hidden items-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-3 text-base font-medium text-slate-800 transition-all duration-300 hover:border-amber-500 hover:text-amber-600 hover:shadow-md md:flex"
@@ -143,7 +177,93 @@ function Navbar() {
 
         </a>
 
+        <button
+          type="button"
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-300 text-slate-800 md:hidden"
+          aria-expanded={menuOpen}
+          aria-controls={menuId}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          {menuOpen ? <X size={22} strokeWidth={1.8} /> : <Menu size={22} strokeWidth={1.8} />}
+        </button>
+
       </div>
+
+      {menuOpen ? (
+        <div
+          id={menuId}
+          className="border-t border-slate-200 bg-white md:hidden"
+        >
+          <ul className="mx-auto flex max-w-7xl flex-col px-4 py-4 font-medium text-slate-700">
+            <li>
+              <Link
+                href="/"
+                className="flex min-h-11 items-center py-3 text-base tracking-wide"
+                onClick={closeMenu}
+              >
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/properties"
+                className="flex min-h-11 items-center py-3 text-base tracking-wide"
+                onClick={closeMenu}
+              >
+                Properties
+              </Link>
+            </li>
+            <li>
+              <a
+                href="#services"
+                className="flex min-h-11 items-center py-3 text-base tracking-wide"
+                onClick={closeMenu}
+              >
+                Services
+              </a>
+            </li>
+            <li>
+              <a
+                href="#areas"
+                className="flex min-h-11 items-center py-3 text-base tracking-wide"
+                onClick={closeMenu}
+              >
+                Areas
+              </a>
+            </li>
+            <li>
+              <Link
+                href="/about"
+                className="flex min-h-11 items-center py-3 text-base tracking-wide"
+                onClick={closeMenu}
+              >
+                About
+              </Link>
+            </li>
+            <li>
+              <a
+                href="#contact"
+                className="flex min-h-11 items-center py-3 text-base tracking-wide"
+                onClick={closeMenu}
+              >
+                Contact
+              </a>
+            </li>
+            <li className="pt-2">
+              <a
+                href={locateUsHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-slate-300 px-5 py-3 text-base font-medium text-slate-800"
+                onClick={closeMenu}
+              >
+                Locate Us
+              </a>
+            </li>
+          </ul>
+        </div>
+      ) : null}
     </nav>
   );
 }
