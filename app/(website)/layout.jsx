@@ -1,6 +1,6 @@
-import Navbar from "../components/layouts/Navbar";
-import Footer from "../components/layouts/Footer";
-import "../src/index.css";
+import Navbar from "../../components/layouts/Navbar";
+import Footer from "../../components/layouts/Footer";
+import "../../src/index.css";
 
 export const metadata = {
   title: "Rajasthan Estate Realtors | Real Estate in Mumbai",
