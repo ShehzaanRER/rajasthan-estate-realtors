@@ -6,6 +6,7 @@
 const { execFile } = require("child_process");
 const fs = require("fs/promises");
 const path = require("path");
+const crypto = require("crypto");
 
 const RENDER_DPI = 300;
 const EXEC_OPTS = { maxBuffer: 1024 * 1024 * 64, timeout: 60_000 };
@@ -67,9 +68,18 @@ async function extractPageText(pdfPath, pageNumber) {
  * Renders a single page to PNG or JPEG at RENDER_DPI, preserving the
  * original page aspect ratio and dimensions (Poppler derives pixel
  * dimensions from the page's own size at the given DPI).
+ *
+ * Every call uses a prefix that is unique to this specific render (page
+ * number + a random token), so the output file it looks for afterwards
+ * cannot collide with, or be shadowed by, any other page's output sitting
+ * in the same directory — including a leftover file from a prior render
+ * that failed to get moved. This must not rely on "first file found";
+ * ambiguity here would silently mislabel a page's image as another page's.
  */
 async function renderPage(pdfPath, pageNumber, outDir, format) {
-  const prefix = path.join(outDir, `page`);
+  const token = crypto.randomBytes(8).toString("hex");
+  const prefixBase = `page-${pageNumber}-${token}`;
+  const prefix = path.join(outDir, prefixBase);
   const args = ["-f", String(pageNumber), "-l", String(pageNumber), "-r", String(RENDER_DPI)];
   if (format === "jpg") {
     args.push("-jpeg", "-jpegopt", "quality=92");
@@ -80,16 +90,21 @@ async function renderPage(pdfPath, pageNumber, outDir, format) {
 
   await run("pdftoppm", args);
 
-  // pdftoppm names output "<prefix>-<pageNumber>.<ext>" (or with leading
-  // zeros depending on total page count). Find whichever it produced.
+  // pdftoppm writes "<prefix>-<N>.<ext>", where N is the rendered page
+  // number, zero-padded to the digit width of the requested range. Since
+  // prefixBase is unique to this call, exactly one file can match it.
   const ext = format === "jpg" ? "jpg" : "png";
+  const pattern = new RegExp(`^${prefixBase}-0*${pageNumber}\\.${ext}$`);
   const files = await fs.readdir(outDir);
-  const match = files.find((f) => f.startsWith("page") && f.endsWith(`.${ext}`));
-  if (!match) {
+  const matches = files.filter((f) => pattern.test(f));
+  if (matches.length === 0) {
     throw new Error(`pdftoppm did not produce an output file for page ${pageNumber}`);
   }
+  if (matches.length > 1) {
+    throw new Error(`pdftoppm produced ${matches.length} ambiguous output files for page ${pageNumber}`);
+  }
   const finalPath = path.join(outDir, `rendered-${pageNumber}.${ext}`);
-  await fs.rename(path.join(outDir, match), finalPath);
+  await fs.rename(path.join(outDir, matches[0]), finalPath);
   return finalPath;
 }
 

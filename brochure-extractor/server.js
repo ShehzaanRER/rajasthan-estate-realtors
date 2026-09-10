@@ -211,16 +211,18 @@ app.post("/api/zip/:sessionId", async (req, res) => {
     if (!res.headersSent) res.status(500);
     res.end();
   });
+  // Register the cleanup listener before finalizing: for small archives the
+  // response can finish streaming before `archive.finalize()`'s promise
+  // resolves, so attaching this after the await risks missing the event.
+  res.on("finish", () => {
+    destroySession(session.id).catch(() => {});
+  });
+
   archive.pipe(res);
   for (const item of resolved) {
     archive.file(item.filePath, { name: `${folderName}/${item.name}` });
   }
   await archive.finalize();
-
-  // Clean up temp files once the ZIP has been fully sent.
-  res.on("finish", () => {
-    destroySession(session.id).catch(() => {});
-  });
 });
 
 // ---- 5. Explicit reset ------------------------------------------------------
