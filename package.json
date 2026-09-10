@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "concurrently \"npm run frontend\" \"npm run backend\"",
     "frontend": "vite",
-    "backend": "cd server && npm run dev"
+    "backend": "cd server && npm run dev",
+    "build": "vite build"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
