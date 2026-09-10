@@ -68,6 +68,9 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
+    properties: Property;
+    amenities: Amenity;
+    media: Media;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -76,6 +79,9 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
+    properties: PropertiesSelect<false> | PropertiesSelect<true>;
+    amenities: AmenitiesSelect<false> | AmenitiesSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -143,6 +149,189 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "properties".
+ */
+export interface Property {
+  id: number;
+  title: string;
+  slug: string;
+  /**
+   * Assigned automatically when the property is created. Permanent and not editable.
+   */
+  propertyId?: string | null;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  purpose: 'sale' | 'rent' | 'lease';
+  propertyCategory?: ('residential' | 'commercial') | null;
+  propertyType: 'apartment' | 'house' | 'villa' | 'office' | 'shop' | 'showroom' | 'warehouse' | 'land' | 'other';
+  location: {
+    locality: string;
+    area?: string | null;
+    city: string;
+    state?: string | null;
+    address?: string | null;
+    /**
+     * Optional. Used later to generate nearby connectivity. Not required to save a property.
+     */
+    latitude?: number | null;
+    /**
+     * Optional. Used later to generate nearby connectivity. Not required to save a property.
+     */
+    longitude?: number | null;
+  };
+  /**
+   * Generate suggestions from the saved property coordinates, then choose which places to add. Only entries with Show on Website enabled are intended for the public listing.
+   */
+  nearbyConnectivity?: {
+    /**
+     * Add nearby places manually. Drag to set display order. Hidden entries are kept internally and are not intended for the public website.
+     */
+    connections?:
+      | {
+          name: string;
+          category:
+            | 'transport'
+            | 'metro'
+            | 'railway-station'
+            | 'airport'
+            | 'road-highway'
+            | 'school'
+            | 'college'
+            | 'hospital'
+            | 'shopping'
+            | 'restaurant'
+            | 'business-district'
+            | 'park'
+            | 'religious-place'
+            | 'other';
+          travelTimeMinutes?: number | null;
+          distance?: number | null;
+          distanceUnit?: ('km' | 'm') | null;
+          displayOnWebsite?: boolean | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  pricing?: {
+    currency?: 'INR' | null;
+    price?: number | null;
+    priceOnRequest?: boolean | null;
+    negotiable?: boolean | null;
+    pricePerSqFt?: number | null;
+    additionalCharges?: number | null;
+    rentAmount?: number | null;
+    rentPeriod?: ('monthly' | 'quarterly' | 'yearly') | null;
+    securityDeposit?: number | null;
+    maintenanceCharges?: number | null;
+    maintenanceIncluded?: boolean | null;
+    brokerageFee?: number | null;
+    totalLeaseAmount?: number | null;
+    monthlyLeasePayment?: number | null;
+  };
+  details?: {
+    bedrooms?: number | null;
+    bathrooms?: number | null;
+    area?: number | null;
+    areaUnit?: ('sq-ft' | 'sq-m') | null;
+    furnishing?: ('unfurnished' | 'semi-furnished' | 'furnished') | null;
+    balconies?: number | null;
+    propertyAge?: number | null;
+    possessionStatus?: ('ready-to-move' | 'under-construction') | null;
+    cabins?: number | null;
+    workstations?: number | null;
+    meetingRooms?: number | null;
+    pantryAvailable?: boolean | null;
+    fitOutStatus?: ('bare-shell' | 'warm-shell' | 'fitted') | null;
+  };
+  buildingDetails?: {
+    buildingName?: string | null;
+    /**
+     * Total number of floors in the building.
+     */
+    totalFloors?: number | null;
+    /**
+     * Floor on which this property/unit is located.
+     */
+    floorNumber?: number | null;
+    liftAvailable?: boolean | null;
+  };
+  amenities?: (number | Amenity)[] | null;
+  media?: {
+    /**
+     * Main property image used as the cover photo in listings and on the property page.
+     */
+    featuredImage?: (number | null) | Media;
+    /**
+     * Additional property photos. Drag to reorder. Set alt text and optional caption on each Media item.
+     */
+    gallery?: (number | Media)[] | null;
+  };
+  status: 'draft' | 'available' | 'under-offer' | 'sold' | 'rented';
+  tags?:
+    | (
+        | 'new'
+        | 'featured'
+        | 'new-development'
+        | 'under-construction'
+        | 'ready-to-move'
+        | 'premium'
+        | 'price-reduced'
+        | 'commercial'
+        | 'residential'
+      )[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Master amenity library. Properties select from these reusable records; add new amenities here rather than duplicating them on each listing.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "amenities".
+ */
+export interface Amenity {
+  id: number;
+  name: string;
+  slug: string;
+  category?: ('building' | 'lifestyle' | 'convenience') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  alt: string;
+  caption?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -164,10 +353,23 @@ export interface PayloadKv {
  */
 export interface PayloadLockedDocument {
   id: number;
-  document?: {
-    relationTo: 'users';
-    value: number | User;
-  } | null;
+  document?:
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null)
+    | ({
+        relationTo: 'properties';
+        value: number | Property;
+      } | null)
+    | ({
+        relationTo: 'amenities';
+        value: number | Amenity;
+      } | null)
+    | ({
+        relationTo: 'media';
+        value: number | Media;
+      } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
@@ -232,6 +434,129 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "properties_select".
+ */
+export interface PropertiesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  propertyId?: T;
+  description?: T;
+  purpose?: T;
+  propertyCategory?: T;
+  propertyType?: T;
+  location?:
+    | T
+    | {
+        locality?: T;
+        area?: T;
+        city?: T;
+        state?: T;
+        address?: T;
+        latitude?: T;
+        longitude?: T;
+      };
+  nearbyConnectivity?:
+    | T
+    | {
+        connections?:
+          | T
+          | {
+              name?: T;
+              category?: T;
+              travelTimeMinutes?: T;
+              distance?: T;
+              distanceUnit?: T;
+              displayOnWebsite?: T;
+              id?: T;
+            };
+      };
+  pricing?:
+    | T
+    | {
+        currency?: T;
+        price?: T;
+        priceOnRequest?: T;
+        negotiable?: T;
+        pricePerSqFt?: T;
+        additionalCharges?: T;
+        rentAmount?: T;
+        rentPeriod?: T;
+        securityDeposit?: T;
+        maintenanceCharges?: T;
+        maintenanceIncluded?: T;
+        brokerageFee?: T;
+        totalLeaseAmount?: T;
+        monthlyLeasePayment?: T;
+      };
+  details?:
+    | T
+    | {
+        bedrooms?: T;
+        bathrooms?: T;
+        area?: T;
+        areaUnit?: T;
+        furnishing?: T;
+        balconies?: T;
+        propertyAge?: T;
+        possessionStatus?: T;
+        cabins?: T;
+        workstations?: T;
+        meetingRooms?: T;
+        pantryAvailable?: T;
+        fitOutStatus?: T;
+      };
+  buildingDetails?:
+    | T
+    | {
+        buildingName?: T;
+        totalFloors?: T;
+        floorNumber?: T;
+        liftAvailable?: T;
+      };
+  amenities?: T;
+  media?:
+    | T
+    | {
+        featuredImage?: T;
+        gallery?: T;
+      };
+  status?: T;
+  tags?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "amenities_select".
+ */
+export interface AmenitiesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  category?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media_select".
+ */
+export interface MediaSelect<T extends boolean = true> {
+  alt?: T;
+  caption?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

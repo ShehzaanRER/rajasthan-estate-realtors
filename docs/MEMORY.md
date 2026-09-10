@@ -59,23 +59,21 @@ Homepage section count and hero treatment are not locked. A later redesign may c
 
 ---
 
-## Homepage (migration reference)
+## Homepage (current state)
 
-The **Vite** homepage in `src/` is the migration source of truth for composition and visuals.
+The **Next.js** homepage (`app/(website)/page.jsx`) is the real, live homepage. It is no longer a placeholder and the Vite version in `src/` is retained only as a frozen migration reference — it is not rendered anywhere and nothing in `app/`, `components/`, or `lib/` imports from `src/`.
 
-That reference composition currently includes:
+Current composition:
 
-- Navbar
+- Navbar (in layout)
 - HeroSlider
 - Floating WhatsApp
 - PropertySearch
-- FeaturedProperties
+- FeaturedProperties — now data-driven, reading live properties from Payload via `getFeaturedProperties()` (filtered to public statuses + the `featured` tag), not the old hardcoded `src/data/properties.js`
 - AboutTeaser
-- Footer
+- Footer (in layout)
 
-The **Next.js** homepage (`app/page.jsx`) is still a temporary placeholder. Do not treat it as the real homepage until Phase 3 migrates the Vite sections.
-
-The homepage will eventually be simplified and improved. A dedicated New Developments section is planned. Do not rebuild the homepage from scratch during technical migration.
+The homepage will eventually be simplified and improved. A dedicated New Developments section is planned but not yet built — there is no project/development data model yet for it to draw on. Do not rebuild the homepage from scratch during technical migration.
 
 ---
 

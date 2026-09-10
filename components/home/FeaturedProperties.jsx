@@ -1,6 +1,8 @@
-import properties from "../../src/data/properties";
+import Link from "next/link";
 
-function FeaturedProperties() {
+function FeaturedProperties({ properties = [] }) {
+  const count = properties.length;
+
   return (
     <section id="properties" className="bg-white py-24">
 
@@ -43,8 +45,8 @@ function FeaturedProperties() {
 
 
           {/* View All */}
-          <a
-            href="#properties"
+          <Link
+            href="/properties"
             className="group inline-flex w-fit items-center gap-3 border-b border-slate-300 pb-2 text-sm font-semibold uppercase tracking-[0.15em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
           >
             View All Properties
@@ -52,7 +54,7 @@ function FeaturedProperties() {
             <span className="text-lg transition-transform duration-300 group-hover:translate-x-1">
               →
             </span>
-          </a>
+          </Link>
 
         </div>
 
@@ -61,146 +63,193 @@ function FeaturedProperties() {
             PROPERTY GRID
         ========================================================= */}
 
-        <div className="grid gap-8 md:grid-cols-3">
-
-          {properties.map((property) => (
-
-            <article
-              key={property.id}
-              className="group overflow-hidden border border-slate-200 bg-white transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(8,18,33,0.12)]"
+        {count === 0 ? (
+          <div className="border border-slate-200 bg-[#F7F5F1] px-8 py-16 text-center sm:px-12">
+            <p className="font-serif text-2xl font-medium text-[#081221] sm:text-3xl">
+              Featured opportunities will appear here shortly.
+            </p>
+            <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-600">
+              Please check back soon, or browse the full collection of
+              properties currently available through Rajasthan Estate Realtors.
+            </p>
+            <Link
+              href="/properties"
+              className="group mt-8 inline-flex items-center gap-3 border-b border-slate-300 pb-2 text-sm font-semibold uppercase tracking-[0.15em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
             >
+              Browse all properties
+              <span className="text-lg transition-transform duration-300 group-hover:translate-x-1">
+                →
+              </span>
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-8 md:grid-cols-3">
 
-              {/* =====================================================
-                  IMAGE
-              ===================================================== */}
+            {properties.map((property) => {
+              const image = property.images?.[0];
+              const typeLabel = property.categoryLabel || property.propertyTypeLabel;
+              const displayPrice = property.pricing?.displayPrice;
 
-              <div className="relative h-[320px] overflow-hidden">
-
-                <img
-                  src={property.images[0]}
-                  alt={property.title}
-                  className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                />
-
-                {/* Image overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#081221]/50 via-transparent to-transparent opacity-70" />
-
-                {/* Status */}
-                <div className="absolute left-5 top-5">
-
-                  <span className="inline-flex bg-[#B8862F] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">
-                    {property.status}
-                  </span>
-
-                </div>
-
-              </div>
-
-
-              {/* =====================================================
-                  PROPERTY DETAILS
-              ===================================================== */}
-
-              <div className="p-6">
-
-                {/* Property type */}
-                <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-[#B8862F]">
-                  {property.type}
-                </p>
-
-
-                {/* Title */}
-                <h3 className="mt-3 font-serif text-2xl font-medium text-[#081221]">
-                  {property.title}
-                </h3>
-
-
-                {/* Location */}
-                <div className="mt-3 flex items-center gap-2 text-sm text-slate-500">
-
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    className="h-4 w-4 text-[#B8862F]"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11Z"
-                    />
-
-                    <circle
-                      cx="12"
-                      cy="10"
-                      r="2.3"
-                    />
-                  </svg>
-
-                  {property.location}
-
-                </div>
-
-
-                {/* Divider */}
-                <div className="my-5 h-px bg-slate-200" />
-
-
-                {/* Area + Price */}
-                <div className="flex items-end justify-between">
-
-                  <div>
-
-                    <p className="text-xs uppercase tracking-[0.15em] text-slate-400">
-                      Area
-                    </p>
-
-                    <p className="mt-1 text-sm font-medium text-slate-700">
-                      {property.area}
-                    </p>
-
-                  </div>
-
-
-                  <div className="text-right">
-
-                    <p className="text-xs uppercase tracking-[0.15em] text-slate-400">
-                      Price
-                    </p>
-
-                    <p className="mt-1 text-xl font-semibold text-[#081221]">
-                      {property.price}
-                    </p>
-
-                  </div>
-
-                </div>
-
-
-                {/* View Property */}
-                <button
-                  className="group/link mt-6 flex w-full items-center justify-between border border-slate-300 px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:bg-[#B8862F] hover:text-white"
+              return (
+                <article
+                  key={property.slug}
+                  className="group overflow-hidden border border-slate-200 bg-white transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(8,18,33,0.12)]"
                 >
 
-                  <span>
-                    View Property
-                  </span>
+                  {/* =====================================================
+                      IMAGE
+                  ===================================================== */}
 
-                  <span className="text-lg transition-transform duration-300 group-hover/link:translate-x-1">
-                    →
-                  </span>
+                  <div className="relative h-[320px] overflow-hidden bg-[#081221]">
 
-                </button>
+                    {image?.url ? (
+                      <img
+                        src={image.url}
+                        alt={image.alt || property.title}
+                        className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[#081221]">
+                        <span className="h-px w-10 bg-[#B8862F]" />
+                        <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-[#D4AF37]">
+                          Image coming soon
+                        </p>
+                      </div>
+                    )}
 
-              </div>
+                    {/* Image overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#081221]/50 via-transparent to-transparent opacity-70" />
 
-            </article>
+                    {/* Badge */}
+                    {property.badge ? (
+                      <div className="absolute left-5 top-5">
 
-          ))}
+                        <span className="inline-flex bg-[#B8862F] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">
+                          {property.badge}
+                        </span>
 
-        </div>
+                      </div>
+                    ) : null}
+
+                  </div>
+
+
+                  {/* =====================================================
+                      PROPERTY DETAILS
+                  ===================================================== */}
+
+                  <div className="p-6">
+
+                    {/* Property type */}
+                    {typeLabel ? (
+                      <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-[#B8862F]">
+                        {typeLabel}
+                      </p>
+                    ) : null}
+
+
+                    {/* Title */}
+                    <h3 className="mt-3 font-serif text-2xl font-medium text-[#081221]">
+                      {property.title}
+                    </h3>
+
+
+                    {/* Location */}
+                    {property.locationDisplay ? (
+                      <div className="mt-3 flex items-center gap-2 text-sm text-slate-500">
+
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          className="h-4 w-4 shrink-0 text-[#B8862F]"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11Z"
+                          />
+
+                          <circle
+                            cx="12"
+                            cy="10"
+                            r="2.3"
+                          />
+                        </svg>
+
+                        {property.locationDisplay}
+
+                      </div>
+                    ) : null}
+
+
+                    {/* Divider */}
+                    <div className="my-5 h-px bg-slate-200" />
+
+
+                    {/* Area + Price */}
+                    <div className="flex items-end justify-between">
+
+                      {property.areaDisplay ? (
+                        <div>
+
+                          <p className="text-xs uppercase tracking-[0.15em] text-slate-400">
+                            Area
+                          </p>
+
+                          <p className="mt-1 text-sm font-medium text-slate-700">
+                            {property.areaDisplay}
+                          </p>
+
+                        </div>
+                      ) : (
+                        <div />
+                      )}
+
+
+                      {displayPrice ? (
+                        <div className="text-right">
+
+                          <p className="text-xs uppercase tracking-[0.15em] text-slate-400">
+                            Price
+                          </p>
+
+                          <p className="mt-1 text-xl font-semibold text-[#081221]">
+                            {displayPrice}
+                          </p>
+
+                        </div>
+                      ) : null}
+
+                    </div>
+
+
+                    {/* View Property */}
+                    <Link
+                      href={`/properties/${property.slug}`}
+                      className="group/link mt-6 flex w-full items-center justify-between border border-slate-300 px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:bg-[#B8862F] hover:text-white"
+                    >
+
+                      <span>
+                        View Property
+                      </span>
+
+                      <span className="text-lg transition-transform duration-300 group-hover/link:translate-x-1">
+                        →
+                      </span>
+
+                    </Link>
+
+                  </div>
+
+                </article>
+              );
+            })}
+
+          </div>
+        )}
 
       </div>
 

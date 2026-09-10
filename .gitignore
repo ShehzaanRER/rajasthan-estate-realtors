@@ -8,11 +8,13 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+media
 dist
 dist-ssr
 .next
 out
 *.local
+*.tsbuildinfo
 
 # Environment
 .env

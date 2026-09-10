@@ -1,6 +1,6 @@
 # RER Website Development Roadmap
 
-Current status: Phase 1 complete. Phase 2 complete. Phase 3 (homepage migration) is next.
+Current status: Phases 1–7 complete. Phase 10 (property data architecture) and Phase 11 (database) complete. Phase 12 (admin panel) substantially complete via Payload's built-in admin, plus a custom Nearby Connectivity admin tool not originally scoped in this roadmap. Phases 8, 9, 13, 14, 15, 16 not started.
 
 Do not skip phases. Stability before redesign. Architecture before database. Property model before admin panel.
 
@@ -52,7 +52,11 @@ Completed:
 ---
 
 # Phase 3 — Homepage Migration
-Status: NEXT
+Status: COMPLETE
+
+All sections below are migrated into `app/(website)/page.jsx`: HeroSlider, FloatingWhatsapp, PropertySearch, FeaturedProperties, AboutTeaser.
+
+FeaturedProperties was migrated in two steps: first as a direct port of the Vite component (still reading `src/data/properties.js`), then rewritten to read live data from Payload via `getFeaturedProperties()`. No component reads from `src/data/properties.js` anymore.
 
 ## 3A — HeroSlider
 
@@ -101,6 +105,7 @@ Footer
 ---
 
 # Phase 4 — About Page
+Status: COMPLETE
 
 Migrate:
 
@@ -123,41 +128,26 @@ Founder / Proprietor
 ---
 
 # Phase 5 — Properties Listing
+Status: COMPLETE (basic filters; controlled-tag UI not yet built)
 
-Migrate:
+Implemented at `app/(website)/properties/page.jsx` via `components/properties/PropertiesListing.jsx` and `lib/properties/getProperties.ts`. Supports `?type=buy|rent|commercial` query filtering (purpose/category) against live Payload data.
 
-/properties
+Remaining from original scope:
 
-Requirements:
-
-- responsive listing
-- property filters
-- clean cards
-- controlled tags
-- proper navigation
-- no hardcoded property detail
+- controlled tags are not yet exposed as listing filters
+- no pagination beyond the current fixed limit
 
 ---
 
 # Phase 6 — Dynamic Property Pages
+Status: COMPLETE
 
-Implement:
-
-/properties/[slug]
-
-Requirements:
-
-- slug-driven property selection
-- unique metadata
-- unique content
-- responsive gallery
-- property details
-- enquiry actions
-- relevant tags
+Implemented at `app/(website)/properties/[slug]/page.jsx` via `lib/properties/getPropertyBySlug.ts` and `components/properties/PropertyDetail.jsx` / `PropertyGallery.jsx`. Slug-driven lookup is scoped to public statuses (`available`, `under-offer`) via `publicSlugWhere()` — this is the fix for the known Vite-era bug where PropertyDetails used a fixed property instead of reading the slug.
 
 ---
 
 # Phase 7 — Mobile Optimisation
+Status: COMPLETE for Home and About (per commit `5acdd62`). Properties listing/detail pages not yet reviewed for mobile.
 
 Review every major page at:
 
@@ -219,50 +209,31 @@ Implement:
 ---
 
 # Phase 10 — Property Data Architecture
+Status: COMPLETE, except project/development model
 
-Finalize:
+Implemented in `collections/Properties.ts`: property model, tags, statuses, locations (including lat/lng for nearby-connectivity generation), transaction types (sale/rent/lease), property types, permanent auto-assigned `propertyId` (via `collections/hooks/assignPropertyId.ts`), amenities relationship (`collections/Amenities.ts`), and media (`collections/Media.ts`).
 
-- property model
-- tags
-- statuses
-- locations
-- transaction types
-- property types
-- project/development model
+Not implemented: a dedicated project/development (builder/project) model or relationship. Every property is currently standalone.
 
 ---
 
 # Phase 11 — Database
+Status: COMPLETE (PostgreSQL via Payload's `@payloadcms/db-postgres` adapter), except developments and enquiries
 
-Select database architecture.
+Implemented: properties, locations, tags, amenities, media, users/admins, all in PostgreSQL via `payload.config.ts`.
 
-Potential requirements:
-
-- properties
-- developments
-- locations
-- tags
-- images
-- users/admins
-- enquiries
-
-Do not select a database merely because it is popular.
+Not implemented: a developments/projects table, and no enquiry-capture storage yet.
 
 ---
 
 # Phase 12 — Admin Panel
+Status: SUBSTANTIALLY COMPLETE via Payload's built-in admin UI at `app/(payload)/admin/`
 
-Build:
+Provided out of the box by Payload: authentication, dashboard, property CRUD, image management, tags, featured-properties marking (via the `featured` tag), publishing/status management.
 
-- authentication
-- dashboard
-- property CRUD
-- image management
-- tags
-- featured properties
-- new developments
-- publishing
-- status management
+Also built, ahead of this roadmap's original scope: a custom admin field component (`components/payload/GenerateNearbyLocations.tsx`) that calls a custom collection endpoint (`collections/endpoints/generateNearbyLocations.ts`) to suggest nearby places from Google Places for a property, based on `lib/nearby-locations/`.
+
+Not implemented: a dedicated new-developments/projects admin flow (depends on the Phase 10 project/development model, which does not exist yet).
 
 ---
 
