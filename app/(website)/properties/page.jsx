@@ -1,10 +1,21 @@
 import { getProperties } from "../../../lib/properties";
 import PropertiesListing from "../../../components/properties/PropertiesListing";
 
+const title = "Properties";
+const description =
+  "Explore residential and commercial properties across Mumbai's Western Suburbs, selected by Rajasthan Estate Realtors.";
+
 export const metadata = {
-  title: "Properties | Rajasthan Estate Realtors",
-  description:
-    "Explore residential and commercial properties across Mumbai's Western Suburbs, selected by Rajasthan Estate Realtors.",
+  title,
+  description,
+  alternates: {
+    canonical: "/properties",
+  },
+  openGraph: {
+    title,
+    description,
+    url: "/properties",
+  },
 };
 
 function filtersFromTypeParam(type) {

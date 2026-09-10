@@ -1,4 +1,58 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+const WHATSAPP_NUMBER = "919892371329";
+
+function buildSellMessage({ propertyType, location, budget }) {
+  const parts = ["Hi, I'm looking to sell a property."];
+
+  if (propertyType) {
+    parts.push(`Property type: ${propertyType}.`);
+  }
+
+  if (location) {
+    parts.push(`Location: ${location}.`);
+  }
+
+  if (budget) {
+    parts.push(`Expected value range: ${budget}.`);
+  }
+
+  return parts.join(" ");
+}
+
 function PropertySearch() {
+  const router = useRouter();
+  const [purpose, setPurpose] = useState("Buy");
+  const [propertyType, setPropertyType] = useState("Residential");
+  const [location, setLocation] = useState("");
+  const [budget, setBudget] = useState("");
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    if (purpose === "Sell") {
+      const message = buildSellMessage({ propertyType, location, budget });
+      window.open(
+        `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`,
+        "_blank",
+        "noopener,noreferrer",
+      );
+      return;
+    }
+
+    const type =
+      propertyType === "Commercial"
+        ? "commercial"
+        : purpose === "Rent"
+          ? "rent"
+          : "buy";
+
+    router.push(`/properties?type=${type}`);
+  };
+
   return (
     <section className="bg-[#f7f5f1] py-20">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -35,7 +89,10 @@ function PropertySearch() {
             SEARCH CARD
         ========================================================= */}
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(8,18,33,0.08)] sm:p-8">
+        <form
+          onSubmit={handleSubmit}
+          className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(8,18,33,0.08)] sm:p-8"
+        >
 
           <div className="grid gap-5 lg:grid-cols-4">
 
@@ -56,7 +113,8 @@ function PropertySearch() {
               <select
                 id="property-search-purpose"
                 className="h-14 rounded-lg border border-slate-300 bg-white px-4 text-base font-medium text-slate-800 outline-none transition focus:border-[#B8862F] focus:ring-1 focus:ring-[#B8862F] md:text-sm"
-                defaultValue="Buy"
+                value={purpose}
+                onChange={(event) => setPurpose(event.target.value)}
               >
                 <option value="Buy">Buy</option>
                 <option value="Rent">Rent</option>
@@ -82,7 +140,8 @@ function PropertySearch() {
               <select
                 id="property-search-type"
                 className="h-14 rounded-lg border border-slate-300 bg-white px-4 text-base font-medium text-slate-800 outline-none transition focus:border-[#B8862F] focus:ring-1 focus:ring-[#B8862F] md:text-sm"
-                defaultValue="Residential"
+                value={propertyType}
+                onChange={(event) => setPropertyType(event.target.value)}
               >
                 <option value="Residential">
                   Residential
@@ -113,9 +172,10 @@ function PropertySearch() {
               <select
                 id="property-search-location"
                 className="h-14 rounded-lg border border-slate-300 bg-white px-4 text-base font-medium text-slate-800 outline-none transition focus:border-[#B8862F] focus:ring-1 focus:ring-[#B8862F] md:text-sm"
-                defaultValue=""
+                value={location}
+                onChange={(event) => setLocation(event.target.value)}
               >
-                <option value="" disabled>
+                <option value="">
                   Select Location
                 </option>
 
@@ -166,9 +226,10 @@ function PropertySearch() {
                 <select
                   id="property-search-budget"
                   className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-4 text-base font-medium text-slate-800 outline-none transition focus:border-[#B8862F] focus:ring-1 focus:ring-[#B8862F] md:text-sm"
-                  defaultValue=""
+                  value={budget}
+                  onChange={(event) => setBudget(event.target.value)}
                 >
-                  <option value="" disabled>
+                  <option value="">
                     Select Budget
                   </option>
 
@@ -215,10 +276,10 @@ function PropertySearch() {
             </p>
 
             <button
-              type="button"
+              type="submit"
               className="group inline-flex items-center justify-center gap-3 rounded-lg bg-[#B8862F] px-7 py-3.5 text-sm font-semibold uppercase tracking-[0.12em] text-[#081221] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#CCA251] hover:shadow-[0_12px_30px_rgba(184,134,47,0.25)]"
             >
-              Search Properties
+              {purpose === "Sell" ? "Contact Us" : "Search Properties"}
 
               <span className="text-lg transition-transform duration-300 group-hover:translate-x-1">
                 →
@@ -227,7 +288,7 @@ function PropertySearch() {
 
           </div>
 
-        </div>
+        </form>
 
       </div>
     </section>

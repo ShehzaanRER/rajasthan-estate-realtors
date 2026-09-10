@@ -78,7 +78,7 @@ function Navbar() {
             NAVIGATION
         ========================================================= */}
 
-        <ul className="hidden items-center gap-8 font-medium text-slate-700 md:flex">
+        <ul className="hidden items-center gap-8 font-medium text-slate-700 lg:flex">
 
           <li>
             <Link
@@ -99,21 +99,12 @@ function Navbar() {
           </li>
 
           <li>
-            <a
-              href="#services"
+            <Link
+              href="/projects"
               className="text-base tracking-wide transition-colors duration-200 hover:text-amber-600"
             >
-              Services
-            </a>
-          </li>
-
-          <li>
-            <a
-              href="#areas"
-              className="text-base tracking-wide transition-colors duration-200 hover:text-amber-600"
-            >
-              Areas
-            </a>
+              Projects
+            </Link>
           </li>
 
           <li>
@@ -126,12 +117,12 @@ function Navbar() {
           </li>
 
           <li>
-            <a
-              href="#contact"
+            <Link
+              href="/contact"
               className="text-base tracking-wide transition-colors duration-200 hover:text-amber-600"
             >
               Contact
-            </a>
+            </Link>
           </li>
 
         </ul>
@@ -145,7 +136,7 @@ function Navbar() {
           href={locateUsHref}
           target="_blank"
           rel="noopener noreferrer"
-          className="group hidden items-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-3 text-base font-medium text-slate-800 transition-all duration-300 hover:border-amber-500 hover:text-amber-600 hover:shadow-md md:flex"
+          className="group hidden items-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-3 text-base font-medium text-slate-800 transition-all duration-300 hover:border-amber-500 hover:text-amber-600 hover:shadow-md lg:flex"
         >
 
           {/* Location Icon */}
@@ -179,7 +170,7 @@ function Navbar() {
 
         <button
           type="button"
-          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-300 text-slate-800 md:hidden"
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-300 text-slate-800 lg:hidden"
           aria-expanded={menuOpen}
           aria-controls={menuId}
           aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -193,7 +184,7 @@ function Navbar() {
       {menuOpen ? (
         <div
           id={menuId}
-          className="border-t border-slate-200 bg-white md:hidden"
+          className="border-t border-slate-200 bg-white lg:hidden"
         >
           <ul className="mx-auto flex max-w-7xl flex-col px-4 py-4 font-medium text-slate-700">
             <li>
@@ -215,22 +206,13 @@ function Navbar() {
               </Link>
             </li>
             <li>
-              <a
-                href="#services"
+              <Link
+                href="/projects"
                 className="flex min-h-11 items-center py-3 text-base tracking-wide"
                 onClick={closeMenu}
               >
-                Services
-              </a>
-            </li>
-            <li>
-              <a
-                href="#areas"
-                className="flex min-h-11 items-center py-3 text-base tracking-wide"
-                onClick={closeMenu}
-              >
-                Areas
-              </a>
+                Projects
+              </Link>
             </li>
             <li>
               <Link
@@ -242,13 +224,13 @@ function Navbar() {
               </Link>
             </li>
             <li>
-              <a
-                href="#contact"
+              <Link
+                href="/contact"
                 className="flex min-h-11 items-center py-3 text-base tracking-wide"
                 onClick={closeMenu}
               >
                 Contact
-              </a>
+              </Link>
             </li>
             <li className="pt-2">
               <a

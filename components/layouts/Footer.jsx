@@ -231,20 +231,20 @@ function Footer() {
               </li>
 
               <li>
-                <a
-                  href="#properties"
+                <Link
+                  href="/properties"
                   className="transition-colors hover:text-white"
                 >
                   Properties
-                </a>
+                </Link>
               </li>
 
               <li>
                 <Link
-                  href="/areas"
+                  href="/projects"
                   className="transition-colors hover:text-white"
                 >
-                  Areas We Serve
+                  New Projects
                 </Link>
               </li>
 
@@ -303,38 +303,11 @@ function Footer() {
 
               <li>
                 <Link
-                  href="/services"
-                  className="transition-colors hover:text-white"
-                >
-                  Our Services
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  href="/areas"
-                  className="transition-colors hover:text-white"
-                >
-                  Areas We Serve
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  href="/faq"
-                  className="transition-colors hover:text-white"
-                >
-                  Frequently Asked Questions
-                </Link>
-              </li>
-
-              <li>
-                <a
-                  href="#contact"
+                  href="/contact"
                   className="transition-colors hover:text-white"
                 >
                   Contact Us
-                </a>
+                </Link>
               </li>
 
             </ul>
@@ -541,7 +514,6 @@ function Footer() {
               © {new Date().getFullYear()} Rajasthan Estate Realtors.
               All Rights Reserved.
             </p>
-
 
             <div className="flex items-center gap-6">
 

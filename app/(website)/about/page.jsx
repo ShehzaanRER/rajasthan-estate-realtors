@@ -1,10 +1,21 @@
 import Link from "next/link";
 import Image from "next/image";
 
+const title = "About";
+const description =
+  "Rajasthan Estate Realtors is a family-run real estate consultancy in Jogeshwari, established in 1988. We advise buyers, sellers and tenants across Mumbai's Western Suburbs.";
+
 export const metadata = {
-  title: "About | Rajasthan Estate Realtors, Jogeshwari since 1988",
-  description:
-    "Rajasthan Estate Realtors is a family-run real estate consultancy in Jogeshwari, established in 1988. We advise buyers, sellers and tenants across Mumbai's Western Suburbs.",
+  title,
+  description,
+  alternates: {
+    canonical: "/about",
+  },
+  openGraph: {
+    title,
+    description,
+    url: "/about",
+  },
 };
 
 export default function AboutPage() {

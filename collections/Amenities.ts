@@ -1,7 +1,23 @@
-import type { CollectionConfig } from 'payload';
+import type { Access, CollectionConfig } from 'payload';
+
+const isAuthenticated: Access = ({ req: { user } }) => Boolean(user);
 
 export const Amenities: CollectionConfig = {
   slug: 'amenities',
+
+  /**
+   * No access config previously meant Payload's default (deny unauthenticated
+   * requests) applied, so the `amenities` relationship silently failed to
+   * populate for every public request — Property and Project detail pages
+   * both queried it via `overrideAccess: false`, so real visitors never saw
+   * amenities. Master data, not user data: safe to read publicly.
+   */
+  access: {
+    read: () => true,
+    create: isAuthenticated,
+    update: isAuthenticated,
+    delete: isAuthenticated,
+  },
 
   admin: {
     useAsTitle: 'name',
