@@ -12,6 +12,7 @@ import {
   MapPin,
   Users,
 } from "lucide-react";
+import { CONTACT_PHONE_TEL } from "../../lib/siteConfig";
 
 function HeroSlider() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -60,7 +61,7 @@ function HeroSlider() {
             </a>
 
             <a
-              href="tel:+919892371329"
+              href={`tel:${CONTACT_PHONE_TEL}`}
               className="inline-flex items-center justify-center rounded-lg border border-white/40 bg-white/5 px-8 py-4 text-sm font-semibold uppercase tracking-[0.15em] text-white backdrop-blur-sm transition-all duration-300 hover:border-[#D4AF37] hover:bg-white/10 hover:text-[#D4AF37]"
             >
               Speak With Us

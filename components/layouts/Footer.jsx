@@ -6,15 +6,15 @@ import {
   Mail,
   Clock,
 } from "lucide-react";
-import {
-  FaInstagram,
-  FaFacebookF,
-  FaLinkedinIn,
-  FaWhatsapp,
-  FaGoogle,
-} from "react-icons/fa";
+import { FaWhatsapp, FaGoogle } from "react-icons/fa";
 
 import FooterCtaGate from "./FooterCtaGate";
+import {
+  CONTACT_EMAIL,
+  CONTACT_PHONE_DISPLAY,
+  CONTACT_PHONE_TEL,
+  CONTACT_WHATSAPP_NUMBER,
+} from "../../lib/siteConfig";
 
 function Footer() {
   return (
@@ -76,7 +76,7 @@ function Footer() {
                 </a>
 
                 <a
-                  href="tel:+919892371329"
+                  href={`tel:${CONTACT_PHONE_TEL}`}
                   className="inline-flex items-center justify-center gap-3 rounded-lg border border-[#081221]/20 px-7 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
                 >
                   Speak With Us
@@ -146,43 +146,10 @@ function Footer() {
 
             <div className="mt-7 flex items-center gap-3">
 
-              {/* Instagram */}
-
-              <a
-                href="#"
-                aria-label="Instagram"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-slate-400 transition-all duration-300 hover:border-[#B8862F] hover:text-[#D4AF37]"
-              >
-                <FaInstagram size={17} />
-              </a>
-
-
-              {/* Facebook */}
-
-              <a
-                href="#"
-                aria-label="Facebook"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-slate-400 transition-all duration-300 hover:border-[#B8862F] hover:text-[#D4AF37]"
-              >
-                <FaFacebookF size={15} />
-              </a>
-
-
-              {/* LinkedIn */}
-
-              <a
-                href="#"
-                aria-label="LinkedIn"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-slate-400 transition-all duration-300 hover:border-[#B8862F] hover:text-[#D4AF37]"
-              >
-                <FaLinkedinIn size={16} />
-              </a>
-
-
               {/* WhatsApp */}
 
               <a
-                href="https://wa.me/919892371329"
+                href={`https://wa.me/${CONTACT_WHATSAPP_NUMBER}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="WhatsApp"
@@ -353,7 +320,7 @@ function Footer() {
               {/* PHONE */}
 
               <a
-                href="tel:+919892371329"
+                href={`tel:${CONTACT_PHONE_TEL}`}
                 className="group flex items-center gap-4"
               >
 
@@ -363,7 +330,7 @@ function Footer() {
                 />
 
                 <span className="text-sm text-slate-400 transition-colors group-hover:text-white">
-                  +91 98923 71329
+                  {CONTACT_PHONE_DISPLAY}
                 </span>
 
               </a>
@@ -372,7 +339,7 @@ function Footer() {
               {/* WHATSAPP */}
 
               <a
-                href="https://wa.me/919892371329"
+                href={`https://wa.me/${CONTACT_WHATSAPP_NUMBER}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center gap-4"
@@ -393,7 +360,7 @@ function Footer() {
               {/* EMAIL */}
 
               <a
-                href="mailto:rajasthanestaterealtors@gmail.com"
+                href={`mailto:${CONTACT_EMAIL}`}
                 className="group flex items-center gap-4"
               >
 
@@ -403,7 +370,7 @@ function Footer() {
                 />
 
                 <span className="text-sm text-slate-400 transition-colors group-hover:text-white">
-                  rajasthanestaterealtors@gmail.com
+                  {CONTACT_EMAIL}
                 </span>
 
               </a>

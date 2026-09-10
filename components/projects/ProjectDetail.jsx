@@ -11,6 +11,7 @@ import {
   Phone,
 } from "lucide-react";
 import PropertyGallery from "../properties/PropertyGallery";
+import RelatedProjects from "./RelatedProjects";
 import {
   CONTACT_EMAIL,
   CONTACT_PHONE_TEL,
@@ -20,7 +21,7 @@ import {
 const FLOOR_PLAN_SIZES = "(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw";
 
 function whatsappHref(project) {
-  const text = `Hi, I'm interested in ${project.name} (${project.projectId}) in ${project.location.locationDisplay}. Listing: /projects/${project.slug}`;
+  const text = `Hi Rajasthan Estate Realtors, I'm interested in ${project.name}, RER Project No. ${project.projectId}. Please share the latest details, availability and pricing.`;
   return `https://wa.me/${CONTACT_WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 }
 
@@ -28,7 +29,7 @@ function mapsHref(mapsQuery) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`;
 }
 
-function ProjectDetail({ project }) {
+function ProjectDetail({ project, relatedProjects = [] }) {
   const specCells = [];
 
   if (project.configurations.length > 0) {
@@ -533,6 +534,8 @@ function ProjectDetail({ project }) {
           </div>
         </div>
       </section>
+
+      <RelatedProjects projects={relatedProjects} />
 
       <section className="bg-[#F5F0E8] py-16 sm:py-20">
         <div className="mx-auto max-w-5xl px-6 text-center sm:px-10">

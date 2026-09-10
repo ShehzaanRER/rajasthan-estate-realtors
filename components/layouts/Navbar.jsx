@@ -61,7 +61,7 @@ function Navbar() {
 
           <div className="min-w-0 flex flex-col justify-center">
 
-            <p className="font-cormorant text-lg font-semibold leading-tight tracking-[-0.02em] text-slate-900 sm:text-2xl">
+            <p className="font-cormorant text-lg font-semibold leading-tight tracking-[-0.02em] text-slate-900 sm:text-2xl lg:text-xl xl:text-2xl">
               Rajasthan Estate Realtors
             </p>
 
@@ -78,7 +78,7 @@ function Navbar() {
             NAVIGATION
         ========================================================= */}
 
-        <ul className="hidden items-center gap-8 font-medium text-slate-700 lg:flex">
+        <ul className="hidden items-center gap-6 font-medium text-slate-700 lg:flex xl:gap-8">
 
           <li>
             <Link

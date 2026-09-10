@@ -10,10 +10,12 @@ import {
   Phone,
 } from "lucide-react";
 import PropertyGallery from "./PropertyGallery";
+import SimilarProperties from "./SimilarProperties";
+import { CONTACT_PHONE_TEL, CONTACT_WHATSAPP_NUMBER } from "../../lib/siteConfig";
 
 function whatsappHref(property) {
-  const text = `Hi, I’m interested in ${property.title} (${property.propertyId}) in ${property.locationDisplay}. Listing: /properties/${property.slug}`;
-  return `https://wa.me/919892371329?text=${encodeURIComponent(text)}`;
+  const text = `Hi Rajasthan Estate Realtors, I'm interested in ${property.title} in ${property.locationDisplay}. Property ID: ${property.propertyId}. Please share more details.`;
+  return `https://wa.me/${CONTACT_WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 }
 
 function mapsHref(mapsQuery) {
@@ -32,7 +34,7 @@ function priceHeading(purpose) {
   return "Asking Price";
 }
 
-function PropertyDetail({ property }) {
+function PropertyDetail({ property, similarProperties = [] }) {
   const typeLabel = property.propertyTypeLabel || property.categoryLabel;
   const hasBedrooms = typeof property.bedrooms === "number";
   const hasBathrooms = typeof property.bathrooms === "number";
@@ -186,7 +188,7 @@ function PropertyDetail({ property }) {
               </p>
 
               <a
-                href="tel:+919892371329"
+                href={`tel:${CONTACT_PHONE_TEL}`}
                 className="mt-6 flex items-center justify-center gap-3 rounded-lg bg-[#081221] px-6 py-4 text-sm font-semibold uppercase tracking-[0.12em] text-white transition-all duration-300 hover:bg-[#14233A]"
               >
                 <Phone size={17} />
@@ -405,6 +407,8 @@ function PropertyDetail({ property }) {
         </div>
       </section>
 
+      <SimilarProperties properties={similarProperties} />
+
       <section className="bg-[#F5F0E8] py-16 sm:py-20">
         <div className="mx-auto max-w-5xl px-6 text-center sm:px-10">
           <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#B8862F]">
@@ -425,7 +429,7 @@ function PropertyDetail({ property }) {
 
           <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
             <a
-              href="tel:+919892371329"
+              href={`tel:${CONTACT_PHONE_TEL}`}
               className="inline-flex items-center justify-center gap-3 rounded-lg bg-[#081221] px-8 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-white transition-all duration-300 hover:bg-[#14233A]"
             >
               <Phone size={17} />

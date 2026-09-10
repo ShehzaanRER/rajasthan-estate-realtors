@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { CONTACT_PHONE_TEL, CONTACT_WHATSAPP_NUMBER } from "../../lib/siteConfig";
 import ProjectCard from "./ProjectCard";
 
@@ -65,12 +67,21 @@ function ProjectsListing({ projects }) {
           {count === 0 ? (
             <div className="border border-slate-200 bg-[#F7F5F1] px-8 py-16 text-center sm:px-12">
               <p className="font-serif text-2xl font-medium text-[#081221] sm:text-3xl">
-                No projects are currently listed.
+                We couldn&apos;t find a matching project.
               </p>
               <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-600">
-                Please check back soon or contact us to discuss new project
-                opportunities.
+                Tell us what you&apos;re looking for and we&apos;ll help you
+                find suitable options.
               </p>
+              <div className="mt-7">
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center justify-center gap-3 rounded-lg bg-[#081221] px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-white transition-all duration-300 hover:bg-[#14233A]"
+                >
+                  Tell Us What You Need
+                  <ArrowRight size={16} />
+                </Link>
+              </div>
             </div>
           ) : (
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">

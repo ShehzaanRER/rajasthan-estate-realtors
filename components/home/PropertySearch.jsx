@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-const WHATSAPP_NUMBER = "919892371329";
+import { CONTACT_WHATSAPP_NUMBER } from "../../lib/siteConfig";
 
 function buildSellMessage({ propertyType, location, budget }) {
   const parts = ["Hi, I'm looking to sell a property."];
@@ -36,7 +35,7 @@ function PropertySearch() {
     if (purpose === "Sell") {
       const message = buildSellMessage({ propertyType, location, budget });
       window.open(
-        `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`,
+        `https://wa.me/${CONTACT_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`,
         "_blank",
         "noopener,noreferrer",
       );

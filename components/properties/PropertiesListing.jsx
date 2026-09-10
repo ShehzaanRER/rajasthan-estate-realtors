@@ -1,8 +1,13 @@
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import PropertyCard from "./PropertyCard";
+import { CONTACT_PHONE_TEL, CONTACT_WHATSAPP_NUMBER } from "../../lib/siteConfig";
 
 function PropertiesListing({ properties }) {
   const count = properties.length;
+  const whatsappHref = `https://wa.me/${CONTACT_WHATSAPP_NUMBER}?text=${encodeURIComponent(
+    "Hi, I'd like to know more about properties with Rajasthan Estate Realtors.",
+  )}`;
 
   return (
     <main className="bg-white">
@@ -62,12 +67,21 @@ function PropertiesListing({ properties }) {
           {count === 0 ? (
             <div className="border border-slate-200 bg-[#F7F5F1] px-8 py-16 text-center sm:px-12">
               <p className="font-serif text-2xl font-medium text-[#081221] sm:text-3xl">
-                No properties are currently available.
+                We couldn&apos;t find a matching property.
               </p>
               <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-600">
-                Please check back soon or contact us to discuss your property
-                requirements.
+                Tell us what you&apos;re looking for and we&apos;ll help you
+                find suitable options.
               </p>
+              <div className="mt-7">
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center justify-center gap-3 rounded-lg bg-[#081221] px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-white transition-all duration-300 hover:bg-[#14233A]"
+                >
+                  Tell Us What You Need
+                  <ArrowRight size={16} />
+                </Link>
+              </div>
             </div>
           ) : (
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -103,7 +117,7 @@ function PropertiesListing({ properties }) {
 
           <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
             <a
-              href="tel:+919892371329"
+              href={`tel:${CONTACT_PHONE_TEL}`}
               className="inline-flex items-center justify-center gap-3 rounded-lg bg-[#081221] px-8 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#14233A]"
             >
               Speak With Us
@@ -111,7 +125,7 @@ function PropertiesListing({ properties }) {
             </a>
 
             <a
-              href="https://wa.me/919892371329"
+              href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-lg border border-[#081221]/25 px-8 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"

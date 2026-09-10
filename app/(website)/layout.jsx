@@ -1,5 +1,6 @@
 import Navbar from "../../components/layouts/Navbar";
 import Footer from "../../components/layouts/Footer";
+import EnquiryPopup from "../../components/EnquiryPopup";
 import { CONTACT_PHONE_TEL, SITE_NAME, SITE_URL } from "../../lib/siteConfig";
 import "../../src/index.css";
 
@@ -61,6 +62,7 @@ export default function RootLayout({ children }) {
         <Navbar />
         {children}
         <Footer />
+        <EnquiryPopup />
       </body>
     </html>
   );

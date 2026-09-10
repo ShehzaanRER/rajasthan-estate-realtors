@@ -1,5 +1,7 @@
 "use client";
 
+import { CONTACT_PHONE_TEL } from "../../lib/siteConfig";
+
 export default function WebsiteError({ reset }) {
   return (
     <main className="flex min-h-[60vh] items-center bg-white">
@@ -28,7 +30,7 @@ export default function WebsiteError({ reset }) {
           </button>
 
           <a
-            href="tel:+919892371329"
+            href={`tel:${CONTACT_PHONE_TEL}`}
             className="inline-flex items-center justify-center rounded-lg border border-[#081221]/25 px-8 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
           >
             Call Us Instead

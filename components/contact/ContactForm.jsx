@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import { recordEngagement } from "../../lib/enquiryPopupStorage";
 
 const REQUIREMENT_OPTIONS = [
   { value: "buy-property", label: "Buy Property" },
@@ -99,6 +100,7 @@ function ContactForm() {
       }
 
       setStatus("success");
+      recordEngagement();
       setValues({ name: "", phone: "", email: "", requirement: "", message: "" });
     } catch {
       setServerError("Something went wrong. Please try again, or reach us directly.");

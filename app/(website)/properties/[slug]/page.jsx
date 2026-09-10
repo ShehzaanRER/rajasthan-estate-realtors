@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import PropertyDetail from "../../../../components/properties/PropertyDetail";
-import { getPropertyBySlug } from "../../../../lib/properties";
+import { getPropertyBySlug, getSimilarProperties } from "../../../../lib/properties";
 import { SITE_URL } from "../../../../lib/siteConfig";
 
 function toAbsoluteUrl(url) {
@@ -89,6 +89,7 @@ export default async function PropertyPage({ params }) {
   }
 
   const canonicalPath = `/properties/${property.slug}`;
+  const similarProperties = await getSimilarProperties(property);
 
   return (
     <>
@@ -98,7 +99,7 @@ export default async function PropertyPage({ params }) {
           __html: JSON.stringify(propertyJsonLd(property, canonicalPath)),
         }}
       />
-      <PropertyDetail property={property} />
+      <PropertyDetail property={property} similarProperties={similarProperties} />
     </>
   );
 }

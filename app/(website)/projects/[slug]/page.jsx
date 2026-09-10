@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import ProjectDetail from "../../../../components/projects/ProjectDetail";
-import { getProjectBySlug } from "../../../../lib/projects";
+import { getProjectBySlug, getRelatedProjects } from "../../../../lib/projects";
 import { SITE_URL } from "../../../../lib/siteConfig";
 
 function toAbsoluteUrl(url) {
@@ -86,6 +86,7 @@ export default async function ProjectPage({ params }) {
   }
 
   const canonicalPath = `/projects/${project.slug}`;
+  const relatedProjects = await getRelatedProjects(project);
 
   return (
     <>
@@ -95,7 +96,7 @@ export default async function ProjectPage({ params }) {
           __html: JSON.stringify(projectJsonLd(project, canonicalPath)),
         }}
       />
-      <ProjectDetail project={project} />
+      <ProjectDetail project={project} relatedProjects={relatedProjects} />
     </>
   );
 }

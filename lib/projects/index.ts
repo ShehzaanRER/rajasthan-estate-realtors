@@ -1,5 +1,6 @@
 export { getProjects } from './getProjects';
 export { getProjectBySlug } from './getProjectBySlug';
+export { getRelatedProjects } from './getRelatedProjects';
 export { mapProject } from './mapProject';
 export {
   PUBLIC_PROJECT_STATUSES,

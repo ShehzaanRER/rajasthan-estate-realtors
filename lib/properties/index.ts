@@ -3,6 +3,7 @@ export type { GetFeaturedPropertiesOptions } from './getFeaturedProperties';
 export { getProperties } from './getProperties';
 export type { GetPropertiesOptions } from './getProperties';
 export { getPropertyBySlug } from './getPropertyBySlug';
+export { getSimilarProperties } from './getSimilarProperties';
 export { mapProperty } from './mapProperty';
 export {
   PUBLIC_STATUSES,

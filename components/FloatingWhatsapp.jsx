@@ -1,9 +1,10 @@
 import { FaWhatsapp } from "react-icons/fa";
+import { CONTACT_WHATSAPP_NUMBER } from "../lib/siteConfig";
 
 function FloatingWhatsapp() {
   return (
     <a
-      href="https://wa.me/919892371329"
+      href={`https://wa.me/${CONTACT_WHATSAPP_NUMBER}`}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with Rajasthan Estate Realtors on WhatsApp"

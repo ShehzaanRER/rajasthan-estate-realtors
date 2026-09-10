@@ -1,5 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
+import { BadgeCheck, MapPin, MessageCircle, Phone, Users } from "lucide-react";
+import {
+  CONTACT_PHONE_TEL,
+  CONTACT_WHATSAPP_NUMBER,
+} from "../../../lib/siteConfig";
 
 const title = "About";
 const description =
@@ -111,7 +116,67 @@ export default function AboutPage() {
 
 
       {/* =========================================================
-          3. LOCAL EXPERTISE
+          3. TRUSTED SINCE 1988
+      ========================================================= */}
+      <section className="bg-[#081221] px-6 py-16 sm:px-10 sm:py-20 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-6 flex items-center gap-4">
+            <span className="h-px w-10 bg-[#B8862F]" />
+            <p className="text-xs font-medium uppercase tracking-[0.35em] text-[#D4AF37]">
+              Trusted Since 1988
+            </p>
+          </div>
+
+          <h2 className="mb-10 max-w-2xl font-serif text-3xl font-light leading-tight text-white sm:text-4xl">
+            Decades of local knowledge.
+            <span className="block italic text-[#D4AF37]">
+              Relationships you can trust.
+            </span>
+          </h2>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+            <div className="border border-white/15 bg-[#101b2c]/70 p-6 backdrop-blur-sm">
+              <BadgeCheck size={27} strokeWidth={1.5} className="mb-4 text-[#D4AF37]" />
+              <div className="font-serif text-3xl text-white">35+</div>
+              <p className="mt-1 text-[10px] uppercase tracking-[0.22em] text-slate-400">
+                Years of Experience
+              </p>
+              <p className="mt-3 text-sm leading-6 text-slate-400">
+                Established in 1988, with decades of experience helping
+                clients make confident real estate decisions.
+              </p>
+            </div>
+
+            <div className="border border-white/15 bg-[#101b2c]/70 p-6 backdrop-blur-sm">
+              <MapPin size={27} strokeWidth={1.5} className="mb-4 text-[#D4AF37]" />
+              <div className="font-serif text-3xl text-white">Local</div>
+              <p className="mt-1 text-[10px] uppercase tracking-[0.22em] text-slate-400">
+                Market Expertise
+              </p>
+              <p className="mt-3 text-sm leading-6 text-slate-400">
+                Deep knowledge of Mumbai&apos;s Western Suburbs, from
+                Jogeshwari and Andheri to Goregaon and beyond.
+              </p>
+            </div>
+
+            <div className="border border-white/15 bg-[#101b2c]/70 p-6 backdrop-blur-sm">
+              <Users size={27} strokeWidth={1.5} className="mb-4 text-[#D4AF37]" />
+              <div className="font-serif text-3xl text-white">Personal</div>
+              <p className="mt-1 text-[10px] uppercase tracking-[0.22em] text-slate-400">
+                Client Guidance
+              </p>
+              <p className="mt-3 text-sm leading-6 text-slate-400">
+                A relationship-driven approach across residential and
+                commercial property, from search through completion.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      {/* =========================================================
+          4. LOCAL EXPERTISE
       ========================================================= */}
       <section className="bg-white px-6 py-16 sm:px-10 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-3xl">
@@ -148,7 +213,7 @@ export default function AboutPage() {
 
 
       {/* =========================================================
-          4. LIGHT CTA
+          5. LIGHT CTA
       ========================================================= */}
       <section className="border-t border-slate-200 bg-white px-6 py-12 sm:px-10 sm:py-16 lg:px-8">
         <div className="mx-auto max-w-3xl">
@@ -158,17 +223,28 @@ export default function AboutPage() {
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
-              href="/#properties"
+              href="/properties"
               className="inline-flex items-center justify-center border border-[#081221] px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
             >
               Explore Properties
             </Link>
 
             <a
-              href="tel:+919892371329"
-              className="inline-flex items-center justify-center px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 transition-colors duration-300 hover:text-[#B8862F]"
+              href={`tel:${CONTACT_PHONE_TEL}`}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 transition-colors duration-300 hover:text-[#B8862F]"
             >
+              <Phone size={14} />
               Speak With Us
+            </a>
+
+            <a
+              href={`https://wa.me/${CONTACT_WHATSAPP_NUMBER}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 transition-colors duration-300 hover:text-[#B8862F]"
+            >
+              <MessageCircle size={14} />
+              WhatsApp Us
             </a>
           </div>
         </div>
