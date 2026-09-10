@@ -1,6 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
+
+const MAIN_IMAGE_SIZES = "(min-width: 1024px) 60vw, 100vw";
+const THUMB_IMAGE_SIZES = "(min-width: 1024px) 20vw, 50vw";
 
 function PropertyGallery({ images, title }) {
   const validImages = (images ?? []).filter((image) => image?.url);
@@ -23,10 +27,14 @@ function PropertyGallery({ images, title }) {
     return (
       <div>
         <div className="relative h-[420px] overflow-hidden sm:h-[520px] lg:h-[560px]">
-          <img
+          <Image
             src={validImages[0].url}
             alt={validImages[0].alt || title}
-            className="h-full w-full object-cover"
+            fill
+            sizes={MAIN_IMAGE_SIZES}
+            quality={85}
+            priority
+            className="object-cover"
           />
         </div>
         {validImages[0].caption ? (
@@ -42,10 +50,15 @@ function PropertyGallery({ images, title }) {
     <div>
       <div className="grid gap-3 lg:grid-cols-[1.7fr_1fr]">
         <div className="relative h-[420px] overflow-hidden sm:h-[520px] lg:h-[560px]">
-          <img
+          <Image
             src={active.url}
             alt={active.alt || title}
-            className="h-full w-full object-cover"
+            fill
+            sizes={MAIN_IMAGE_SIZES}
+            quality={85}
+            priority={safeIndex === 0}
+            loading={safeIndex === 0 ? undefined : "lazy"}
+            className="object-cover"
           />
         </div>
 
@@ -60,10 +73,14 @@ function PropertyGallery({ images, title }) {
                 onClick={() => setActiveIndex(originalIndex)}
                 className="relative h-[200px] overflow-hidden sm:h-[250px] lg:h-auto lg:min-h-[170px]"
               >
-                <img
+                <Image
                   src={image.url}
                   alt={image.alt || title}
-                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                  fill
+                  sizes={THUMB_IMAGE_SIZES}
+                  quality={70}
+                  loading="lazy"
+                  className="object-cover transition-transform duration-500 hover:scale-105"
                 />
               </button>
             );

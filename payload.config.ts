@@ -10,10 +10,13 @@ import { Properties } from './collections/Properties';
 import { Users } from './collections/Users';
 import { ensurePropertyIdSequence } from './collections/hooks/assignPropertyId';
 import { ensureDefaultAmenities } from './collections/hooks/ensureDefaultAmenities';
+import { SITE_URL } from './lib/siteConfig';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default buildConfig({
+  serverURL: SITE_URL,
+
   admin: {
     user: 'users',
     importMap: {

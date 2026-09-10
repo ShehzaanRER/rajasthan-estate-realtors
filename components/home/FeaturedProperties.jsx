@@ -1,4 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
+
+const FEATURED_IMAGE_SIZES = "(min-width: 768px) 33vw, 100vw";
 
 function FeaturedProperties({ properties = [] }) {
   const count = properties.length;
@@ -85,10 +88,11 @@ function FeaturedProperties({ properties = [] }) {
         ) : (
           <div className="grid gap-8 md:grid-cols-3">
 
-            {properties.map((property) => {
+            {properties.map((property, index) => {
               const image = property.images?.[0];
               const typeLabel = property.categoryLabel || property.propertyTypeLabel;
               const displayPrice = property.pricing?.displayPrice;
+              const isPriority = index === 0;
 
               return (
                 <article
@@ -103,10 +107,15 @@ function FeaturedProperties({ properties = [] }) {
                   <div className="relative h-[320px] overflow-hidden bg-[#081221]">
 
                     {image?.url ? (
-                      <img
+                      <Image
                         src={image.url}
                         alt={image.alt || property.title}
-                        className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                        fill
+                        sizes={FEATURED_IMAGE_SIZES}
+                        quality={70}
+                        priority={isPriority}
+                        loading={isPriority ? undefined : "lazy"}
+                        className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                       />
                     ) : (
                       <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[#081221]">

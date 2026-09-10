@@ -1,7 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, MapPin } from "lucide-react";
 
-function PropertyCard({ property }) {
+const CARD_IMAGE_SIZES =
+  "(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw";
+
+function PropertyCard({ property, priority = false }) {
   const image = property.images?.[0];
   const typeLabel = property.propertyTypeLabel || property.categoryLabel;
   const displayPrice = property.pricing?.displayPrice;
@@ -12,10 +16,15 @@ function PropertyCard({ property }) {
     <article className="group overflow-hidden border border-slate-200 bg-white transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(8,18,33,0.12)]">
       <div className="relative h-[300px] overflow-hidden bg-[#081221]">
         {image?.url ? (
-          <img
+          <Image
             src={image.url}
             alt={image.alt || property.title}
-            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+            fill
+            sizes={CARD_IMAGE_SIZES}
+            quality={70}
+            priority={priority}
+            loading={priority ? undefined : "lazy"}
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[#081221]">
