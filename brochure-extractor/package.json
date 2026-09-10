@@ -1,0 +1,17 @@
+{
+  "name": "rer-brochure-extractor",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Standalone utility: converts a brochure PDF into organized, high-quality, descriptively-named image files.",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "express": "^4.21.2",
+    "multer": "^2.0.1"
+  }
+}

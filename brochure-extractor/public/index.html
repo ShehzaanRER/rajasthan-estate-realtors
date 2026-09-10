@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RER Brochure Image Extractor</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="header">
+    <h1>RER Brochure Image Extractor</h1>
+    <p>Turn a brochure PDF into organized, high-quality image files.</p>
+  </header>
+
+  <main class="container">
+    <section id="upload-section" class="card">
+      <div id="dropzone" class="dropzone">
+        <p>Drop PDF here</p>
+        <p class="muted">or</p>
+        <button id="choose-btn" type="button" class="btn btn-primary">Choose PDF</button>
+        <input id="file-input" type="file" accept="application/pdf" hidden />
+        <p class="muted small">Max 60MB, up to 150 pages.</p>
+      </div>
+      <div id="file-info" class="file-info" hidden>
+        <div>
+          <strong id="file-name"></strong>
+          <div id="page-count" class="muted"></div>
+        </div>
+        <div class="row">
+          <button id="convert-btn" class="btn btn-primary">Convert PDF</button>
+          <button id="reset-btn" class="btn btn-ghost">Clear</button>
+        </div>
+      </div>
+      <div id="error-box" class="error-box" hidden></div>
+    </section>
+
+    <section id="progress-section" class="card" hidden>
+      <h2>Processing…</h2>
+      <div id="progress-text" class="muted">Rendering pages and classifying content. This can take a little while for large brochures.</div>
+      <div class="spinner"></div>
+    </section>
+
+    <section id="results-section" class="card" hidden>
+      <div class="results-header">
+        <h2>Results</h2>
+        <div class="row">
+          <label for="project-name">Output folder name</label>
+          <input id="project-name" type="text" />
+        </div>
+      </div>
+      <div id="grid" class="grid"></div>
+      <div class="results-footer">
+        <div id="download-error" class="error-box" hidden></div>
+        <button id="download-btn" class="btn btn-primary btn-lg">Download ZIP</button>
+        <button id="start-over-btn" class="btn btn-ghost">Start over</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
