@@ -46,14 +46,19 @@ function validate(values) {
   return errors;
 }
 
-function ContactForm() {
+/** Only accept an incoming intent that matches a real option in the select. */
+function normalizeRequirement(value) {
+  return REQUIREMENT_OPTIONS.some((option) => option.value === value) ? value : "";
+}
+
+function ContactForm({ defaultRequirement = "" }) {
   const pathname = usePathname();
   const [renderedAt] = useState(() => Date.now());
   const [values, setValues] = useState({
     name: "",
     phone: "",
     email: "",
-    requirement: "",
+    requirement: normalizeRequirement(defaultRequirement),
     message: "",
   });
   const [errors, setErrors] = useState({});
@@ -101,7 +106,13 @@ function ContactForm() {
 
       setStatus("success");
       recordEngagement();
-      setValues({ name: "", phone: "", email: "", requirement: "", message: "" });
+      setValues({
+        name: "",
+        phone: "",
+        email: "",
+        requirement: normalizeRequirement(defaultRequirement),
+        message: "",
+      });
     } catch {
       setServerError("Something went wrong. Please try again, or reach us directly.");
       setStatus("error");

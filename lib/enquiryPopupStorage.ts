@@ -68,3 +68,18 @@ export function recordDismissal(): void {
 export function recordEngagement(): void {
   safeSet(ENGAGED_KEY, String(Date.now()));
 }
+
+/**
+ * Clears every popup gate so the trigger can be re-tested from a fresh state.
+ * Only ever called from a development-mode branch in EnquiryPopup — never in
+ * a production bundle, and never as part of normal visitor behaviour.
+ */
+export function clearPopupStorageForTesting(): void {
+  try {
+    window.localStorage.removeItem(DISMISS_KEY);
+    window.localStorage.removeItem(ENGAGED_KEY);
+    window.sessionStorage.removeItem(SESSION_KEY);
+  } catch {
+    // Storage unavailable — nothing to clear.
+  }
+}

@@ -137,13 +137,13 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
             <div className="border border-white/15 bg-[#101b2c]/70 p-6 backdrop-blur-sm">
               <BadgeCheck size={27} strokeWidth={1.5} className="mb-4 text-[#D4AF37]" />
-              <div className="font-serif text-3xl text-white">35+</div>
+              <div className="font-serif text-3xl text-white">1988</div>
               <p className="mt-1 text-[10px] uppercase tracking-[0.22em] text-slate-400">
-                Years of Experience
+                Established
               </p>
               <p className="mt-3 text-sm leading-6 text-slate-400">
-                Established in 1988, with decades of experience helping
-                clients make confident real estate decisions.
+                Founded in Jogeshwari and still run by the same family, helping
+                clients make confident property decisions.
               </p>
             </div>
 
@@ -176,46 +176,9 @@ export default function AboutPage() {
 
 
       {/* =========================================================
-          4. LOCAL EXPERTISE
+          4. LIGHT CTA
       ========================================================= */}
-      <section className="bg-white px-6 py-16 sm:px-10 sm:py-24 lg:px-8">
-        <div className="mx-auto max-w-3xl">
-          <p className="text-[11px] font-medium uppercase tracking-[0.35em] text-[#B8862F]">
-            Our Approach
-          </p>
-
-          <h2 className="mt-4 font-serif text-3xl font-light leading-tight text-[#081221] sm:text-4xl md:text-5xl">
-            Local knowledge.
-            <span className="block italic text-[#B8862F]">
-              Personal guidance.
-            </span>
-          </h2>
-
-          <div className="mt-6 space-y-5 text-base leading-8 text-slate-600 sm:text-lg">
-            <p>
-              We work across Mumbai&apos;s Western Suburbs, with particular
-              knowledge of Jogeshwari and the markets around it. Whether you
-              are buying, selling or renting — residential or commercial —
-              the starting point is the same: understand what you actually
-              need.
-            </p>
-
-            <p>
-              Local market knowledge and personal guidance then shape the
-              search, the conversation and the decision. RER is built on
-              relationships, not volume. The aim is to help clients move
-              forward with a clear, informed view of the property in front
-              of them.
-            </p>
-          </div>
-        </div>
-      </section>
-
-
-      {/* =========================================================
-          5. LIGHT CTA
-      ========================================================= */}
-      <section className="border-t border-slate-200 bg-white px-6 py-12 sm:px-10 sm:py-16 lg:px-8">
+      <section className="bg-white px-6 py-14 sm:px-10 sm:py-20 lg:px-8">
         <div className="mx-auto max-w-3xl">
           <h2 className="font-serif text-2xl font-light leading-snug text-[#081221] sm:text-3xl">
             Looking for the right property in Mumbai&apos;s Western Suburbs?

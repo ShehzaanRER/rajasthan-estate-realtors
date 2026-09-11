@@ -1,80 +1,73 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
+/**
+ * A homepage introduction, not a second About page. Two facts and one sentence
+ * carry the positioning; /about carries the history. The text column is held to
+ * a reading measure so the section reads as editorial rather than as a
+ * full-width marketing statement.
+ */
+const FACTS = [
+  { label: "Established", value: "1988" },
+  { label: "Based in", value: "Jogeshwari, Mumbai" },
+];
+
 function AboutTeaser() {
   return (
     <section
       id="about"
-      className="relative overflow-hidden bg-[#F3EFE7] py-20 sm:py-24"
+      className="relative overflow-hidden bg-white py-12 sm:py-14 lg:py-16"
     >
-      {/* =========================================================
-          SUBTLE BACKGROUND DETAIL
-      ========================================================= */}
-
-      <div className="pointer-events-none absolute right-0 top-0 h-full w-1/3 bg-[#E9E3D7]/50" />
-
-      <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#B8862F]/5 blur-3xl" />
-
-      {/* =========================================================
-          CONTENT
-      ========================================================= */}
+      {/* Grounds the image side of the two-column composition. There is no
+          such side in the single-column mobile layout. */}
+      <div className="pointer-events-none absolute right-0 top-0 hidden h-full w-1/3 bg-[#E9E3D7]/50 lg:block" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-10 lg:px-8">
 
-        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
+        <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-16">
 
           {/* =====================================================
               LEFT — STORY
           ===================================================== */}
 
-          <div className="max-w-2xl">
+          <div className="max-w-lg">
 
-            {/* Eyebrow */}
-
-            <div className="mb-6 flex items-center gap-4">
-
+            <div className="mb-5 flex items-center gap-4">
               <span className="h-px w-12 bg-[#B8862F]" />
 
               <p className="text-xs font-medium uppercase tracking-[0.4em] text-[#B8862F]">
                 Our Story
               </p>
-
             </div>
 
-
-            {/* Heading */}
-
-            <h2 className="font-serif text-5xl font-light leading-[0.95] tracking-tight text-[#081221] sm:text-6xl">
-
+            <h2 className="font-serif text-4xl font-light leading-[1.02] tracking-tight text-[#081221] sm:text-5xl">
               A legacy
 
               <span className="block italic text-[#B8862F]">
                 built on trust.
               </span>
-
             </h2>
 
-
-            {/* Copy */}
-
-            <p className="mt-7 max-w-xl text-base leading-8 text-slate-600 sm:text-lg">
-
-              Since 1988, Rajasthan Estate Realtors has helped families,
-              businesses and investors navigate Mumbai's real estate market
-              with local knowledge, honest advice and personal guidance.
-
+            <p className="mt-6 text-base leading-8 text-slate-600">
+              RER has always been built on relationships rather than volume. The
+              starting point is the same every time — understand what you
+              actually need, then say honestly what the market will and will not
+              give you.
             </p>
 
+            <dl className="mt-7 flex flex-wrap gap-x-12 gap-y-5 border-t border-[#081221]/10 pt-6">
+              {FACTS.map(({ label, value }) => (
+                <div key={label}>
+                  <dt className="text-[10px] font-medium uppercase tracking-[0.28em] text-[#B8862F]">
+                    {label}
+                  </dt>
 
-            <p className="mt-4 max-w-xl text-base leading-8 text-slate-600">
-
-              What began as a family-run real estate consultancy has grown
-              through relationships built over generations.
-
-            </p>
-
-
-            {/* CTA */}
+                  <dd className="mt-1.5 font-serif text-xl text-[#081221]">
+                    {value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
 
             <Link
               href="/about"
@@ -97,38 +90,14 @@ function AboutTeaser() {
 
           <div className="relative">
 
-            {/* Decorative frame */}
-
-            <div className="absolute -bottom-4 -right-4 h-full w-full border border-[#B8862F]/40" />
-
+            <div className="absolute -bottom-4 -right-4 hidden h-full w-full border border-[#B8862F]/40 lg:block" />
 
             <div className="relative overflow-hidden bg-[#081221]">
-
               <img
                 src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1000&q=80"
                 alt="Premium Mumbai residential property"
-                className="h-[360px] w-full object-cover transition duration-700 hover:scale-105 sm:h-[400px]"
+                className="h-[240px] w-full object-cover sm:h-[320px] lg:h-[360px]"
               />
-
-              {/* Image overlay */}
-
-              <div className="absolute inset-0 bg-gradient-to-t from-[#081221]/80 via-transparent to-transparent" />
-
-
-              {/* 1988 marker */}
-
-              <div className="absolute bottom-7 left-7">
-
-                <p className="font-serif text-5xl font-light text-white">
-                  1988
-                </p>
-
-                <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.3em] text-[#D4AF37]">
-                  Our journey began
-                </p>
-
-              </div>
-
             </div>
 
           </div>

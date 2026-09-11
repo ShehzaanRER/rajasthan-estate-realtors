@@ -1,11 +1,6 @@
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import ContactForm from "../../../components/contact/ContactForm";
-import {
-  CONTACT_EMAIL,
-  CONTACT_PHONE_DISPLAY,
-  CONTACT_PHONE_TEL,
-  CONTACT_WHATSAPP_NUMBER,
-} from "../../../lib/siteConfig";
+import { CONTACTS, CONTACT_EMAIL } from "../../../lib/siteConfig";
 
 const title = "Contact Us";
 const description =
@@ -24,36 +19,24 @@ export const metadata = {
   },
 };
 
-const whatsappHref = `https://wa.me/${CONTACT_WHATSAPP_NUMBER}?text=${encodeURIComponent(
+const whatsappText = encodeURIComponent(
   "Hi, I'd like to get in touch with Rajasthan Estate Realtors.",
-)}`;
+);
 
-const contactMethods = [
-  {
-    key: "phone",
-    icon: Phone,
-    label: "Call Us",
-    value: CONTACT_PHONE_DISPLAY,
-    href: `tel:${CONTACT_PHONE_TEL}`,
-  },
-  {
-    key: "whatsapp",
-    icon: MessageCircle,
-    label: "WhatsApp Us",
-    value: CONTACT_PHONE_DISPLAY,
-    href: whatsappHref,
-    external: true,
-  },
-  {
-    key: "email",
-    icon: Mail,
-    label: "Email Us",
-    value: CONTACT_EMAIL,
-    href: `mailto:${CONTACT_EMAIL}`,
-  },
-];
+/**
+ * This page is the one place the numbers are attributed by name — everywhere
+ * else on the site they appear as plain numbers.
+ */
+const namedContacts = CONTACTS.map((contact) => ({
+  ...contact,
+  telHref: `tel:${contact.tel}`,
+  whatsappHref: `https://wa.me/${contact.whatsapp}?text=${whatsappText}`,
+}));
 
-export default function ContactPage() {
+export default async function ContactPage({ searchParams }) {
+  const params = await searchParams;
+  const intent = typeof params?.intent === "string" ? params.intent : "";
+
   return (
     <main className="bg-white">
       <section className="bg-[#081221]">
@@ -94,26 +77,54 @@ export default function ContactPage() {
               </div>
 
               <div className="space-y-5">
-                {contactMethods.map(({ key, icon: Icon, label, value, href, external }) => (
-                  <a
-                    key={key}
-                    href={href}
-                    {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                    className="group flex min-w-0 items-center gap-4 rounded-lg border border-slate-200 bg-[#F7F5F1] p-5 transition-colors hover:border-[#B8862F]"
+                {namedContacts.map(({ name, display, telHref, whatsappHref }) => (
+                  <div
+                    key={name}
+                    className="min-w-0 rounded-lg border border-slate-200 bg-[#F7F5F1] p-5"
                   >
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#081221] text-[#D4AF37]">
-                      <Icon size={19} />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">
-                        {label}
-                      </span>
-                      <span className="mt-1 block break-words text-base font-medium text-[#081221] group-hover:text-[#B8862F]">
-                        {value}
-                      </span>
-                    </span>
-                  </a>
+                    <p className="text-base font-medium text-[#081221]">{name}</p>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-3">
+                      {/* py gives these primary contact actions a usable tap
+                          target; they were text-height only on mobile. */}
+                      <a
+                        href={telHref}
+                        className="group inline-flex items-center gap-2.5 py-1.5 text-base font-medium text-[#081221] hover:text-[#B8862F]"
+                      >
+                        <Phone size={17} className="shrink-0 text-[#B8862F]" />
+                        {display}
+                      </a>
+
+                      <a
+                        href={whatsappHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2.5 py-1.5 text-sm font-medium text-slate-600 hover:text-[#B8862F]"
+                      >
+                        <MessageCircle size={17} className="shrink-0 text-[#B8862F]" />
+                        WhatsApp
+                        <span className="sr-only">{name} on WhatsApp</span>
+                      </a>
+                    </div>
+                  </div>
                 ))}
+
+                <a
+                  href={`mailto:${CONTACT_EMAIL}`}
+                  className="group flex min-w-0 items-center gap-4 rounded-lg border border-slate-200 bg-[#F7F5F1] p-5 transition-colors hover:border-[#B8862F]"
+                >
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#081221] text-[#D4AF37]">
+                    <Mail size={19} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">
+                      Email Us
+                    </span>
+                    <span className="mt-1 block break-words text-base font-medium text-[#081221] group-hover:text-[#B8862F]">
+                      {CONTACT_EMAIL}
+                    </span>
+                  </span>
+                </a>
 
                 <div className="flex min-w-0 items-center gap-4 rounded-lg border border-slate-200 bg-[#F7F5F1] p-5">
                   <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#081221] text-[#D4AF37]">
@@ -139,7 +150,7 @@ export default function ContactPage() {
                 </p>
               </div>
 
-              <ContactForm />
+              <ContactForm defaultRequirement={intent} />
             </div>
           </div>
         </div>

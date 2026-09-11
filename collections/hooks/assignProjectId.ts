@@ -1,5 +1,6 @@
 import { sql } from '@payloadcms/db-postgres';
 import type { CollectionBeforeChangeHook, Payload } from 'payload';
+import { syncIdSequence } from './syncIdSequence';
 
 /**
  * PostgreSQL sequence used to allocate unique RER Project Number values.
@@ -19,6 +20,13 @@ export async function ensureProjectIdSequence(payload: Payload): Promise<void> {
       `CREATE SEQUENCE IF NOT EXISTS ${RER_PROJECT_ID_SEQUENCE} AS BIGINT INCREMENT BY 1 MINVALUE 1 START WITH 1`,
     ),
   );
+
+  await syncIdSequence({
+    payload,
+    sequence: RER_PROJECT_ID_SEQUENCE,
+    collection: 'projects',
+    field: 'projectId',
+  });
 }
 
 function formatProjectId(n: number): string {

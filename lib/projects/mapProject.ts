@@ -7,10 +7,12 @@ import { toRelativeMediaUrl } from '../mediaUrl';
 import { formatInrDisplay } from '../properties/formatPrice';
 import { isPublicProjectStatus } from './publicScope';
 import type {
+  ProjectHighlightTag,
   PublicProject,
   PublicProjectAmenity,
   PublicProjectConfiguration,
   PublicProjectConnection,
+  PublicProjectHighlight,
   PublicProjectImage,
   PublicProjectLocation,
   PublicProjectSpecification,
@@ -22,6 +24,14 @@ const STATUS_LABELS: Record<string, string> = {
   'ready-to-move': 'Ready to Move',
   completed: 'Completed',
   'sold-out': 'Sold Out',
+};
+
+const HIGHLIGHT_TAG_LABELS: Record<ProjectHighlightTag, string> = {
+  premium: 'Premium',
+  luxury: 'Luxury',
+  investment: 'Investment',
+  residential: 'Residential',
+  commercial: 'Commercial',
 };
 
 const PROJECT_TYPE_LABELS: Record<string, string> = {
@@ -346,6 +356,23 @@ function mapHighlights(values: Project['highlights'] | null | undefined): string
   return highlights;
 }
 
+function mapHighlightTags(values: Project['highlightTags'] | null | undefined): PublicProjectHighlight[] {
+  const tags: PublicProjectHighlight[] = [];
+  const seen = new Set<string>();
+
+  for (const value of values ?? []) {
+    const label = HIGHLIGHT_TAG_LABELS[value];
+    if (!label || seen.has(value)) {
+      continue;
+    }
+
+    seen.add(value);
+    tags.push({ value, label });
+  }
+
+  return tags;
+}
+
 function formatPossessionDate(value: string | null | undefined): string | null {
   if (!value) {
     return null;
@@ -392,6 +419,7 @@ export function mapProject(doc: Project | null | undefined): PublicProject | nul
     return null;
   }
 
+  const isNew = doc.isNew === true;
   const description = mapDescription(doc.description);
   const configurations = mapConfigurations(doc.configurations);
   const amenities = mapAmenities(doc.amenities);
@@ -418,6 +446,11 @@ export function mapProject(doc: Project | null | undefined): PublicProject | nul
     developer,
     status: doc.status,
     statusLabel: STATUS_LABELS[doc.status] ?? doc.status,
+    isNew,
+    // A launch badge answers 'is this worth looking at now'; possession still
+    // carries the build state further down the card, so nothing is lost.
+    statusBadgeLabel: isNew ? 'New Launch' : STATUS_LABELS[doc.status] ?? doc.status,
+    highlightTags: mapHighlightTags(doc.highlightTags),
     descriptionHtml: description.html,
     descriptionText: description.text,
     highlights: mapHighlights(doc.highlights),

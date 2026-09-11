@@ -1,4 +1,14 @@
-import { getProperties } from "../../../lib/properties";
+import { redirect } from "next/navigation";
+import {
+  findBudgetBand,
+  getProperties,
+  getPropertyLocalities,
+  legacyTypeToFilters,
+  parsePropertyFilters,
+  resolveLocalitySlug,
+  serializePropertyFilters,
+  toCmsPurpose,
+} from "../../../lib/properties";
 import PropertiesListing from "../../../components/properties/PropertiesListing";
 
 const title = "Properties";
@@ -18,26 +28,48 @@ export const metadata = {
   },
 };
 
-function filtersFromTypeParam(type) {
-  if (type === "buy") {
-    return { purpose: "sale" };
-  }
-
-  if (type === "rent") {
-    return { purpose: "rent" };
-  }
-
-  if (type === "commercial") {
-    return { category: "commercial" };
-  }
-
-  return {};
-}
-
 export default async function PropertiesPage({ searchParams }) {
-  const params = await searchParams;
-  const type = typeof params?.type === "string" ? params.type : undefined;
-  const properties = await getProperties(filtersFromTypeParam(type));
+  const params = (await searchParams) ?? {};
 
-  return <PropertiesListing properties={properties} />;
+  // Older links used a single `type` parameter that conflated purpose and
+  // category. Translate once and redirect, so only one dialect reaches the
+  // rest of the page.
+  const legacy = legacyTypeToFilters(params);
+  if (legacy) {
+    const merged = { ...parsePropertyFilters(params), ...legacy };
+    const query = serializePropertyFilters(merged);
+    redirect(query ? `/properties?${query}` : "/properties");
+  }
+
+  const filters = parsePropertyFilters(params);
+  const purpose = toCmsPurpose(filters.purpose);
+  const category = filters.category ?? undefined;
+
+  // Locality options reflect the current purpose/category scope, so the filter
+  // never offers a place with nothing behind it.
+  const scope = { purpose, category };
+  const [localities, activeLocality] = await Promise.all([
+    getPropertyLocalities(scope),
+    resolveLocalitySlug(filters.locality, scope),
+  ]);
+
+  const band = findBudgetBand(filters.purpose, filters.budget);
+
+  const properties = await getProperties({
+    purpose,
+    category,
+    locality: activeLocality?.label,
+    bhk: filters.bhk ?? undefined,
+    minPrice: band?.min ?? undefined,
+    maxPrice: band?.max ?? undefined,
+  });
+
+  return (
+    <PropertiesListing
+      properties={properties}
+      filters={filters}
+      localities={localities}
+      activeLocality={activeLocality}
+    />
+  );
 }

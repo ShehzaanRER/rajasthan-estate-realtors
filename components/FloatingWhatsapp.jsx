@@ -1,10 +1,19 @@
 import { FaWhatsapp } from "react-icons/fa";
 import { CONTACT_WHATSAPP_NUMBER } from "../lib/siteConfig";
 
+/**
+ * The floating button is site-wide, so its message stays generic. Property and
+ * project pages have their own WhatsApp actions carrying the listing title,
+ * location and RER ID — those must not be flattened into this one.
+ */
+const GENERIC_WHATSAPP_TEXT = encodeURIComponent(
+  "Hello Rajasthan Estate Realtors, I would like to discuss a property requirement.",
+);
+
 function FloatingWhatsapp() {
   return (
     <a
-      href={`https://wa.me/${CONTACT_WHATSAPP_NUMBER}`}
+      href={`https://wa.me/${CONTACT_WHATSAPP_NUMBER}?text=${GENERIC_WHATSAPP_TEXT}`}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with Rajasthan Estate Realtors on WhatsApp"

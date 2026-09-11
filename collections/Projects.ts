@@ -1,9 +1,14 @@
 import { lexicalEditor } from '@payloadcms/richtext-lexical';
-import type { Access, CollectionConfig } from 'payload';
+import type { Access, FieldAccess, CollectionConfig } from 'payload';
 import { PUBLIC_PROJECT_STATUSES } from '../lib/projects/publicScope';
 import { assignProjectId } from './hooks/assignProjectId';
 
 const isAuthenticated: Access = ({ req: { user } }) => Boolean(user);
+
+// Field-level access has a narrower signature than collection-level Access
+// (must return a plain boolean, not a Where filter) — kept separate so the
+// `source` group below never leaks to public reads regardless of status.
+const isAuthenticatedField: FieldAccess = ({ req: { user } }) => Boolean(user);
 
 const readPublicOrAuthenticated: Access = ({ req: { user } }) => {
   if (user) {
@@ -85,6 +90,33 @@ export const Projects: CollectionConfig = {
       ],
       admin: {
         description: 'Draft projects are never shown on the public website or sitemap.',
+      },
+    },
+    {
+      name: 'isNew',
+      type: 'checkbox',
+      label: 'New Launch',
+      defaultValue: false,
+      admin: {
+        description:
+          'Tick while this is a current launch. Tagged projects appear under "New Projects" on the homepage and carry a New Launch badge. Untick once the launch is no longer current.',
+      },
+    },
+    {
+      name: 'highlightTags',
+      type: 'select',
+      hasMany: true,
+      label: 'Highlight Tags',
+      options: [
+        { label: 'Premium', value: 'premium' },
+        { label: 'Luxury', value: 'luxury' },
+        { label: 'Investment', value: 'investment' },
+        { label: 'Residential', value: 'residential' },
+        { label: 'Commercial', value: 'commercial' },
+      ],
+      admin: {
+        description:
+          'Optional positioning tags, separate from Project Status. At most two are shown on a project card, and status always takes priority.',
       },
     },
     {
@@ -508,6 +540,72 @@ export const Projects: CollectionConfig = {
           relationTo: 'media',
           admin: {
             description: 'Optional. A map/location image, if different from the master plan.',
+          },
+        },
+      ],
+    },
+
+    {
+      name: 'source',
+      type: 'group',
+      label: 'Source & Audit (Internal)',
+      admin: {
+        description:
+          'Internal tracking for drafts created via Brochure Convert. Never exposed on the public website or API.',
+      },
+      access: {
+        read: isAuthenticatedField,
+        create: isAuthenticatedField,
+        update: isAuthenticatedField,
+      },
+      fields: [
+        {
+          name: 'sourceType',
+          type: 'select',
+          label: 'Source Type',
+          options: [
+            { label: 'PDF Brochure', value: 'pdf' },
+            { label: 'Pasted Text', value: 'pasted-text' },
+            { label: 'Manual Entry', value: 'manual' },
+          ],
+          admin: {
+            readOnly: true,
+          },
+        },
+        {
+          name: 'sourceFilename',
+          type: 'text',
+          label: 'Source Filename',
+          admin: {
+            readOnly: true,
+          },
+        },
+        {
+          name: 'processedAt',
+          type: 'date',
+          label: 'Processed At',
+          admin: {
+            readOnly: true,
+            date: {
+              pickerAppearance: 'dayAndTime',
+            },
+          },
+        },
+        {
+          name: 'extractionVersion',
+          type: 'text',
+          label: 'Extraction Version',
+          admin: {
+            readOnly: true,
+          },
+        },
+        {
+          name: 'extractionNotes',
+          type: 'textarea',
+          label: 'Extraction Review Notes',
+          admin: {
+            description:
+              'Auto-generated notes from Brochure Convert flagging fields that need manual review before publishing.',
           },
         },
       ],

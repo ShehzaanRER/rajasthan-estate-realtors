@@ -52,6 +52,14 @@ export type PublicProjectConfiguration = {
   notes: string | null;
 };
 
+/** Optional positioning tags, controlled by the CMS select — never free text. */
+export type ProjectHighlightTag = NonNullable<Project['highlightTags']>[number];
+
+export type PublicProjectHighlight = {
+  value: ProjectHighlightTag;
+  label: string;
+};
+
 export type PublicProjectSpecification = {
   label: string;
   value: string;
@@ -64,6 +72,11 @@ export type PublicProject = {
   developer: string;
   status: PublicProjectStatus;
   statusLabel: string;
+  /** Flagged in the CMS while the development is a current launch. */
+  isNew: boolean;
+  /** What the card's primary badge reads — 'New Launch' outranks the build status. */
+  statusBadgeLabel: string;
+  highlightTags: PublicProjectHighlight[];
   descriptionHtml: string | null;
   descriptionText: string | null;
   highlights: string[];

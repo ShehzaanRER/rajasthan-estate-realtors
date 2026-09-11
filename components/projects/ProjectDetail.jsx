@@ -78,9 +78,6 @@ function ProjectDetail({ project, relatedProjects = [] }) {
   const enquiryWhatsapp = whatsappHref(project);
   const locationMapsHref = mapsHref(project.location.mapsQuery);
   const hasOverviewCopy = Boolean(project.descriptionHtml || project.descriptionText);
-  const locationSubline = [project.location.city, project.location.state]
-    .filter(Boolean)
-    .join(", ");
 
   const detailsRows = [];
   const pushRow = (label, value) => {
@@ -107,7 +104,7 @@ function ProjectDetail({ project, relatedProjects = [] }) {
         <div className="mx-auto max-w-7xl px-6 py-5 sm:px-10 md:px-16 lg:px-8">
           <Link
             href="/projects"
-            className="group inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-[#B8862F]"
+            className="group inline-flex min-h-11 items-center gap-2 py-2 text-sm font-medium text-slate-600 transition-colors hover:text-[#B8862F] md:min-h-0 md:py-0"
           >
             <ArrowLeft
               size={16}
@@ -223,22 +220,13 @@ function ProjectDetail({ project, relatedProjects = [] }) {
       </section>
 
       {hasOverviewCopy || project.highlights.length > 0 || detailsRows.length > 0 ? (
-        <section className="bg-[#F7F5F1] py-16 sm:py-20">
+        <section className="bg-[#F7F5F1] py-12 sm:py-16">
           <div className="mx-auto max-w-7xl px-6 sm:px-10 md:px-16 lg:px-8">
             <div className="grid gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
               <div className="min-w-0">
-                <div className="mb-6 flex items-center gap-4">
-                  <span className="h-px w-10 bg-[#B8862F]" />
-                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#B8862F]">
-                    Project Overview
-                  </p>
-                </div>
 
-                <h2 className="font-serif text-4xl font-light text-[#081221] sm:text-5xl">
-                  A closer look at
-                  <span className="block italic text-[#B8862F]">
-                    this project.
-                  </span>
+                <h2 className="font-serif text-3xl text-[#081221]">
+                  About this project
                 </h2>
 
                 {project.descriptionHtml ? (
@@ -296,16 +284,10 @@ function ProjectDetail({ project, relatedProjects = [] }) {
       ) : null}
 
       {project.configurations.length > 0 ? (
-        <section className="bg-white py-16 sm:py-20">
+        <section className="bg-white py-12 sm:py-16">
           <div className="mx-auto max-w-7xl px-6 sm:px-10 md:px-16 lg:px-8">
             <div className="mb-10">
-              <div className="mb-5 flex items-center gap-3">
-                <span className="h-px w-10 bg-[#B8862F]" />
-                <p className="text-xs font-medium uppercase tracking-[0.35em] text-[#B8862F]">
-                  Pricing
-                </p>
-              </div>
-              <h2 className="font-serif text-4xl text-[#081221] sm:text-5xl">
+              <h2 className="font-serif text-3xl text-[#081221]">
                 Configurations &amp; Pricing
               </h2>
             </div>
@@ -358,16 +340,10 @@ function ProjectDetail({ project, relatedProjects = [] }) {
       ) : null}
 
       {project.amenityNames.length > 0 ? (
-        <section className="bg-[#F7F5F1] py-16 sm:py-20">
+        <section className="bg-[#F7F5F1] py-12 sm:py-16">
           <div className="mx-auto max-w-7xl px-6 sm:px-10 md:px-16 lg:px-8">
             <div className="mb-10">
-              <div className="mb-5 flex items-center gap-3">
-                <span className="h-px w-10 bg-[#B8862F]" />
-                <p className="text-xs font-medium uppercase tracking-[0.35em] text-[#B8862F]">
-                  Features
-                </p>
-              </div>
-              <h2 className="font-serif text-4xl text-[#081221] sm:text-5xl">
+              <h2 className="font-serif text-3xl text-[#081221]">
                 Project Amenities
               </h2>
             </div>
@@ -389,16 +365,10 @@ function ProjectDetail({ project, relatedProjects = [] }) {
       ) : null}
 
       {project.specifications.length > 0 ? (
-        <section className="bg-white py-16 sm:py-20">
+        <section className="bg-white py-12 sm:py-16">
           <div className="mx-auto max-w-7xl px-6 sm:px-10 md:px-16 lg:px-8">
             <div className="mb-10">
-              <div className="mb-5 flex items-center gap-3">
-                <span className="h-px w-10 bg-[#B8862F]" />
-                <p className="text-xs font-medium uppercase tracking-[0.35em] text-[#B8862F]">
-                  Details
-                </p>
-              </div>
-              <h2 className="font-serif text-4xl text-[#081221] sm:text-5xl">
+              <h2 className="font-serif text-3xl text-[#081221]">
                 Specifications
               </h2>
             </div>
@@ -421,16 +391,10 @@ function ProjectDetail({ project, relatedProjects = [] }) {
       ) : null}
 
       {project.floorPlans.length > 0 ? (
-        <section className="bg-[#F7F5F1] py-16 sm:py-20">
+        <section className="bg-[#F7F5F1] py-12 sm:py-16">
           <div className="mx-auto max-w-7xl px-6 sm:px-10 md:px-16 lg:px-8">
             <div className="mb-10">
-              <div className="mb-5 flex items-center gap-3">
-                <span className="h-px w-10 bg-[#B8862F]" />
-                <p className="text-xs font-medium uppercase tracking-[0.35em] text-[#B8862F]">
-                  Layouts
-                </p>
-              </div>
-              <h2 className="font-serif text-4xl text-[#081221] sm:text-5xl">
+              <h2 className="font-serif text-3xl text-[#081221]">
                 Floor Plans
               </h2>
             </div>
@@ -461,23 +425,23 @@ function ProjectDetail({ project, relatedProjects = [] }) {
         </section>
       ) : null}
 
-      <section className="bg-[#081221] py-16 sm:py-20">
+      <section className="bg-[#081221] py-12 sm:py-16">
         <div className="mx-auto max-w-7xl px-6 sm:px-10 md:px-16 lg:px-8">
-          <div className="grid items-center gap-10 lg:grid-cols-2">
-            <div>
-              <div className="mb-5 flex items-center gap-3">
-                <span className="h-px w-10 bg-[#B8862F]" />
-                <p className="text-xs font-medium uppercase tracking-[0.35em] text-[#D4AF37]">
-                  Location
-                </p>
-              </div>
+          {/* Two columns only when there is a real map image to show. The
+              previous fallback panel restated the locality beside a large pin
+              icon, which filled 300px without adding anything. */}
+          <div
+            className={`grid items-center gap-10 ${project.locationMapImage?.url ? "lg:grid-cols-2" : ""}`}
+          >
+            <div className="max-w-2xl">
 
-              <h2 className="font-serif text-4xl font-light text-white sm:text-5xl">
-                Located in
-                <span className="block italic text-[#D4AF37]">
-                  {project.location.locationDisplay}.
-                </span>
+              <h2 className="font-serif text-3xl text-white">
+                Location
               </h2>
+
+              <p className="mt-4 text-lg text-[#D4AF37]">
+                {project.location.locationDisplay}
+              </p>
 
               {project.location.address ? (
                 <p className="mt-6 max-w-xl text-base leading-8 text-slate-300">
@@ -495,72 +459,47 @@ function ProjectDetail({ project, relatedProjects = [] }) {
                 href={locationMapsHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-7 inline-flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.14em] text-[#D4AF37] transition-colors hover:text-white"
+                className="mt-6 inline-flex min-h-11 items-center gap-3 py-2 text-sm font-semibold uppercase tracking-[0.14em] text-[#D4AF37] transition-colors hover:text-white md:mt-7 md:min-h-0 md:py-0"
               >
                 View Location
                 <ArrowRight size={17} />
               </a>
             </div>
 
-            <div className="flex min-h-[300px] items-center justify-center border border-white/10 bg-white/[0.04]">
-              {project.locationMapImage?.url ? (
-                <div className="relative h-full min-h-[300px] w-full">
-                  <Image
-                    src={project.locationMapImage.url}
-                    alt={project.locationMapImage.alt || `${project.name} location map`}
-                    fill
-                    sizes="(min-width: 1024px) 50vw, 100vw"
-                    quality={80}
-                    loading="lazy"
-                    className="object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="px-6 text-center">
-                  <MapPin
-                    size={42}
-                    strokeWidth={1.2}
-                    className="mx-auto text-[#D4AF37]"
-                  />
-                  <p className="mt-5 font-serif text-2xl text-white">
-                    {project.location.locationDisplay}
-                  </p>
-                  {locationSubline ? (
-                    <p className="mt-2 text-sm text-slate-400">{locationSubline}</p>
-                  ) : null}
-                </div>
-              )}
-            </div>
+            {project.locationMapImage?.url ? (
+              <div className="relative min-h-[300px] border border-white/10">
+                <Image
+                  src={project.locationMapImage.url}
+                  alt={project.locationMapImage.alt || `${project.name} location map`}
+                  fill
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                  quality={80}
+                  loading="lazy"
+                  className="object-cover"
+                />
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
 
       <RelatedProjects projects={relatedProjects} />
 
-      <section className="bg-[#F5F0E8] py-16 sm:py-20">
-        <div className="mx-auto max-w-5xl px-6 text-center sm:px-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#B8862F]">
-            Interested In This Project?
+      {/* A compact closing prompt, not a second full CTA band. The enquiry card
+          higher up is the primary path; this exists so a visitor who has
+          scrolled the whole page still has one to hand. */}
+      <section className="border-t border-slate-200 bg-[#F5F0E8] py-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 sm:px-10 md:flex-row md:px-16 lg:px-8">
+          <p className="text-base text-[#081221]">
+            Want current availability or a site visit for this project?
           </p>
 
-          <h2 className="mt-4 font-serif text-4xl font-light leading-tight text-[#081221] sm:text-5xl">
-            Let&apos;s discuss
-            <span className="block italic text-[#B8862F]">
-              your requirements.
-            </span>
-          </h2>
-
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-            Our team can provide further information, current availability
-            and arrange a site visit based on your requirements.
-          </p>
-
-          <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
+          <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
             <a
               href={`tel:${CONTACT_PHONE_TEL}`}
-              className="inline-flex items-center justify-center gap-3 rounded-lg bg-[#081221] px-8 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-white transition-all duration-300 hover:bg-[#14233A]"
+              className="inline-flex items-center justify-center gap-3 rounded-lg bg-[#081221] px-6 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white transition-colors duration-300 hover:bg-[#14233A]"
             >
-              <Phone size={17} />
+              <Phone size={16} />
               Speak With Us
             </a>
 
@@ -568,10 +507,10 @@ function ProjectDetail({ project, relatedProjects = [] }) {
               href={enquiryWhatsapp}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-3 rounded-lg border border-[#081221]/25 px-8 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-colors hover:border-[#B8862F] hover:text-[#B8862F]"
+              className="inline-flex items-center justify-center gap-3 rounded-lg border border-[#081221]/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
             >
-              <MessageCircle size={17} />
-              WhatsApp Us
+              <MessageCircle size={16} />
+              WhatsApp
             </a>
           </div>
         </div>

@@ -7,6 +7,16 @@ import { Menu, X } from "lucide-react";
 const locateUsHref =
   "https://www.google.com/maps/search/?api=1&query=Rajasthan+Estate+Realtors+Mumbai";
 
+/** Sellers land on the existing contact form with the requirement preselected. */
+const SELL_PROPERTY_HREF = "/contact?intent=sell-property";
+
+const NAV_LINKS = [
+  { href: "/properties", label: "Properties" },
+  { href: "/projects", label: "Projects" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+];
+
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuId = useId();
@@ -45,7 +55,7 @@ function Navbar() {
 
         <Link
           href="/"
-          className="flex min-w-0 items-center gap-3 sm:gap-6"
+          className="flex min-w-0 items-center gap-3 sm:gap-6 lg:gap-4 xl:gap-6"
           onClick={closeMenu}
         >
 
@@ -54,7 +64,7 @@ function Navbar() {
           <img
             src="/logo-HOUSE.svg"
             alt=""
-            className="h-16 w-auto shrink-0 object-contain sm:h-[100px]"
+            className="h-16 w-auto shrink-0 object-contain sm:h-[100px] lg:h-[78px] xl:h-[100px]"
           />
 
           {/* Business Name */}
@@ -78,50 +88,29 @@ function Navbar() {
             NAVIGATION
         ========================================================= */}
 
-        <ul className="hidden items-center gap-6 font-medium text-slate-700 lg:flex xl:gap-8">
+        {/* Home is deliberately absent: the logo is the home link, and a nav
+            that repeats it spends the most valuable slot in the bar on it. */}
+        <ul className="hidden items-center gap-4 font-medium text-slate-700 lg:flex xl:gap-8">
 
+          {NAV_LINKS.map(({ href, label }) => (
+            <li key={href}>
+              <Link
+                href={href}
+                className="text-base tracking-wide transition-colors duration-200 hover:text-amber-600"
+              >
+                {label}
+              </Link>
+            </li>
+          ))}
+
+          {/* Sellers are a business journey of their own, so this gets modest
+              emphasis rather than sitting level with the browse links. */}
           <li>
             <Link
-              href="/"
-              className="text-base tracking-wide transition-colors duration-200 hover:text-amber-600"
+              href={SELL_PROPERTY_HREF}
+              className="inline-flex items-center whitespace-nowrap rounded-lg border border-[#B8862F] px-3.5 py-2 text-base font-medium text-[#081221] transition-colors duration-200 hover:bg-[#B8862F] hover:text-white xl:px-4"
             >
-              Home
-            </Link>
-          </li>
-
-          <li>
-            <Link
-              href="/properties"
-              className="text-base tracking-wide transition-colors duration-200 hover:text-amber-600"
-            >
-              Properties
-            </Link>
-          </li>
-
-          <li>
-            <Link
-              href="/projects"
-              className="text-base tracking-wide transition-colors duration-200 hover:text-amber-600"
-            >
-              Projects
-            </Link>
-          </li>
-
-          <li>
-            <Link
-              href="/about"
-              className="text-base tracking-wide transition-colors duration-200 hover:text-amber-600"
-            >
-              About
-            </Link>
-          </li>
-
-          <li>
-            <Link
-              href="/contact"
-              className="text-base tracking-wide transition-colors duration-200 hover:text-amber-600"
-            >
-              Contact
+              Sell Property
             </Link>
           </li>
 
@@ -136,7 +125,7 @@ function Navbar() {
           href={locateUsHref}
           target="_blank"
           rel="noopener noreferrer"
-          className="group hidden items-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-3 text-base font-medium text-slate-800 transition-all duration-300 hover:border-amber-500 hover:text-amber-600 hover:shadow-md lg:flex"
+          className="group hidden shrink-0 items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-800 transition-all duration-300 hover:border-amber-500 hover:text-amber-600 hover:shadow-md lg:flex xl:px-5"
         >
 
           {/* Location Icon */}
@@ -230,6 +219,15 @@ function Navbar() {
                 onClick={closeMenu}
               >
                 Contact
+              </Link>
+            </li>
+            <li>
+              <Link
+                href={SELL_PROPERTY_HREF}
+                className="flex min-h-11 items-center py-3 text-base tracking-wide"
+                onClick={closeMenu}
+              >
+                Sell Property
               </Link>
             </li>
             <li className="pt-2">

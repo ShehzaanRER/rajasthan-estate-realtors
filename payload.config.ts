@@ -10,6 +10,8 @@ import { Media } from './collections/Media';
 import { Projects } from './collections/Projects';
 import { Properties } from './collections/Properties';
 import { Users } from './collections/Users';
+import { brochureConvertCreateHandler } from './collections/endpoints/brochureConvertCreate';
+import { brochureConvertValidateHandler } from './collections/endpoints/brochureConvertValidate';
 import { ensureProjectIdSequence } from './collections/hooks/assignProjectId';
 import { ensurePropertyIdSequence } from './collections/hooks/assignPropertyId';
 import { ensureDefaultAmenities } from './collections/hooks/ensureDefaultAmenities';
@@ -35,11 +37,26 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    components: {
+      views: {
+        brochureConvert: {
+          Component: '/components/payload/BrochureConvertView#BrochureConvertView',
+          path: '/brochure-convert',
+          exact: true,
+        },
+      },
+      afterNavLinks: ['/components/payload/BrochureConvertNavLink#BrochureConvertNavLink'],
+    },
   },
 
   collections: [Users, Properties, Projects, Amenities, Media, ContactInquiries],
 
   editor: lexicalEditor({}),
+
+  endpoints: [
+    { path: '/brochure-convert/validate', method: 'post', handler: brochureConvertValidateHandler },
+    { path: '/brochure-convert/create', method: 'post', handler: brochureConvertCreateHandler },
+  ],
 
   secret: process.env.PAYLOAD_SECRET || 'dev-only-insecure-secret-do-not-use-in-production',
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CONTACT_EMAIL, CONTACT_PHONE_DISPLAY, CONTACT_PHONE_TEL } from "../../../lib/siteConfig";
+import { CONTACTS, CONTACT_EMAIL } from "../../../lib/siteConfig";
 
 const title = "Privacy Policy";
 const description =
@@ -146,9 +146,14 @@ export default function PrivacyPolicyPage() {
             <ul className="space-y-1">
               <li>
                 Phone:{" "}
-                <a href={`tel:${CONTACT_PHONE_TEL}`} className="text-[#B8862F] hover:underline">
-                  {CONTACT_PHONE_DISPLAY}
-                </a>
+                {CONTACTS.map((contact, index) => (
+                  <span key={contact.tel}>
+                    {index > 0 ? ", " : ""}
+                    <a href={`tel:${contact.tel}`} className="text-[#B8862F] hover:underline">
+                      {contact.display}
+                    </a>
+                  </span>
+                ))}
               </li>
               <li>
                 Email:{" "}

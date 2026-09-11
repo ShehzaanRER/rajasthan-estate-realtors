@@ -22,9 +22,16 @@ function mapsHref(mapsQuery) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`;
 }
 
+const PURPOSE_LABELS = {
+  sale: "For Sale",
+  rent: "For Rent",
+  lease: "For Lease",
+};
+
+/** A specific unit has an asking price, never a "starting from". */
 function priceHeading(purpose) {
   if (purpose === "rent") {
-    return "Rent";
+    return "Monthly Rent";
   }
 
   if (purpose === "lease") {
@@ -32,6 +39,18 @@ function priceHeading(purpose) {
   }
 
   return "Asking Price";
+}
+
+/** Tags worth surfacing alongside — never instead of — the transaction type. */
+const HIGHLIGHT_TAGS = [
+  ["premium", "Premium"],
+  ["new", "New"],
+  ["price-reduced", "Price Reduced"],
+];
+
+function highlightTag(tags = []) {
+  const match = HIGHLIGHT_TAGS.find(([tag]) => tags.includes(tag));
+  return match ? match[1] : null;
 }
 
 function PropertyDetail({ property, similarProperties = [] }) {
@@ -87,9 +106,8 @@ function PropertyDetail({ property, similarProperties = [] }) {
   const amenityNames = property.amenityNames ?? [];
   const nearby = property.nearbyConnectivity ?? [];
   const hasOverviewCopy = Boolean(property.descriptionHtml || property.descriptionText);
-  const locationSubline = [property.location.city, property.location.state]
-    .filter(Boolean)
-    .join(", ");
+  const tag = highlightTag(property.tags);
+  const purposeLabel = PURPOSE_LABELS[property.purpose] ?? "For Sale";
 
   return (
     <main className="bg-white">
@@ -97,7 +115,7 @@ function PropertyDetail({ property, similarProperties = [] }) {
         <div className="mx-auto max-w-7xl px-6 py-5 sm:px-10 md:px-16 lg:px-8">
           <Link
             href="/properties"
-            className="group inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-[#B8862F]"
+            className="group inline-flex min-h-11 items-center gap-2 py-2 text-sm font-medium text-slate-600 transition-colors hover:text-[#B8862F] md:min-h-0 md:py-0"
           >
             <ArrowLeft
               size={16}
@@ -114,34 +132,55 @@ function PropertyDetail({ property, similarProperties = [] }) {
         </div>
       </section>
 
-      <section className="bg-white pb-12 sm:pb-16">
+      <section className="bg-white pb-12 sm:pb-14">
         <div className="mx-auto max-w-7xl px-6 sm:px-10 md:px-16 lg:px-8">
-          <div className="grid gap-10 lg:grid-cols-[1fr_360px] lg:items-start">
+          <div className="grid gap-10 lg:grid-cols-[1fr_340px] lg:items-start">
             <div>
-              {typeLabel ? (
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#B8862F]">
-                  {typeLabel}
-                </p>
-              ) : null}
+              {/* Transaction type always leads. A tag such as "Premium"
+                  previously took this slot, leaving the visitor unable to tell
+                  whether the property was for sale or for rent. */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex bg-[#081221] px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white">
+                  {purposeLabel}
+                </span>
 
-              {property.badge ? (
-                <div className="mt-4">
-                  <span className="inline-flex bg-[#B8862F] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">
-                    {property.badge}
+                {tag ? (
+                  <span className="inline-flex bg-[#B8862F] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white">
+                    {tag}
                   </span>
-                </div>
-              ) : null}
+                ) : null}
 
-              <h1 className="mt-4 font-serif text-4xl font-medium leading-tight text-[#081221] sm:text-5xl md:text-6xl">
+                {typeLabel ? (
+                  <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                    {typeLabel}
+                  </span>
+                ) : null}
+              </div>
+
+              <h1 className="mt-5 font-serif text-3xl font-medium leading-tight text-[#081221] sm:text-4xl md:text-5xl">
                 {property.title}
               </h1>
 
               {property.locationDisplay ? (
-                <div className="mt-5 flex items-center gap-2 text-base text-slate-500">
+                <div className="mt-4 flex items-center gap-2 text-base text-slate-500">
                   <MapPin size={18} className="shrink-0 text-[#B8862F]" />
                   {property.locationDisplay}
                 </div>
               ) : null}
+
+              {/* Price sits in the primary reading flow, so it is answered
+                  before the fold on mobile rather than below the spec grid. */}
+              <div className="mt-6">
+                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">
+                  {priceHeading(property.purpose)}
+                </p>
+                <p className="mt-1 font-serif text-4xl text-[#081221]">
+                  {property.pricing.displayPrice}
+                </p>
+                {property.pricing.negotiable ? (
+                  <p className="mt-1 text-sm text-slate-500">Negotiable</p>
+                ) : null}
+              </div>
 
               {specCells.length > 0 ? (
                 <div
@@ -171,20 +210,16 @@ function PropertyDetail({ property, similarProperties = [] }) {
               ) : null}
             </div>
 
+            {/* One enquiry card. Price is not repeated here — it is already
+                answered above, and two copies invited them to disagree. */}
             <aside className="border border-slate-200 bg-[#F7F5F1] p-7 lg:sticky lg:top-6">
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">
-                {priceHeading(property.purpose)}
-              </p>
-              <p className="mt-2 font-serif text-4xl text-[#081221]">
-                {property.pricing.displayPrice}
+              <p className="font-serif text-2xl text-[#081221]">
+                Interested in this property?
               </p>
 
-              <div className="my-6 h-px bg-slate-200" />
-
-              <p className="text-sm leading-6 text-slate-600">
-                Interested in this property? Speak directly with our property
-                experts for availability, additional information and a
-                viewing.
+              <p className="mt-3 text-sm leading-6 text-slate-600">
+                Speak with our team about availability, further details and
+                arranging a viewing.
               </p>
 
               <a
@@ -204,58 +239,49 @@ function PropertyDetail({ property, similarProperties = [] }) {
                 <MessageCircle size={17} />
                 WhatsApp Us
               </a>
+
+              <p className="mt-5 text-xs text-slate-500">
+                Property ID {property.propertyId}
+              </p>
             </aside>
           </div>
         </div>
       </section>
 
       {hasOverviewCopy || detailsRows.length > 0 ? (
-        <section className="bg-[#F7F5F1] py-16 sm:py-20">
+        <section className="bg-[#F7F5F1] py-12 sm:py-16">
           <div className="mx-auto max-w-7xl px-6 sm:px-10 md:px-16 lg:px-8">
-            <div className="grid gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
-              <div>
-                <div className="mb-6 flex items-center gap-4">
-                  <span className="h-px w-10 bg-[#B8862F]" />
-                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#B8862F]">
-                    Property Overview
-                  </p>
+            <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
+              {hasOverviewCopy ? (
+                <div>
+                  <h2 className="font-serif text-3xl text-[#081221]">
+                    About this property
+                  </h2>
+
+                  {property.descriptionHtml ? (
+                    <div
+                      className="property-description mt-5 max-w-2xl"
+                      dangerouslySetInnerHTML={{ __html: property.descriptionHtml }}
+                    />
+                  ) : (
+                    <p className="mt-5 max-w-2xl text-base leading-8 text-slate-600">
+                      {property.descriptionText}
+                    </p>
+                  )}
                 </div>
-
-                <h2 className="font-serif text-4xl font-light text-[#081221] sm:text-5xl">
-                  A closer look at
-                  <span className="block italic text-[#B8862F]">
-                    this property.
-                  </span>
-                </h2>
-
-                {property.descriptionHtml ? (
-                  <div
-                    className="property-description mt-7 max-w-2xl"
-                    dangerouslySetInnerHTML={{ __html: property.descriptionHtml }}
-                  />
-                ) : property.descriptionText ? (
-                  <p className="mt-7 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">
-                    {property.descriptionText}
-                  </p>
-                ) : null}
-
-                <p className="mt-5 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">
-                  For complete property information, current availability and
-                  viewing arrangements, speak with our team directly.
-                </p>
-              </div>
+              ) : null}
 
               {detailsRows.length > 0 ? (
                 <div>
-                  <h3 className="font-serif text-3xl text-[#081221]">
-                    Property Details
-                  </h3>
+                  <h2 className="font-serif text-3xl text-[#081221]">
+                    Property details
+                  </h2>
 
-                  <div className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
+                  <div className="mt-5 divide-y divide-slate-200 border-y border-slate-200">
                     {detailsRows.map((detail, index) => (
                       <div
                         key={`${detail.label}-${index}`}
-                        className="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+                        className="flex flex-col gap-1 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
                       >
                         <span className="text-sm text-slate-500">
                           {detail.label}
@@ -274,25 +300,17 @@ function PropertyDetail({ property, similarProperties = [] }) {
       ) : null}
 
       {amenityNames.length > 0 ? (
-        <section className="bg-white py-16 sm:py-20">
+        <section className="bg-white py-12 sm:py-16">
           <div className="mx-auto max-w-7xl px-6 sm:px-10 md:px-16 lg:px-8">
-            <div className="mb-10">
-              <div className="mb-5 flex items-center gap-3">
-                <span className="h-px w-10 bg-[#B8862F]" />
-                <p className="text-xs font-medium uppercase tracking-[0.35em] text-[#B8862F]">
-                  Features
-                </p>
-              </div>
-              <h2 className="font-serif text-4xl text-[#081221] sm:text-5xl">
-                Property Amenities
-              </h2>
-            </div>
+            <h2 className="mb-8 font-serif text-3xl text-[#081221]">
+              Amenities
+            </h2>
 
             <div className="grid gap-px border border-slate-200 bg-slate-200 sm:grid-cols-2 lg:grid-cols-3">
               {amenityNames.map((amenity, index) => (
-                <div key={`${amenity}-${index}`} className="bg-white px-6 py-6">
+                <div key={`${amenity}-${index}`} className="bg-white px-6 py-5">
                   <div className="flex items-center gap-4">
-                    <span className="h-2 w-2 shrink-0 rounded-full bg-[#B8862F]" />
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#B8862F]" />
                     <p className="text-sm font-medium text-[#081221]">
                       {amenity}
                     </p>
@@ -305,19 +323,11 @@ function PropertyDetail({ property, similarProperties = [] }) {
       ) : null}
 
       {nearby.length > 0 ? (
-        <section className="bg-[#F7F5F1] py-16 sm:py-20">
+        <section className="bg-[#F7F5F1] py-12 sm:py-16">
           <div className="mx-auto max-w-7xl px-6 sm:px-10 md:px-16 lg:px-8">
-            <div className="mb-10">
-              <div className="mb-5 flex items-center gap-3">
-                <span className="h-px w-10 bg-[#B8862F]" />
-                <p className="text-xs font-medium uppercase tracking-[0.35em] text-[#B8862F]">
-                  Connectivity
-                </p>
-              </div>
-              <h2 className="font-serif text-4xl text-[#081221] sm:text-5xl">
-                Nearby
-              </h2>
-            </div>
+            <h2 className="mb-8 font-serif text-3xl text-[#081221]">
+              What&apos;s nearby
+            </h2>
 
             <div className="grid gap-px border border-slate-200 bg-slate-200 md:grid-cols-2">
               {nearby.map((connection, index) => {
@@ -328,7 +338,7 @@ function PropertyDetail({ property, similarProperties = [] }) {
                 return (
                   <div
                     key={`${connection.name}-${index}`}
-                    className="bg-white px-6 py-6"
+                    className="bg-white px-6 py-5"
                   >
                     <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#B8862F]">
                       {connection.categoryLabel}
@@ -337,7 +347,7 @@ function PropertyDetail({ property, similarProperties = [] }) {
                       {connection.name}
                     </p>
                     {metrics ? (
-                      <p className="mt-2 text-sm text-slate-500">{metrics}</p>
+                      <p className="mt-1 text-sm text-slate-500">{metrics}</p>
                     ) : null}
                   </div>
                 );
@@ -347,92 +357,56 @@ function PropertyDetail({ property, similarProperties = [] }) {
         </section>
       ) : null}
 
-      <section className="bg-[#081221] py-16 sm:py-20">
+      {/* Location: the decorative panel that previously sat beside this only
+          restated the locality next to a large pin icon, so it was removed
+          rather than kept as filler. */}
+      <section className="bg-[#081221] py-12 sm:py-14">
         <div className="mx-auto max-w-7xl px-6 sm:px-10 md:px-16 lg:px-8">
-          <div className="grid items-center gap-10 lg:grid-cols-2">
-            <div>
-              <div className="mb-5 flex items-center gap-3">
-                <span className="h-px w-10 bg-[#B8862F]" />
-                <p className="text-xs font-medium uppercase tracking-[0.35em] text-[#D4AF37]">
-                  Location
-                </p>
-              </div>
+          <div className="max-w-2xl">
+            <h2 className="font-serif text-3xl text-white">
+              Location
+            </h2>
 
-              <h2 className="font-serif text-4xl font-light text-white sm:text-5xl">
-                Located in
-                <span className="block italic text-[#D4AF37]">
-                  {property.locationDisplay}.
-                </span>
-              </h2>
+            <p className="mt-4 text-lg text-[#D4AF37]">
+              {property.locationDisplay}
+            </p>
 
-              {property.location.address ? (
-                <p className="mt-6 max-w-xl text-base leading-8 text-slate-300">
-                  {property.location.address}
-                </p>
-              ) : (
-                <p className="mt-6 max-w-xl text-base leading-8 text-slate-300">
-                  Speak with our team to learn more about the neighbourhood,
-                  connectivity, nearby amenities and other factors that may be
-                  important to your property decision.
-                </p>
-              )}
+            {property.location.address ? (
+              <p className="mt-3 text-base leading-7 text-slate-300">
+                {property.location.address}
+              </p>
+            ) : null}
 
-              <a
-                href={locationMapsHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-7 inline-flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.14em] text-[#D4AF37] transition-colors hover:text-white"
-              >
-                View Location
-                <ArrowRight size={17} />
-              </a>
-            </div>
-
-            <div className="flex min-h-[300px] items-center justify-center border border-white/10 bg-white/[0.04]">
-              <div className="px-6 text-center">
-                <MapPin
-                  size={42}
-                  strokeWidth={1.2}
-                  className="mx-auto text-[#D4AF37]"
-                />
-                <p className="mt-5 font-serif text-2xl text-white">
-                  {property.locationDisplay}
-                </p>
-                {locationSubline ? (
-                  <p className="mt-2 text-sm text-slate-400">{locationSubline}</p>
-                ) : null}
-              </div>
-            </div>
+            <a
+              href={locationMapsHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 inline-flex min-h-11 items-center gap-3 py-2 text-sm font-semibold uppercase tracking-[0.14em] text-[#D4AF37] transition-colors hover:text-white md:mt-6 md:min-h-0 md:py-0"
+            >
+              View on Google Maps
+              <ArrowRight size={17} />
+            </a>
           </div>
         </div>
       </section>
 
       <SimilarProperties properties={similarProperties} />
 
-      <section className="bg-[#F5F0E8] py-16 sm:py-20">
-        <div className="mx-auto max-w-5xl px-6 text-center sm:px-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#B8862F]">
-            Interested In This Property?
+      {/* A compact closing prompt, not a second full CTA band. The enquiry card
+          above is the primary path; this exists so a visitor who has scrolled
+          the whole page still has one to hand. */}
+      <section className="border-t border-slate-200 bg-[#F5F0E8] py-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 sm:px-10 md:flex-row md:px-16 lg:px-8">
+          <p className="text-base text-[#081221]">
+            Want to see this property or ask a question?
           </p>
 
-          <h2 className="mt-4 font-serif text-4xl font-light leading-tight text-[#081221] sm:text-5xl">
-            Let&apos;s discuss
-            <span className="block italic text-[#B8862F]">
-              your requirements.
-            </span>
-          </h2>
-
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-            Our team can provide further information and arrange a viewing
-            based on your requirements.
-          </p>
-
-          <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
+          <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
             <a
               href={`tel:${CONTACT_PHONE_TEL}`}
-              className="inline-flex items-center justify-center gap-3 rounded-lg bg-[#081221] px-8 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-white transition-all duration-300 hover:bg-[#14233A]"
+              className="inline-flex items-center justify-center gap-3 rounded-lg bg-[#081221] px-6 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white transition-colors duration-300 hover:bg-[#14233A]"
             >
-              <Phone size={17} />
+              <Phone size={16} />
               Speak With Us
             </a>
 
@@ -440,10 +414,10 @@ function PropertyDetail({ property, similarProperties = [] }) {
               href={enquiryWhatsapp}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-3 rounded-lg border border-[#081221]/25 px-8 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-colors hover:border-[#B8862F] hover:text-[#B8862F]"
+              className="inline-flex items-center justify-center gap-3 rounded-lg border border-[#081221]/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
             >
-              <MessageCircle size={17} />
-              WhatsApp Us
+              <MessageCircle size={16} />
+              WhatsApp
             </a>
           </div>
         </div>

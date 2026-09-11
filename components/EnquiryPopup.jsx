@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { MessageCircle, Send, X } from "lucide-react";
 import { CONTACT_WHATSAPP_NUMBER } from "../lib/siteConfig";
 import {
+  clearPopupStorageForTesting,
   hasShownThisSession,
   isWithinCooldown,
   markShownThisSession,
@@ -55,7 +56,23 @@ function EnquiryPopup() {
       return undefined;
     }
 
-    if (hasShownThisSession() || isWithinCooldown()) {
+    // Development-only escape hatch so the popup can be exercised repeatedly
+    // without clearing storage by hand: `?popup=now` reveals it immediately,
+    // `?popup=reset` clears the gates and lets the normal triggers run.
+    // `process.env.NODE_ENV` is inlined at build time, so this branch is
+    // stripped from production bundles and the real cooldown behaviour below
+    // is untouched.
+    let devMode = null;
+
+    if (process.env.NODE_ENV === "development") {
+      devMode = new URLSearchParams(window.location.search).get("popup");
+
+      if (devMode === "reset") {
+        clearPopupStorageForTesting();
+      }
+    }
+
+    if (devMode !== "now" && (hasShownThisSession() || isWithinCooldown())) {
       return undefined;
     }
 
@@ -68,7 +85,7 @@ function EnquiryPopup() {
       markShownThisSession();
     };
 
-    const timer = setTimeout(reveal, DELAY_MS);
+    const timer = setTimeout(reveal, devMode === "now" ? 0 : DELAY_MS);
 
     const onScroll = () => {
       if (Date.now() - startedAt < MIN_ENGAGED_TIME_MS) {

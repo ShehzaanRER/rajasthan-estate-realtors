@@ -1,9 +1,13 @@
-import { getProjects } from "../../../lib/projects";
+import {
+  getProjects,
+  parseProjectFilters,
+  toCmsProjectStatus,
+} from "../../../lib/projects";
 import ProjectsListing from "../../../components/projects/ProjectsListing";
 
-const title = "New Projects";
+const title = "Projects";
 const description =
-  "Explore new residential and commercial development projects across Mumbai's Western Suburbs, curated by Rajasthan Estate Realtors.";
+  "Explore residential and commercial development projects across Mumbai's Western Suburbs, curated by Rajasthan Estate Realtors.";
 
 export const metadata = {
   title,
@@ -18,8 +22,14 @@ export const metadata = {
   },
 };
 
-export default async function ProjectsPage() {
-  const projects = await getProjects();
+export default async function ProjectsPage({ searchParams }) {
+  const params = (await searchParams) ?? {};
+  const filters = parseProjectFilters(params);
 
-  return <ProjectsListing projects={projects} />;
+  const projects = await getProjects({
+    projectType: filters.projectType ?? undefined,
+    status: toCmsProjectStatus(filters.status),
+  });
+
+  return <ProjectsListing projects={projects} filters={filters} />;
 }

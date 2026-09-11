@@ -377,6 +377,14 @@ export interface Project {
    * Draft projects are never shown on the public website or sitemap.
    */
   status: 'draft' | 'upcoming' | 'under-construction' | 'ready-to-move' | 'completed' | 'sold-out';
+  /**
+   * Tick while this is a current launch. Tagged projects appear under "New Projects" on the homepage and carry a New Launch badge. Untick once the launch is no longer current.
+   */
+  isNew?: boolean | null;
+  /**
+   * Optional positioning tags, separate from Project Status. At most two are shown on a project card, and status always takes priority.
+   */
+  highlightTags?: ('premium' | 'luxury' | 'investment' | 'residential' | 'commercial')[] | null;
   description?: {
     root: {
       type: string;
@@ -531,6 +539,19 @@ export interface Project {
      * Optional. A map/location image, if different from the master plan.
      */
     locationMapImage?: (number | null) | Media;
+  };
+  /**
+   * Internal tracking for drafts created via Brochure Convert. Never exposed on the public website or API.
+   */
+  source?: {
+    sourceType?: ('pdf' | 'pasted-text' | 'manual') | null;
+    sourceFilename?: string | null;
+    processedAt?: string | null;
+    extractionVersion?: string | null;
+    /**
+     * Auto-generated notes from Brochure Convert flagging fields that need manual review before publishing.
+     */
+    extractionNotes?: string | null;
   };
   updatedAt: string;
   createdAt: string;
@@ -780,6 +801,8 @@ export interface ProjectsSelect<T extends boolean = true> {
   projectId?: T;
   developer?: T;
   status?: T;
+  isNew?: T;
+  highlightTags?: T;
   description?: T;
   highlights?:
     | T
@@ -865,6 +888,15 @@ export interface ProjectsSelect<T extends boolean = true> {
         floorPlans?: T;
         masterPlan?: T;
         locationMapImage?: T;
+      };
+  source?:
+    | T
+    | {
+        sourceType?: T;
+        sourceFilename?: T;
+        processedAt?: T;
+        extractionVersion?: T;
+        extractionNotes?: T;
       };
   updatedAt?: T;
   createdAt?: T;

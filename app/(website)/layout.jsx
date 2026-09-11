@@ -1,7 +1,7 @@
 import Navbar from "../../components/layouts/Navbar";
 import Footer from "../../components/layouts/Footer";
 import EnquiryPopup from "../../components/EnquiryPopup";
-import { CONTACT_PHONE_TEL, SITE_NAME, SITE_URL } from "../../lib/siteConfig";
+import { CONTACTS, SITE_NAME, SITE_URL } from "../../lib/siteConfig";
 import "../../src/index.css";
 
 const title = "Rajasthan Estate Realtors | Real Estate in Mumbai";
@@ -37,7 +37,7 @@ const organizationJsonLd = {
   "@type": "RealEstateAgent",
   name: SITE_NAME,
   url: SITE_URL,
-  telephone: CONTACT_PHONE_TEL,
+  telephone: CONTACTS.map((contact) => contact.tel),
   areaServed: {
     "@type": "City",
     name: "Mumbai",

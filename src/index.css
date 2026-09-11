@@ -1,5 +1,47 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap');
 @import "tailwindcss";
+
+/* ===========================
+   BRAND TOKENS
+
+   Canonical definitions for the RER palette. These name the colours that are
+   currently repeated as raw hex values across components; the values are
+   unchanged, so nothing renders differently. Migrating existing utilities onto
+   these tokens is a separate, mechanical pass.
+=========================== */
+
+@theme {
+  --color-rer-navy: #081221;
+  --color-rer-navy-deep: #07101d;
+  --color-rer-navy-hover: #14233a;
+  --color-rer-gold: #b8862f;
+  --color-rer-gold-hover: #cca251;
+  --color-rer-gold-light: #d4af37;
+  --color-rer-sand: #f7f5f1;
+  --color-rer-sand-deep: #f5f0e8;
+}
+
+/* ===========================
+   FOCUS VISIBILITY
+
+   One consistent keyboard-focus treatment for every interactive element.
+   Wrapped in :where() so it carries zero specificity — any component that
+   defines its own focus-visible style still wins, and this only fills the gap
+   where none was defined. Applies to keyboard focus only, so it never shows
+   on mouse clicks.
+=========================== */
+
+:where(a[href], button, select, textarea, input, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-rer-gold);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Gold-on-gold would be invisible, so the primary gold buttons take the navy
+   ring instead. */
+:where(a, button).bg-\[\#B8862F\]:focus-visible {
+  outline-color: var(--color-rer-navy);
+}
 /* ===========================
    TRUST BAR ANIMATION
 =========================== */
