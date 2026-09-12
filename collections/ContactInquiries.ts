@@ -16,10 +16,13 @@ export const ContactInquiries: CollectionConfig = {
   slug: 'contact-inquiries',
 
   admin: {
+    group: 'Leads',
     useAsTitle: 'name',
     defaultColumns: ['name', 'phone', 'requirement', 'status', 'createdAt'],
     description: 'Submissions from the public Contact form. Not publicly readable.',
   },
+
+  defaultSort: '-createdAt',
 
   access: {
     read: isAuthenticated,

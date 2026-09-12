@@ -15,6 +15,7 @@ export const Media: CollectionConfig = {
   },
 
   admin: {
+    group: 'Media Library',
     useAsTitle: 'alt',
   },
 

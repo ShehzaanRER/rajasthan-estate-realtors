@@ -20,6 +20,7 @@ export const Amenities: CollectionConfig = {
   },
 
   admin: {
+    group: 'Reference Data',
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'category'],
     description:
