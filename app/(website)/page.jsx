@@ -1,7 +1,6 @@
 import Hero from "../../components/home/Hero";
 import Services from "../../components/home/Services";
 import FloatingWhatsapp from "../../components/FloatingWhatsapp";
-import PropertySearch from "../../components/home/PropertySearch";
 import FeaturedShowcase from "../../components/home/FeaturedShowcase";
 import AboutTeaser from "../../components/home/AboutTeaser";
 import { getFeaturedProperties, getPropertyLocalities } from "../../lib/properties";
@@ -17,10 +16,9 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero />
+      <Hero localities={localities} />
       <FloatingWhatsapp />
       <Services />
-      <PropertySearch localities={localities} />
       <FeaturedShowcase properties={featured} projects={newProjects} />
       <AboutTeaser />
     </>

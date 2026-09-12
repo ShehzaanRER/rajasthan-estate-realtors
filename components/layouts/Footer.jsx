@@ -27,7 +27,7 @@ function Footer() {
 ========================================================= */}
 
       <FooterCtaGate>
-        <section className="border-b border-white/10 bg-[#F5F0E8]">
+        <section className="border-b border-white/10 bg-[#F7F5F1]">
 
           <div className="mx-auto max-w-7xl px-6 py-12 sm:px-10 md:px-16 lg:px-8">
 

@@ -45,7 +45,7 @@ function Navbar() {
   const closeMenu = () => setMenuOpen(false);
 
   return (
-    <nav className="relative z-50 w-full bg-white border-b border-slate-200 shadow-sm">
+    <nav className="relative z-50 w-full bg-rer-sand border-b border-slate-200 shadow-sm">
 
       <div className="mx-auto flex h-[88px] max-w-7xl items-center justify-between px-4 sm:h-[110px] sm:px-6 lg:px-8">
 
@@ -64,7 +64,7 @@ function Navbar() {
           <img
             src="/logo-HOUSE.svg"
             alt=""
-            className="h-16 w-auto shrink-0 object-contain sm:h-[100px] lg:h-[78px] xl:h-[100px]"
+            className="mt-1 h-16 w-auto shrink-0 self-center object-contain sm:h-[100px] lg:h-[78px] xl:h-[100px]"
           />
 
           {/* Business Name */}

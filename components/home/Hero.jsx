@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { CONTACT_PHONE_TEL } from "../../lib/siteConfig";
+import HeroPropertySearch from "./HeroPropertySearch";
 
 /**
  * Static hero. Its height follows its content rather than the viewport, so
  * the section never reserves empty space it has nothing to fill with.
+ *
+ * The property search lives at the foot of the hero rather than in its own
+ * homepage section, so finding a listing no longer costs a second scroll.
  */
-function Hero() {
+function Hero({ localities = [] }) {
   return (
     <section className="relative w-full overflow-hidden bg-[#07101d]">
 
@@ -29,7 +33,7 @@ function Hero() {
 
       {/* CONTENT */}
 
-      <div className="relative z-10 mx-auto max-w-[1600px] px-6 py-20 sm:px-10 md:px-16 md:py-28 lg:px-20 xl:px-24">
+      <div className="relative z-10 mx-auto max-w-[1600px] px-6 py-20 sm:px-10 md:px-16 md:pt-[47px] md:pb-[47px] lg:px-20 xl:px-24">
 
         <div className="max-w-3xl">
 
@@ -76,6 +80,10 @@ function Hero() {
             </a>
           </div>
 
+        </div>
+
+        <div className="mt-10 max-w-5xl sm:mt-12 md:mt-14">
+          <HeroPropertySearch localities={localities} />
         </div>
 
       </div>

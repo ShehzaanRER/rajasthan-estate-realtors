@@ -16,11 +16,11 @@ function AboutTeaser() {
   return (
     <section
       id="about"
-      className="relative overflow-hidden bg-white py-12 sm:py-14 lg:py-16"
+      className="relative overflow-hidden bg-white pt-8 pb-[30px] sm:pt-10 sm:pb-[38px] lg:pt-12 lg:pb-[46px]"
     >
       {/* Grounds the image side of the two-column composition. There is no
           such side in the single-column mobile layout. */}
-      <div className="pointer-events-none absolute right-0 top-0 hidden h-full w-1/3 bg-[#E9E3D7]/50 lg:block" />
+      <div className="pointer-events-none absolute right-0 top-0 hidden h-full w-1/3 bg-rer-sand lg:block" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-10 lg:px-8">
 
