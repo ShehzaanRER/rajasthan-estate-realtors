@@ -28,9 +28,9 @@ type OwnerCollection = 'properties' | 'projects';
 
 type OwnerRef = {
   collection: OwnerCollection;
-  id: number | string;
+  id: number;
   rerId: string;
-  mediaFolderId: number | string;
+  mediaFolderId: number;
 };
 
 const RER_ID_FIELD: Record<OwnerCollection, 'propertyId' | 'projectId'> = {
@@ -83,21 +83,21 @@ async function main() {
         overrideAccess: true,
       });
 
-      for (const doc of result.docs as Record<string, unknown>[]) {
+      for (const doc of result.docs as unknown as Record<string, unknown>[]) {
         const rerId = doc[rerIdField] as string | undefined;
         if (!rerId) {
           console.warn(`Skipping ${collection} id=${doc.id}: no ${rerIdField} assigned yet.`);
           continue;
         }
 
-        let mediaFolderId = doc.mediaFolder as number | string | null | undefined;
+        let mediaFolderId = doc.mediaFolder as number | null | undefined;
 
         if (!mediaFolderId) {
           mediaFolderId = await resolveMediaFolderId({ payload, rerId });
 
           await payload.update({
             collection,
-            id: doc.id as number | string,
+            id: doc.id as number,
             data: { mediaFolder: mediaFolderId },
             overrideAccess: true,
             depth: 0,
@@ -106,7 +106,7 @@ async function main() {
           console.log(`Linked ${collection} ${rerId} (id=${doc.id}) -> folder ${mediaFolderId}`);
         }
 
-        owners.push({ collection, id: doc.id as number | string, rerId, mediaFolderId });
+        owners.push({ collection, id: doc.id as number, rerId, mediaFolderId });
       }
 
       if (!result.hasNextPage) {
@@ -150,7 +150,7 @@ async function main() {
       id: mediaId,
       depth: 0,
       overrideAccess: true,
-    })) as Record<string, unknown>;
+    })) as unknown as Record<string, unknown>;
 
     if (mediaDoc.folder) {
       alreadySet += 1;

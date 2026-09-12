@@ -74,11 +74,16 @@ export interface Config {
     media: Media;
     'contact-inquiries': ContactInquiry;
     'payload-kv': PayloadKv;
+    'payload-folders': FolderInterface;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    'payload-folders': {
+      documentsAndFolders: 'payload-folders' | 'media';
+    };
+  };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     properties: PropertiesSelect<false> | PropertiesSelect<true>;
@@ -87,6 +92,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     'contact-inquiries': ContactInquiriesSelect<false> | ContactInquiriesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
+    'payload-folders': PayloadFoldersSelect<false> | PayloadFoldersSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -163,6 +169,10 @@ export interface Property {
    * Assigned automatically when the property is created. Permanent and not editable.
    */
   propertyId?: string | null;
+  /**
+   * Media folder auto-created for this property's permanent Property ID. System-managed — cannot be changed here.
+   */
+  mediaFolder?: (number | null) | FolderInterface;
   description?: {
     root: {
       type: string;
@@ -275,11 +285,11 @@ export interface Property {
   amenities?: (number | Amenity)[] | null;
   media?: {
     /**
-     * Main property image used as the cover photo in listings and on the property page.
+     * Main property image used as the cover photo in listings and on the property page. Only media filed under this property's own folder can be selected.
      */
     featuredImage?: (number | null) | Media;
     /**
-     * Additional property photos. Drag to reorder. Set alt text and optional caption on each Media item.
+     * Additional property photos. Drag to reorder. Set alt text and optional caption on each Media item. Only media filed under this property's own folder can be selected.
      */
     gallery?: (number | Media)[] | null;
   };
@@ -301,16 +311,28 @@ export interface Property {
   createdAt: string;
 }
 /**
- * Master amenity library. Properties select from these reusable records; add new amenities here rather than duplicating them on each listing.
- *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "amenities".
+ * via the `definition` "payload-folders".
  */
-export interface Amenity {
+export interface FolderInterface {
   id: number;
   name: string;
-  slug: string;
-  category?: ('building' | 'lifestyle' | 'convenience') | null;
+  folder?: (number | null) | FolderInterface;
+  documentsAndFolders?: {
+    docs?: (
+      | {
+          relationTo?: 'payload-folders';
+          value: number | FolderInterface;
+        }
+      | {
+          relationTo?: 'media';
+          value: number | Media;
+        }
+    )[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  folderType?: 'media'[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -322,6 +344,7 @@ export interface Media {
   id: number;
   alt: string;
   caption?: string | null;
+  folder?: (number | null) | FolderInterface;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -361,6 +384,20 @@ export interface Media {
   };
 }
 /**
+ * Master amenity library. Properties select from these reusable records; add new amenities here rather than duplicating them on each listing.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "amenities".
+ */
+export interface Amenity {
+  id: number;
+  name: string;
+  slug: string;
+  category?: ('building' | 'lifestyle' | 'convenience') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "projects".
  */
@@ -372,6 +409,10 @@ export interface Project {
    * Assigned automatically when the project is created (e.g. RER-P-0001). Permanent and not editable. This is RER's own internal reference, not the RERA Registration Number.
    */
   projectId?: string | null;
+  /**
+   * Media folder auto-created for this project's permanent RER Project Number. System-managed — cannot be changed here.
+   */
+  mediaFolder?: (number | null) | FolderInterface;
   developer: string;
   /**
    * Draft projects are never shown on the public website or sitemap.
@@ -520,23 +561,23 @@ export interface Project {
     | null;
   media?: {
     /**
-     * Hero image used on the project card and the top of the project page.
+     * Hero image used on the project card and the top of the project page. Only media filed under this project's own folder can be selected.
      */
     featuredImage?: (number | null) | Media;
     /**
-     * Additional project photos. Drag to reorder.
+     * Additional project photos. Drag to reorder. Only media filed under this project's own folder can be selected.
      */
     gallery?: (number | Media)[] | null;
     /**
-     * Floor plan images, one per configuration/layout as applicable.
+     * Floor plan images, one per configuration/layout as applicable. Only media filed under this project's own folder can be selected.
      */
     floorPlans?: (number | Media)[] | null;
     /**
-     * Overall project layout / master plan image.
+     * Overall project layout / master plan image. Only media filed under this project's own folder can be selected.
      */
     masterPlan?: (number | null) | Media;
     /**
-     * Optional. A map/location image, if different from the master plan.
+     * Optional. A map/location image, if different from the master plan. Only media filed under this project's own folder can be selected.
      */
     locationMapImage?: (number | null) | Media;
   };
@@ -632,6 +673,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'contact-inquiries';
         value: number | ContactInquiry;
+      } | null)
+    | ({
+        relationTo: 'payload-folders';
+        value: number | FolderInterface;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -706,6 +751,7 @@ export interface PropertiesSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   propertyId?: T;
+  mediaFolder?: T;
   description?: T;
   purpose?: T;
   propertyCategory?: T;
@@ -799,6 +845,7 @@ export interface ProjectsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   projectId?: T;
+  mediaFolder?: T;
   developer?: T;
   status?: T;
   isNew?: T;
@@ -919,6 +966,7 @@ export interface AmenitiesSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   caption?: T;
+  folder?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -988,6 +1036,18 @@ export interface ContactInquiriesSelect<T extends boolean = true> {
 export interface PayloadKvSelect<T extends boolean = true> {
   key?: T;
   data?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-folders_select".
+ */
+export interface PayloadFoldersSelect<T extends boolean = true> {
+  name?: T;
+  folder?: T;
+  documentsAndFolders?: T;
+  folderType?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

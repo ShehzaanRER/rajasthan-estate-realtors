@@ -22,6 +22,9 @@ import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997e
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { GenerateNearbyLocations as GenerateNearbyLocations_779041a3bd8f8a827da908c78c2c13e2 } from '../../../components/payload/GenerateNearbyLocations'
+import { FolderTableCell as FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
+import { FolderField as FolderField_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
+import { FolderTypeField as FolderTypeField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
 import { BrochureConvertNavLink as BrochureConvertNavLink_705896ae4187f7f9402564ab36af3bff } from '../../../components/payload/BrochureConvertNavLink'
 import { S3ClientUploadHandler as S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24 } from '@payloadcms/storage-s3/client'
 import { BrochureConvertView as BrochureConvertView_5d3dabee9b141b508451f3b64e95433e } from '../../../components/payload/BrochureConvertView'
@@ -53,6 +56,9 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "/components/payload/GenerateNearbyLocations#GenerateNearbyLocations": GenerateNearbyLocations_779041a3bd8f8a827da908c78c2c13e2,
+  "@payloadcms/next/rsc#FolderTableCell": FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1,
+  "@payloadcms/next/rsc#FolderField": FolderField_f9c02e79a4aed9a3924487c0cd4cafb1,
+  "@payloadcms/next/client#FolderTypeField": FolderTypeField_2b8867833a34864a02ddf429b0728a40,
   "/components/payload/BrochureConvertNavLink#BrochureConvertNavLink": BrochureConvertNavLink_705896ae4187f7f9402564ab36af3bff,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24,
   "/components/payload/BrochureConvertView#BrochureConvertView": BrochureConvertView_5d3dabee9b141b508451f3b64e95433e,

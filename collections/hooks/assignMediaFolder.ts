@@ -21,7 +21,7 @@ export async function resolveMediaFolderId({
   payload: Payload;
   req?: PayloadRequest;
   rerId: string;
-}): Promise<number | string> {
+}): Promise<number> {
   const existing = await payload.find({
     collection: 'payload-folders',
     where: { name: { equals: rerId } },
