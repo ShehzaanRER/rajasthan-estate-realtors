@@ -2,6 +2,7 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import type { Access, CollectionConfig } from 'payload';
 import { PUBLIC_STATUSES } from '../lib/properties/publicScope';
 import { generateNearbyLocationsHandler } from './endpoints/generateNearbyLocations';
+import { createAssignMediaFolderHook, filterMediaByFolder } from './hooks/assignMediaFolder';
 import { assignPropertyId } from './hooks/assignPropertyId';
 
 const isAuthenticated: Access = ({ req: { user } }) => Boolean(user);
@@ -35,6 +36,7 @@ export const Properties: CollectionConfig = {
 
   hooks: {
     beforeChange: [assignPropertyId],
+    afterChange: [createAssignMediaFolderHook({ collectionSlug: 'properties', rerIdField: 'propertyId' })],
   },
 
   endpoints: [
@@ -68,6 +70,22 @@ export const Properties: CollectionConfig = {
       admin: {
         readOnly: true,
         description: 'Assigned automatically when the property is created. Permanent and not editable.',
+      },
+    },
+    {
+      name: 'mediaFolder',
+      type: 'relationship',
+      relationTo: 'payload-folders',
+      hasMany: false,
+      unique: true,
+      access: {
+        update: () => false,
+      },
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description:
+          'Media folder auto-created for this property\'s permanent Property ID. System-managed — cannot be changed here.',
       },
     },
     {
@@ -515,8 +533,10 @@ export const Properties: CollectionConfig = {
           type: 'upload',
           relationTo: 'media',
           required: false,
+          filterOptions: filterMediaByFolder,
           admin: {
-            description: 'Main property image used as the cover photo in listings and on the property page.',
+            description:
+              'Main property image used as the cover photo in listings and on the property page. Only media filed under this property\'s own folder can be selected.',
           },
         },
         {
@@ -525,10 +545,11 @@ export const Properties: CollectionConfig = {
           relationTo: 'media',
           hasMany: true,
           required: false,
+          filterOptions: filterMediaByFolder,
           admin: {
             isSortable: true,
             description:
-              'Additional property photos. Drag to reorder. Set alt text and optional caption on each Media item.',
+              'Additional property photos. Drag to reorder. Set alt text and optional caption on each Media item. Only media filed under this property\'s own folder can be selected.',
           },
         },
       ],

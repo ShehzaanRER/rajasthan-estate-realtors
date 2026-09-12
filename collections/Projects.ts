@@ -1,6 +1,7 @@
 import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import type { Access, FieldAccess, CollectionConfig } from 'payload';
 import { PUBLIC_PROJECT_STATUSES } from '../lib/projects/publicScope';
+import { createAssignMediaFolderHook, filterMediaByFolder } from './hooks/assignMediaFolder';
 import { assignProjectId } from './hooks/assignProjectId';
 
 const isAuthenticated: Access = ({ req: { user } }) => Boolean(user);
@@ -39,6 +40,7 @@ export const Projects: CollectionConfig = {
 
   hooks: {
     beforeChange: [assignProjectId],
+    afterChange: [createAssignMediaFolderHook({ collectionSlug: 'projects', rerIdField: 'projectId' })],
   },
 
   fields: [
@@ -66,6 +68,22 @@ export const Projects: CollectionConfig = {
         readOnly: true,
         description:
           'Assigned automatically when the project is created (e.g. RER-P-0001). Permanent and not editable. This is RER\'s own internal reference, not the RERA Registration Number.',
+      },
+    },
+    {
+      name: 'mediaFolder',
+      type: 'relationship',
+      relationTo: 'payload-folders',
+      hasMany: false,
+      unique: true,
+      access: {
+        update: () => false,
+      },
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description:
+          'Media folder auto-created for this project\'s permanent RER Project Number. System-managed — cannot be changed here.',
       },
     },
     {
@@ -502,8 +520,10 @@ export const Projects: CollectionConfig = {
           name: 'featuredImage',
           type: 'upload',
           relationTo: 'media',
+          filterOptions: filterMediaByFolder,
           admin: {
-            description: 'Hero image used on the project card and the top of the project page.',
+            description:
+              'Hero image used on the project card and the top of the project page. Only media filed under this project\'s own folder can be selected.',
           },
         },
         {
@@ -511,9 +531,11 @@ export const Projects: CollectionConfig = {
           type: 'upload',
           relationTo: 'media',
           hasMany: true,
+          filterOptions: filterMediaByFolder,
           admin: {
             isSortable: true,
-            description: 'Additional project photos. Drag to reorder.',
+            description:
+              'Additional project photos. Drag to reorder. Only media filed under this project\'s own folder can be selected.',
           },
         },
         {
@@ -521,25 +543,31 @@ export const Projects: CollectionConfig = {
           type: 'upload',
           relationTo: 'media',
           hasMany: true,
+          filterOptions: filterMediaByFolder,
           admin: {
             isSortable: true,
-            description: 'Floor plan images, one per configuration/layout as applicable.',
+            description:
+              'Floor plan images, one per configuration/layout as applicable. Only media filed under this project\'s own folder can be selected.',
           },
         },
         {
           name: 'masterPlan',
           type: 'upload',
           relationTo: 'media',
+          filterOptions: filterMediaByFolder,
           admin: {
-            description: 'Overall project layout / master plan image.',
+            description:
+              'Overall project layout / master plan image. Only media filed under this project\'s own folder can be selected.',
           },
         },
         {
           name: 'locationMapImage',
           type: 'upload',
           relationTo: 'media',
+          filterOptions: filterMediaByFolder,
           admin: {
-            description: 'Optional. A map/location image, if different from the master plan.',
+            description:
+              'Optional. A map/location image, if different from the master plan. Only media filed under this project\'s own folder can be selected.',
           },
         },
       ],

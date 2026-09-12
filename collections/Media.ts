@@ -3,6 +3,13 @@ import type { CollectionConfig } from 'payload';
 export const Media: CollectionConfig = {
   slug: 'media',
 
+  // Native Payload folders (beta, see collections/hooks/assignMediaFolder.ts).
+  // Adds a hidden `folder` relationship field to every Media document,
+  // pointing at a `payload-folders` doc. Properties/Projects each get
+  // exactly one such folder, named after their permanent RER ID, and only
+  // Media is folder-enabled, so a folder can never hold anything else.
+  folders: true,
+
   access: {
     read: () => true,
   },
