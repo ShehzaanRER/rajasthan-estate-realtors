@@ -28,6 +28,7 @@ import { PriceCell as PriceCell_13d34c93b1191de7b08254f520381fd7 } from '../../.
 import { FolderTableCell as FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 import { FolderField as FolderField_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 import { FolderTypeField as FolderTypeField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
+import { AdminDashboardSummary as AdminDashboardSummary_a5e0672c0c8f7371431fe35b708bb432 } from '../../../components/payload/AdminDashboardSummary'
 import { BrochureConvertNavLink as BrochureConvertNavLink_705896ae4187f7f9402564ab36af3bff } from '../../../components/payload/BrochureConvertNavLink'
 import { S3ClientUploadHandler as S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24 } from '@payloadcms/storage-s3/client'
 import { BrochureConvertView as BrochureConvertView_5d3dabee9b141b508451f3b64e95433e } from '../../../components/payload/BrochureConvertView'
@@ -65,6 +66,7 @@ export const importMap = {
   "@payloadcms/next/rsc#FolderTableCell": FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1,
   "@payloadcms/next/rsc#FolderField": FolderField_f9c02e79a4aed9a3924487c0cd4cafb1,
   "@payloadcms/next/client#FolderTypeField": FolderTypeField_2b8867833a34864a02ddf429b0728a40,
+  "/components/payload/AdminDashboardSummary#AdminDashboardSummary": AdminDashboardSummary_a5e0672c0c8f7371431fe35b708bb432,
   "/components/payload/BrochureConvertNavLink#BrochureConvertNavLink": BrochureConvertNavLink_705896ae4187f7f9402564ab36af3bff,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24,
   "/components/payload/BrochureConvertView#BrochureConvertView": BrochureConvertView_5d3dabee9b141b508451f3b64e95433e,

@@ -64,6 +64,7 @@ export default buildConfig({
         },
       },
       afterNavLinks: ['/components/payload/BrochureConvertNavLink#BrochureConvertNavLink'],
+      afterDashboard: ['/components/payload/AdminDashboardSummary#AdminDashboardSummary'],
     },
   },
 
