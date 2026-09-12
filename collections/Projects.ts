@@ -101,6 +101,9 @@ export const Projects: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description: 'Draft projects are never shown on the public website or sitemap.',
+        components: {
+          Cell: '/components/payload/StatusBadge#StatusBadge',
+        },
       },
     },
 

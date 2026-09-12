@@ -94,6 +94,9 @@ export const Properties: CollectionConfig = {
       defaultValue: 'draft',
       admin: {
         position: 'sidebar',
+        components: {
+          Cell: '/components/payload/StatusBadge#StatusBadge',
+        },
       },
       options: [
         { label: 'Draft', value: 'draft' },
