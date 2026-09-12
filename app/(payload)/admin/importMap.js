@@ -1,3 +1,4 @@
+import { MediaFolderLink as MediaFolderLink_5d27ce8a8c1d843d3bd203b599013d88 } from '../../../components/payload/MediaFolderLink'
 import { StatusBadge as StatusBadge_85bc492d6fa9e6b23025ea2ca162f96c } from '../../../components/payload/StatusBadge'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -34,6 +35,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "/components/payload/MediaFolderLink#MediaFolderLink": MediaFolderLink_5d27ce8a8c1d843d3bd203b599013d88,
   "/components/payload/StatusBadge#StatusBadge": StatusBadge_85bc492d6fa9e6b23025ea2ca162f96c,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,

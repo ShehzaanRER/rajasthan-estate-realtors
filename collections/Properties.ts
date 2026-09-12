@@ -88,6 +88,16 @@ export const Properties: CollectionConfig = {
       },
     },
     {
+      name: 'mediaFolderLink',
+      type: 'ui',
+      admin: {
+        position: 'sidebar',
+        components: {
+          Field: '/components/payload/MediaFolderLink#MediaFolderLink',
+        },
+      },
+    },
+    {
       name: 'status',
       type: 'select',
       required: true,
