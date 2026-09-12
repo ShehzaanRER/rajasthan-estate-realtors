@@ -1,78 +1,506 @@
-/**
- * RER admin visual polish.
- *
- * This file only redefines Payload's own documented CSS custom properties
- * (--theme-*) or targets specific, verified Payload UI classes (checked
- * against the actual compiled node_modules/@payloadcms/ui/dist/styles.css
- * shipped with this project's installed Payload 3.88) — it never overrides
- * Payload's global elevation/success/warning/error tokens, so status
- * badges, focus rings, and every other component that reads those tokens
- * are unaffected. Colour values below are the same RER navy/gold already
- * established for the public site in src/index.css's `@theme` block —
- * nothing new is invented here.
- */
+/* =============================================================================
+   RER PROPERTY MANAGEMENT CONSOLE — VISUAL SYSTEM (V1)
+   =============================================================================
+
+   Payload foundation + RER identity. This file never replaces Payload's design
+   system; it re-points Payload's own design tokens and adds a small RER layer
+   on top.
+
+   HOW THIS FILE WINS THE CASCADE
+   ------------------------------
+   Every rule Payload ships is wrapped in `@layer payload-default` (verified:
+   701 occurrences in node_modules/@payloadcms/next/dist/prod/styles.css, which
+   opens with `@layer payload-default;`). Unlayered declarations always beat
+   layered ones at the same origin, regardless of specificity. So the rules
+   below need no `!important` and no specificity escalation.
+
+   That power cuts both ways: an unlayered rule here also beats a MORE specific
+   layered rule of Payload's. Wherever that would clobber a Payload state we
+   care about (`.btn--disabled`, `.tabs-field__tab-button--has-error`), the
+   state is deliberately re-declared below. Those re-declarations are
+   load-bearing — do not delete them.
+
+   THEMING MODEL (verified against the compiled stylesheet)
+   -------------------------------------------------------
+   - `:root`                  declares `--color-base-0…1000` (one ramp) and is
+                              also Payload's LIGHT theme default.
+   - `html[data-theme=dark]`  only re-maps `--theme-elevation-*` onto that SAME
+                              ramp, inverted.
+   Therefore re-tinting `--color-base-*` once on `:root` re-colours both themes
+   coherently. Any token that must differ per theme is declared twice — once on
+   `:root`, once on `html[data-theme='dark']` — so our own dark rule
+   out-specifies our own light rule.
+
+   Brand hex values appear ONCE, in the token layer. Nothing below hardcodes a
+   colour.
+   ============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   1. TOKEN LAYER
+   -------------------------------------------------------------------------- */
 
 :root {
+  /* --- 1.1 RER brand ------------------------------------------------------
+     Identical to the public site's tokens in src/index.css (@theme block).
+     Nothing new is invented here. */
   --rer-navy: #081221;
   --rer-navy-hover: #14233a;
   --rer-gold: #b8862f;
+  --rer-gold-hover: #cca251;
+
+  /* --- 1.2 Neutral ramp ---------------------------------------------------
+     Payload ships a fully achromatic ramp (rgb(235,235,235), rgb(128,128,128)…).
+     That single fact is the main reason the admin reads as generic.
+
+     These replacements are LUMINANCE-MATCHED to Payload's greys: each value is
+     g -> (g - 2d, g + 0.3d, g + 3d), a channel shift chosen so that
+     0.2126*dR + 0.7152*dG + 0.0722*dB is approximately 0. Measured drift is
+     below 0.002 Y at every stop, so every contrast ratio Payload relies on is
+     preserved (main body text actually improves: 13.13:1 -> 13.37:1).
+
+     `d` grows as the stop gets darker, so large light surfaces stay close to
+     neutral while dark surfaces carry a genuine navy identity. base-0 is left
+     pure white so panels and inputs stay crisp against the tinted ground. */
+  --color-base-0: #ffffff;
+  --color-base-50: #f0f6fc;
+  --color-base-100: #e6ecf2;
+  --color-base-150: #d8dee5;
+  --color-base-200: #cbd1d8;
+  --color-base-250: #bdc4cc;
+  --color-base-300: #afb6be;
+  --color-base-350: #a2a9b1;
+  --color-base-400: #939ba4;
+  --color-base-450: #868e97;
+  --color-base-500: #79818b;
+  --color-base-550: #6b737d;
+  --color-base-600: #5d6671;
+  --color-base-650: #4f5863;
+  --color-base-700: #424b57;
+  --color-base-750: #333d49;
+  --color-base-800: #26303c;
+  --color-base-850: #192330;
+  --color-base-900: #0a1522;
+  --color-base-950: #000816;
+  --color-base-1000: #00020f;
+
+  /* --- 1.3 Surface model (LIGHT) -----------------------------------------
+     Stock Payload puts white on white: page background and panels are both
+     elevation-0, and `.card` is elevation-50 — panels are DARKER than the page.
+     That inversion is a large part of why the admin reads as a document rather
+     than an application. RER flips it: a faintly cool ground, white panels
+     lifted on top. */
+  --rer-ground: var(--color-base-50);
+  --rer-surface: var(--color-base-0);
+  --rer-surface-sunken: var(--color-base-100);
+  --theme-bg: var(--rer-ground);
+
+  /* --- 1.4 Navigation rail ------------------------------------------------ */
+  --rer-nav-bg: var(--color-base-900);
+  --rer-nav-fg: #e7eef7;
+  --rer-nav-muted: #97a6ba;
+  --rer-nav-border: rgb(255 255 255 / 9%);
+  --rer-nav-hover-bg: rgb(255 255 255 / 7%);
+
+  /* --- 1.5 Primary action -------------------------------------------------
+     Split from --rer-navy because a fixed dark navy is only legible in light
+     mode; see the dark override in 1.11. */
+  --rer-primary-bg: var(--rer-navy);
+  --rer-primary-bg-hover: var(--rer-navy-hover);
+  --rer-primary-fg: #f4f7fb;
+
+  /* --- 1.6 Spacing --------------------------------------------------------
+     Derived from Payload's own --base (about 20px) so RER rhythm matches
+     Payload's grid instead of fighting it. */
+  --rer-space-1: calc(var(--base) * 0.25);
+  --rer-space-2: calc(var(--base) * 0.5);
+  --rer-space-3: calc(var(--base) * 0.75);
+  --rer-space-4: var(--base);
+  --rer-space-5: calc(var(--base) * 1.5);
+  --rer-space-6: calc(var(--base) * 2);
+
+  /* --- 1.7 Radius — Payload's own scale, not a new one -------------------- */
+  --rer-radius-sm: var(--style-radius-s);
+  --rer-radius: var(--style-radius-m);
+  --rer-radius-lg: var(--style-radius-l);
+  --rer-radius-pill: 999px;
+
+  /* --- 1.8 Borders & elevation -------------------------------------------
+     One shadow level for resting panels, one for raised/floating. Deliberately
+     shallow: this is an operations console, not a marketing page. */
+  --rer-border-color: var(--theme-elevation-150);
+  --rer-border-color-soft: var(--theme-elevation-100);
+  --rer-shadow-sm: 0 1px 2px rgb(8 18 33 / 5%);
+  --rer-shadow-md: 0 4px 10px -3px rgb(8 18 33 / 10%);
+
+  /* --- 1.9 Typography -----------------------------------------------------
+     Sizes only; Payload's --font-body is untouched and no webfont is added.
+     Uppercase is confined to --rer-eyebrow-*, used by table headers and small
+     metadata labels only — never by field labels. */
+  --rer-page-title-size: 26px;
+  --rer-page-title-weight: 600;
+  --rer-section-size: 17px;
+  --rer-section-weight: 600;
+  --rer-card-title-size: 14px;
+  --rer-card-title-weight: 600;
+  --rer-meta-size: 12px;
+  --rer-eyebrow-size: 11px;
+  --rer-eyebrow-weight: 600;
+  --rer-eyebrow-tracking: 0.06em;
+
+  /* --- 1.10 Interactive states ------------------------------------------- */
+  --rer-hover-surface: var(--color-base-100);
+  --rer-row-stripe: var(--theme-elevation-50);
+  --rer-row-hover: var(--color-base-100);
+  --rer-accent: var(--rer-gold);
+
+  /* Focus. Payload's default ring is --theme-success-600 (green), which reads
+     as a status colour rather than a focus affordance. Navy gives a far higher
+     contrast ring on light surfaces (gold would only reach ~3.2:1 on white). */
+  --accessibility-outline: 2px solid var(--rer-navy);
 }
 
-/**
- * Active tab indicator. Payload already draws a 2px underline under the
- * active tab (.tabs-field__tab-button:after) in --theme-elevation-800; this
- * only recolours that existing bar so a listing's current section reads as
- * a deliberate RER-branded accent rather than a generic dark grey line.
- * Tab label text/opacity/spacing are untouched.
- */
-.tabs-field__tab-button:after {
-  background: var(--rer-gold);
+/* --- 1.11 Dark theme -------------------------------------------------------
+   Intentionally not an inversion of light. The ground is a deep navy, panels
+   are lifted above it, and the nav rail recedes BELOW the ground for depth.
+   Every token here also exists on :root above; re-declaring is required because
+   our unlayered :root rule would otherwise beat Payload's layered dark rule. */
+html[data-theme='dark'] {
+  --rer-ground: var(--color-base-900);
+  --rer-surface: var(--color-base-850);
+  --rer-surface-sunken: var(--color-base-950);
+  --theme-bg: var(--rer-ground);
+
+  --rer-nav-bg: var(--color-base-950);
+  --rer-nav-fg: #e7eef7;
+  --rer-nav-muted: #8593a7;
+  --rer-nav-border: rgb(255 255 255 / 8%);
+  --rer-nav-hover-bg: rgb(255 255 255 / 6%);
+
+  /* #081221 on a #0a1522 ground is invisible, and Payload sets primary button
+     text to --theme-elevation-0, which is near-black in dark mode. A lifted
+     navy fixes both: 8.1:1 text contrast, 2.1:1 against the ground. */
+  --rer-primary-bg: #2a4a78;
+  --rer-primary-bg-hover: #34588c;
+  --rer-primary-fg: #f4f7fb;
+
+  --rer-shadow-sm: 0 1px 2px rgb(0 0 0 / 30%);
+  --rer-shadow-md: 0 4px 10px -3px rgb(0 0 0 / 45%);
+
+  --rer-hover-surface: var(--color-base-800);
+  --rer-row-hover: var(--color-base-800);
+
+  /* Navy has no contrast against a navy ground; gold reaches 5.7:1 here. */
+  --accessibility-outline: 2px solid var(--rer-gold);
 }
 
-/**
- * Primary actions (Save, Create New, etc.) reuse Payload's own
- * `.btn--style-primary` custom-property hooks (--bg-color/--hover-bg),
- * so only the colour changes — hover, disabled, and focus behaviour stay
- * exactly as Payload defines them.
- */
-.btn--style-primary {
-  --bg-color: var(--rer-navy);
-  --hover-bg: var(--rer-navy-hover);
+/* -----------------------------------------------------------------------------
+   2. GLOBAL SURFACES
+   -------------------------------------------------------------------------- */
+
+/* Payload paints these from --theme-bg, which 1.3 re-points to the ground. */
+html,
+.template-default,
+.template-default__wrap {
+  background-color: var(--theme-bg);
 }
 
-/**
- * List-view column headers: a restrained small-caps treatment for faster
- * scanning (RER ID / Status / Locality / Price are the columns this most
- * benefits). Colour reuses the existing muted --theme-elevation-500 token
- * already used elsewhere in this repo's own custom components
- * (see components/payload/BrochureConvertView.tsx), so it adapts to dark
- * mode automatically.
- */
-.table thead th {
-  color: var(--theme-elevation-500);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+/* -----------------------------------------------------------------------------
+   3. PANEL RECIPE
+   One recipe, reused by cards, the document sheet, and list tables — so the
+   dashboard widgets added in V3 inherit an established language rather than
+   inventing one.
+   -------------------------------------------------------------------------- */
+
+.card,
+.rer-panel {
+  background: var(--rer-surface);
+  border: 1px solid var(--rer-border-color);
+  border-radius: var(--rer-radius);
+  box-shadow: var(--rer-shadow-sm);
+}
+
+.card__title {
+  font-size: var(--rer-card-title-size);
+  font-weight: var(--rer-card-title-weight);
+}
+
+/* Payload's card hover fills with elevation-50, which is now the page ground —
+   it would read as the card sinking INTO the page. Lift it instead. */
+.card--has-onclick:hover {
+  background: var(--rer-surface);
+  border-color: var(--theme-elevation-300);
+  box-shadow: var(--rer-shadow-md);
+}
+
+/* Dashboard collection-group headings (Payload's `collections` widget). */
+.collections__label {
+  font-size: var(--rer-section-size);
+  font-weight: var(--rer-section-weight);
+  letter-spacing: -0.01em;
+}
+
+/* -----------------------------------------------------------------------------
+   4. NAVIGATION RAIL (visual only — architecture is untouched in V1)
+   -------------------------------------------------------------------------- */
+
+/* The rail is re-themed by re-pointing the tokens its children already read,
+   rather than by chasing individual selectors. Payload's nav internals use
+   --theme-text, --theme-elevation-400 (group toggles, labels),
+   --theme-elevation-200 (indicator strokes) and `currentColor` for icons, so
+   this covers them all — including any this file never enumerates.
+   Popups (settings menu) render in a portal and are unaffected. */
+.nav {
+  background: var(--rer-nav-bg);
+  color: var(--rer-nav-fg);
+  border-right-color: var(--rer-nav-border);
+  border-left-color: var(--rer-nav-border);
+
+  --theme-text: var(--rer-nav-fg);
+  --theme-elevation-1000: var(--rer-nav-fg);
+  --theme-elevation-800: var(--rer-nav-fg);
+  --theme-elevation-400: var(--rer-nav-muted);
+  --theme-elevation-200: var(--rer-nav-muted);
+  --theme-elevation-150: var(--rer-nav-border);
+  --theme-elevation-100: var(--rer-nav-border);
+  --theme-elevation-50: var(--rer-nav-hover-bg);
+  --theme-bg: var(--rer-nav-bg);
+
+  /* Navy-on-navy would be an invisible focus ring inside the rail. */
+  --accessibility-outline: 2px solid var(--rer-gold);
+}
+
+/* Links get real hit targets and a hover surface instead of an underline. */
+.nav__link {
+  border-radius: var(--rer-radius-sm);
+  padding-block: var(--rer-space-1);
+  padding-inline: var(--rer-space-2);
+  margin-inline-start: calc(var(--rer-space-2) * -1);
+  transition: background-color 0.1s cubic-bezier(0, 0.2, 0.2, 1);
+}
+
+.nav__link:hover,
+.nav a.nav__link:focus-visible {
+  background: var(--rer-nav-hover-bg);
+  text-decoration: none;
+}
+
+/* Active section marker — gold reaches 5.7:1 on the navy rail, so it is safe
+   here as an indicator and as text. */
+.nav__link.active {
+  background: var(--rer-nav-hover-bg);
+  color: var(--rer-gold);
+}
+
+.nav__label,
+.nav-group__toggle {
+  font-size: var(--rer-eyebrow-size);
+  font-weight: var(--rer-eyebrow-weight);
+  letter-spacing: var(--rer-eyebrow-tracking);
   text-transform: uppercase;
 }
 
-/**
- * Subtle row hover so scanning a long Properties/Projects list keeps track
- * of the row under the cursor. Payload defines no default table hover.
- */
-.table tbody tr:hover {
-  background: var(--theme-elevation-50);
+/* Mobile: .hamburger sits inside .nav__header and reads --theme-bg/--theme-text,
+   both re-pointed above; restore a visible edge against the navy rail. */
+.nav__header .hamburger {
+  box-shadow: 0 0 0 1px var(--rer-nav-border);
 }
 
-/**
- * The document sidebar (RER ID, Media Folder, Status, Browse Media Folder)
- * gets a faint tonal panel so it reads as "record identity/status" at a
- * glance, distinct from the main editing area. Purely a background/border
- * tint using Payload's own neutral scale — no new colour, no layout change.
- */
+/* -----------------------------------------------------------------------------
+   5. TYPOGRAPHY HIERARCHY
+   Weight and colour carry the hierarchy; sizes stay close to Payload's so
+   nothing reflows. Field labels are deliberately left alone.
+   -------------------------------------------------------------------------- */
+
+.list-header__title {
+  font-size: var(--rer-page-title-size);
+  font-weight: var(--rer-page-title-weight);
+  letter-spacing: -0.02em;
+}
+
+.field-description {
+  font-size: var(--rer-meta-size);
+  color: var(--theme-elevation-500);
+}
+
+/* Sticky bar above the editor — it had no background of its own, so content
+   scrolled visibly beneath it. */
+.doc-controls {
+  background: var(--rer-surface);
+}
+
+.doc-controls__divider {
+  background: var(--rer-border-color);
+}
+
+/* -----------------------------------------------------------------------------
+   6. BUTTONS
+   Payload exposes --color / --bg-color / --hover-bg / --hover-color hooks on
+   each button style, so only colour changes — geometry, focus and transitions
+   remain Payload's.
+   -------------------------------------------------------------------------- */
+
+.btn--style-primary {
+  --bg-color: var(--rer-primary-bg);
+  --hover-bg: var(--rer-primary-bg-hover);
+  --color: var(--rer-primary-fg);
+  --hover-color: var(--rer-primary-fg);
+}
+
+/* REQUIRED re-declaration. Payload's `.btn--style-primary.btn--disabled` is
+   more specific but layered, so the rule above would otherwise beat it and
+   disabled Save buttons would render as fully-branded navy. */
+.btn--style-primary.btn--disabled {
+  --bg-color: var(--theme-elevation-200);
+  --color: var(--theme-elevation-800);
+  --hover-bg: var(--bg-color);
+  --hover-color: var(--color);
+}
+
+/* Secondary stays restrained — a quieter border, no fill. */
+.btn--style-secondary {
+  --btn-border: 1px solid var(--theme-elevation-300);
+  --hover-btn-border: 1px solid var(--theme-elevation-500);
+}
+
+.btn--style-secondary.btn--disabled {
+  --color: var(--theme-elevation-200);
+  --btn-border: 1px solid var(--theme-elevation-200);
+  --hover-btn-border: 1px solid var(--theme-elevation-200);
+  --hover-color: var(--color);
+}
+
+/* -----------------------------------------------------------------------------
+   7. TABS
+   Payload dims inactive tabs with `opacity: .5`, which reads as "disabled"
+   rather than "inactive" and also washes out the gold indicator. Replaced with
+   an explicit colour + weight step.
+   -------------------------------------------------------------------------- */
+
+.tabs-field__tabs {
+  border-bottom-color: var(--rer-border-color);
+}
+
+.tabs-field__tab-button {
+  opacity: 1;
+  color: var(--theme-elevation-500);
+  font-weight: 500;
+  transition: color 0.1s cubic-bezier(0, 0.2, 0.2, 1);
+}
+
+.tabs-field__tab-button:hover {
+  opacity: 1;
+  color: var(--theme-text);
+}
+
+.tabs-field__tab-button--active {
+  color: var(--theme-text);
+  font-weight: var(--rer-section-weight);
+}
+
+/* Gold is an indicator here, never body text. */
+.tabs-field__tab-button:after {
+  background: var(--rer-accent);
+}
+
+/* REQUIRED re-declaration — see the header note. Without this, a tab
+   containing a validation error would show the gold indicator instead of
+   Payload's error indicator. */
+.tabs-field__tab-button--has-error {
+  color: var(--theme-error-500);
+}
+
+.tabs-field__tab-button--has-error:after {
+  background: var(--theme-error-500);
+}
+
+/* -----------------------------------------------------------------------------
+   8. TABLES
+   V1 fixes hierarchy and states only. Column composition is V4.
+   -------------------------------------------------------------------------- */
+
+/* The list becomes a panel sitting on the ground. */
+.table {
+  background: var(--rer-surface);
+  border: 1px solid var(--rer-border-color);
+  border-radius: var(--rer-radius);
+}
+
+.table thead {
+  color: var(--theme-elevation-600);
+}
+
+.table thead th {
+  font-size: var(--rer-eyebrow-size);
+  font-weight: var(--rer-eyebrow-weight);
+  letter-spacing: var(--rer-eyebrow-tracking);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--rer-border-color);
+  padding-block: var(--rer-space-2);
+  vertical-align: middle;
+}
+
+/* `vertical-align: top` made status pills and prices float above wrapped
+   titles; middle aligns every cell on one optical baseline. */
+.table td {
+  vertical-align: middle;
+  padding-block: var(--rer-space-2);
+}
+
+/*  PHASE 6 BUG FIX.
+    Payload already zebra-stripes odd rows with --theme-elevation-50, and
+    Phase 6 set the hover background to that exact same value — so hovering an
+    odd row changed nothing, and hovering an even row merely made it look
+    striped. Hover now uses its own step, distinguishable on BOTH parities. */
+.table tbody tr:nth-child(odd) {
+  background: var(--rer-row-stripe);
+}
+
+.table tbody tr:hover,
+.table tbody tr:nth-child(odd):hover {
+  background: var(--rer-row-hover);
+}
+
+/* -----------------------------------------------------------------------------
+   9. DOCUMENT SHEET & SIDEBAR
+   The editor reads as a sheet lifted off the ground; the sidebar is a quieter
+   companion panel. Full-bleed children (.tabs-field, .group-field--top-level)
+   keep working because no padding or radius is introduced here.
+   -------------------------------------------------------------------------- */
+
+.document-fields {
+  background: var(--rer-surface);
+}
+
+.document-fields--has-sidebar .document-fields__edit {
+  border-color: var(--rer-border-color-soft);
+}
+
 @media (min-width: 1024px) {
   .document-fields__sidebar {
-    background: var(--theme-elevation-50);
-    border-left: 1px solid var(--theme-elevation-100);
+    background: var(--rer-ground);
+    border-left: 1px solid var(--rer-border-color-soft);
   }
+
+  /* Record-summary panel: a restrained gold rule marks it as RER identity. */
+  .document-fields__sidebar-fields {
+    border-top: 2px solid var(--rer-accent);
+  }
+}
+
+/* Group fields already render as full-bleed bands with hairline rules; only
+   the rule colour is aligned to the RER border scale in V1. */
+.group-field {
+  border-top-color: var(--rer-border-color-soft);
+  border-bottom-color: var(--rer-border-color-soft);
+}
+
+/* -----------------------------------------------------------------------------
+   10. FLOATING SURFACES
+   Popups and drawers sit above the sheet, so they take the raised shadow.
+   -------------------------------------------------------------------------- */
+
+.popup__content {
+  border: 1px solid var(--rer-border-color);
+  border-radius: var(--rer-radius);
+  box-shadow: var(--rer-shadow-md);
 }
