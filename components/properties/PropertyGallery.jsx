@@ -78,7 +78,7 @@ function PropertyGallery({ images, title }) {
                   alt={image.alt || title}
                   fill
                   sizes={THUMB_IMAGE_SIZES}
-                  quality={70}
+                  quality={82}
                   loading="lazy"
                   className="object-cover transition-transform duration-500 hover:scale-105"
                 />

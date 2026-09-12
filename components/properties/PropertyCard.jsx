@@ -70,7 +70,7 @@ function PropertyCard({ property, priority = false }) {
             alt={image.alt || property.title}
             fill
             sizes={CARD_IMAGE_SIZES}
-            quality={70}
+            quality={82}
             priority={priority}
             loading={priority ? undefined : "lazy"}
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"

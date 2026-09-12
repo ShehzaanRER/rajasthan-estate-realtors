@@ -102,6 +102,7 @@ export default function AboutPage() {
                 width={1200}
                 height={800}
                 sizes="(min-width: 1024px) 560px, 100vw"
+                quality={85}
                 className="block h-auto w-full"
                 priority
               />
