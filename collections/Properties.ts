@@ -25,7 +25,7 @@ export const Properties: CollectionConfig = {
   admin: {
     group: 'Listings',
     useAsTitle: 'title',
-    defaultColumns: ['propertyId', 'title', 'purpose', 'propertyCategory', 'propertyType', 'status', 'updatedAt'],
+    defaultColumns: ['propertyId', 'title', 'purpose', 'propertyCategory', 'propertyType', 'pricing', 'status', 'updatedAt'],
   },
 
   defaultSort: '-updatedAt',
@@ -343,6 +343,11 @@ export const Properties: CollectionConfig = {
             {
               name: 'pricing',
               type: 'group',
+              admin: {
+                components: {
+                  Cell: '/components/payload/PriceCell#PriceCell',
+                },
+              },
               fields: [
                 {
                   name: 'currency',
