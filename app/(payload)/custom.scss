@@ -1,0 +1,78 @@
+/**
+ * RER admin visual polish.
+ *
+ * This file only redefines Payload's own documented CSS custom properties
+ * (--theme-*) or targets specific, verified Payload UI classes (checked
+ * against the actual compiled node_modules/@payloadcms/ui/dist/styles.css
+ * shipped with this project's installed Payload 3.88) — it never overrides
+ * Payload's global elevation/success/warning/error tokens, so status
+ * badges, focus rings, and every other component that reads those tokens
+ * are unaffected. Colour values below are the same RER navy/gold already
+ * established for the public site in src/index.css's `@theme` block —
+ * nothing new is invented here.
+ */
+
+:root {
+  --rer-navy: #081221;
+  --rer-navy-hover: #14233a;
+  --rer-gold: #b8862f;
+}
+
+/**
+ * Active tab indicator. Payload already draws a 2px underline under the
+ * active tab (.tabs-field__tab-button:after) in --theme-elevation-800; this
+ * only recolours that existing bar so a listing's current section reads as
+ * a deliberate RER-branded accent rather than a generic dark grey line.
+ * Tab label text/opacity/spacing are untouched.
+ */
+.tabs-field__tab-button:after {
+  background: var(--rer-gold);
+}
+
+/**
+ * Primary actions (Save, Create New, etc.) reuse Payload's own
+ * `.btn--style-primary` custom-property hooks (--bg-color/--hover-bg),
+ * so only the colour changes — hover, disabled, and focus behaviour stay
+ * exactly as Payload defines them.
+ */
+.btn--style-primary {
+  --bg-color: var(--rer-navy);
+  --hover-bg: var(--rer-navy-hover);
+}
+
+/**
+ * List-view column headers: a restrained small-caps treatment for faster
+ * scanning (RER ID / Status / Locality / Price are the columns this most
+ * benefits). Colour reuses the existing muted --theme-elevation-500 token
+ * already used elsewhere in this repo's own custom components
+ * (see components/payload/BrochureConvertView.tsx), so it adapts to dark
+ * mode automatically.
+ */
+.table thead th {
+  color: var(--theme-elevation-500);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/**
+ * Subtle row hover so scanning a long Properties/Projects list keeps track
+ * of the row under the cursor. Payload defines no default table hover.
+ */
+.table tbody tr:hover {
+  background: var(--theme-elevation-50);
+}
+
+/**
+ * The document sidebar (RER ID, Media Folder, Status, Browse Media Folder)
+ * gets a faint tonal panel so it reads as "record identity/status" at a
+ * glance, distinct from the main editing area. Purely a background/border
+ * tint using Payload's own neutral scale — no new colour, no layout change.
+ */
+@media (min-width: 1024px) {
+  .document-fields__sidebar {
+    background: var(--theme-elevation-50);
+    border-left: 1px solid var(--theme-elevation-100);
+  }
+}
