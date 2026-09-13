@@ -4,6 +4,29 @@ import { CONTACT_PHONE_TEL } from "../../lib/siteConfig";
 import HeroPropertySearch from "./HeroPropertySearch";
 
 /**
+ * Unsplash-hosted backdrop. It stays a plain <img> rather than next/image on
+ * purpose: Unsplash already serves a correctly sized, content-negotiated
+ * (WebP/AVIF) file from its own CDN, so routing it through /_next/image would
+ * add a third-party fetch on our server and re-encode an already-compressed
+ * image for no gain.
+ *
+ * What it was missing was resolution. It was pinned at a single w=1200 and
+ * stretched across the full viewport by `h-full w-full object-cover`, so any
+ * display wider than 1200px — and every 2x phone — was upscaling it. The
+ * srcSet below lets the browser ask Unsplash for a size that matches the
+ * device instead.
+ */
+const HERO_PHOTO_ID = "photo-1600607687920-4e2a09cf159d";
+
+function heroSrc(width) {
+  return `https://images.unsplash.com/${HERO_PHOTO_ID}?auto=format&fit=crop&w=${width}&q=80`;
+}
+
+const HERO_SRCSET = [640, 960, 1280, 1600, 1920, 2560]
+  .map((width) => `${heroSrc(width)} ${width}w`)
+  .join(", ");
+
+/**
  * Static hero. Its height follows its content rather than the viewport, so
  * the section never reserves empty space it has nothing to fill with.
  *
@@ -18,9 +41,13 @@ function Hero({ localities = [] }) {
 
       <div className="absolute inset-0">
         <img
-          src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=80"
+          src={heroSrc(1600)}
+          srcSet={HERO_SRCSET}
+          sizes="100vw"
           alt=""
           aria-hidden="true"
+          fetchPriority="high"
+          decoding="async"
           className="h-full w-full object-cover"
         />
 

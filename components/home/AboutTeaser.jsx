@@ -12,6 +12,23 @@ const FACTS = [
   { label: "Based in", value: "Jogeshwari, Mumbai" },
 ];
 
+/**
+ * Same reasoning as the hero in Hero.jsx: left as a plain <img> served by
+ * Unsplash's CDN, but given a srcSet so it stops being a single w=1000 file
+ * doing duty at every width. The lg column is 576px wide (max-w-7xl, two
+ * columns, gap-16), so 1200 covers it at 2x; below lg the image runs the full
+ * viewport width. Lazy because it sits well below the fold.
+ */
+const TEASER_PHOTO_ID = "photo-1600607687920-4e2a09cf159d";
+
+function teaserSrc(width) {
+  return `https://images.unsplash.com/${TEASER_PHOTO_ID}?auto=format&fit=crop&w=${width}&q=80`;
+}
+
+const TEASER_SRCSET = [480, 640, 800, 1200, 1600]
+  .map((width) => `${teaserSrc(width)} ${width}w`)
+  .join(", ");
+
 function AboutTeaser() {
   return (
     <section
@@ -94,8 +111,12 @@ function AboutTeaser() {
 
             <div className="relative overflow-hidden bg-[#081221]">
               <img
-                src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1000&q=80"
+                src={teaserSrc(1200)}
+                srcSet={TEASER_SRCSET}
+                sizes="(min-width: 1024px) 576px, 100vw"
                 alt="Premium Mumbai residential property"
+                loading="lazy"
+                decoding="async"
                 className="h-[240px] w-full object-cover sm:h-[320px] lg:h-[360px]"
               />
             </div>
