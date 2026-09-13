@@ -3,7 +3,7 @@ import { convertLexicalToPlaintext } from '@payloadcms/richtext-lexical/plaintex
 import { CATEGORY_LABELS } from '../nearby-locations/categories';
 import type { ConnectionCategory } from '../nearby-locations/types';
 import type { Amenity, Media, Project } from '../../payload-types';
-import { toRelativeMediaUrl } from '../mediaUrl';
+import { toDeliveryImage } from '../mediaUrl';
 import { formatInrDisplay } from '../properties/formatPrice';
 import { isPublicProjectStatus } from './publicScope';
 import type {
@@ -111,12 +111,14 @@ function mapDescription(description: Project['description']): { html: string | n
 }
 
 function toPublicImage(media: Media): PublicProjectImage {
+  const delivery = toDeliveryImage(media);
+
   return {
-    url: toRelativeMediaUrl(media.url as string),
+    url: delivery.url,
     alt: media.alt,
     caption: media.caption?.trim() ? media.caption : null,
-    width: typeof media.width === 'number' ? media.width : null,
-    height: typeof media.height === 'number' ? media.height : null,
+    width: delivery.width,
+    height: delivery.height,
   };
 }
 

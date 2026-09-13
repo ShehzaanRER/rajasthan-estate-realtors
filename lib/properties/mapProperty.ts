@@ -3,26 +3,11 @@ import { convertLexicalToPlaintext } from '@payloadcms/richtext-lexical/plaintex
 import { CATEGORY_LABELS } from '../nearby-locations/categories';
 import type { ConnectionCategory } from '../nearby-locations/types';
 import type { Amenity, Media, Property } from '../../payload-types';
-import { SITE_URL } from '../siteConfig';
+import { toDeliveryImage } from '../mediaUrl';
 import { formatAreaDisplay, formatLocationDisplay, mapPublicLocation } from './formatLocation';
 import { formatInrDisplay, mapPricing } from './formatPrice';
 import { isPublicStatus } from './publicScope';
 import type { PublicAmenity, PublicConnection, PublicImage, PublicProperty } from './types';
-
-/**
- * Payload's `serverURL` config (needed for the admin panel/API) makes it emit
- * fully-qualified media URLs. Converting back to a relative path here means
- * next/image and the browser fetch these from this same app directly,
- * instead of the server making a self-referential external HTTP request to
- * its own public domain to optimize its own images.
- */
-function toRelativeMediaUrl(url: string): string {
-  if (url.startsWith(SITE_URL)) {
-    return url.slice(SITE_URL.length) || '/';
-  }
-
-  return url;
-}
 
 const PROPERTY_TYPE_LABELS: Record<Property['propertyType'], string> = {
   apartment: 'Apartment',
@@ -132,12 +117,14 @@ function mapDescription(description: Property['description']): { html: string | 
 }
 
 function toPublicImage(media: Media): PublicImage {
+  const delivery = toDeliveryImage(media);
+
   return {
-    url: toRelativeMediaUrl(media.url as string),
+    url: delivery.url,
     alt: media.alt,
     caption: media.caption?.trim() ? media.caption : null,
-    width: typeof media.width === 'number' ? media.width : null,
-    height: typeof media.height === 'number' ? media.height : null,
+    width: delivery.width,
+    height: delivery.height,
   };
 }
 
