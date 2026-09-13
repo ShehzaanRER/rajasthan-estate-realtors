@@ -36,12 +36,40 @@ export const Media: CollectionConfig = {
      * it has to fetch and fully decode its input before it can resize, so
      * every generated width cost a full download from Supabase Storage plus a
      * 48 MP decode — measured at 2.7-6.5s per cold variant. Capping the
-     * optimizer's input at 2400px WebP q90 turns that into a 136-461 KB fetch.
+     * optimizer's input at 4096px WebP q90 makes that a ~380 KB fetch and
+     * drops cold variant generation to roughly a fifth of the time.
      *
-     * 2400 is chosen to sit above the widest variant any layout actually
-     * requests (2048), so next/image still does all the responsive
-     * downscaling from it and a card still receives its own 640px file. It is
-     * an upper bound on the optimizer's *input*, not the output.
+     * On the width, measured across the three real 8064x6048 photos in the
+     * library at the six widths the site actually requests (mean retained
+     * detail energy against a direct one-step downscale of the original):
+     *
+     *              640    828   1080   1200   1920   2048    mean
+     *   originals   94%    95%    94%    95%    91%    91%   93.2%
+     *   2400px      96%    97%    82%    97%    63%    61%   79.7%
+     *   4096px      98%   104%    85%    86%    72%    88%   88.9%
+     *
+     * 2400 looks adequate until the gallery widths: 2400 -> 1920 is only a
+     * 1.25x downscale off an already-compressed intermediate, which is close
+     * to a plain re-encode and collapses to ~62% — worse than the AVIF
+     * settings this whole change set out to fix. 4096 keeps a real downscale
+     * ratio at every width the site renders.
+     *
+     * The residual ~4 point gap against feeding originals directly is the
+     * intrinsic cost of resampling twice, not of compression: at 4096 the
+     * mean is 88.9% at q90, 89.3% at q98 and 89.6% near-lossless (7 MB), so
+     * no amount of intermediate quality buys it back. 4.3 points of detail
+     * for a ~70x smaller source is the trade being made here deliberately.
+     *
+     * Sharpening after the downscale was evaluated and rejected. On photos it
+     * worked well (a sigma 0.6 / m1 0.4 / m2 0.7 unsharp mask lifted a 2400px
+     * source from 79.7% to 93.4% with halo overshoot on only 0.17% of edge
+     * pixels against 0.02% for the baseline). But `imageSizes` cannot apply it
+     * conditionally, and originals narrower than the bound are never
+     * downscaled at all, so the sharpen lands on them at full strength: on
+     * 09-amenities.png — a 1787px graphic, not a photograph — it haloed 6.62%
+     * of edge pixels, as bad as a deliberately over-sharpened profile. Uploads
+     * here include floor plans, master plans and location maps, so a filter
+     * that is only safe for photographs is not safe for this collection.
      *
      * `thumbnail` exists for the Payload admin. The media library picks the
      * smallest size at least 40px wide (utilities/getBestFitFromSizes.js);
@@ -85,7 +113,7 @@ export const Media: CollectionConfig = {
       },
       {
         name: 'large',
-        width: 2400,
+        width: 4096,
         fit: 'inside',
         withoutEnlargement: true,
         formatOptions: { format: 'webp', options: { quality: 90 } },

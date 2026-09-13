@@ -36,14 +36,14 @@ const WIDEST_RENDERED_VARIANT = 2048;
  * What the public site should hand to next/image for a Media doc.
  *
  * Prefers the bounded `large` derivative from collections/Media.ts — a
- * <=2400px WebP — over the original upload, which for real property
+ * <=4096px WebP — over the original upload, which for real property
  * photography is an 8064x6048 / 28 MB camera file. next/image fetches and
  * fully decodes whatever it is given before it can resize, so pointing it at
  * originals meant a 48-megapixel decode per generated width (2.7-6.5s on a
  * cold cache). From the bounded derivative the same request is a sub-500 KB
  * fetch.
  *
- * This does not bypass responsive delivery. 2400px is only a ceiling on the
+ * This does not bypass responsive delivery. 4096px is only a ceiling on the
  * optimizer's *input*: next/image still emits the full srcSet and a card
  * still downloads its own 640px file.
  *
