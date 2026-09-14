@@ -45,7 +45,7 @@ function Navbar() {
   const closeMenu = () => setMenuOpen(false);
 
   return (
-    <nav className="relative z-50 w-full bg-rer-sand border-b border-slate-200 shadow-sm">
+    <nav className="relative z-50 w-full select-none bg-rer-sand border-b border-slate-200 shadow-sm">
 
       <div className="mx-auto flex h-[88px] max-w-7xl items-center justify-between px-4 sm:h-[110px] sm:px-6 lg:px-8">
 

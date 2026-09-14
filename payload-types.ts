@@ -71,6 +71,7 @@ export interface Config {
     properties: Property;
     projects: Project;
     amenities: Amenity;
+    'channel-partners': ChannelPartner;
     media: Media;
     'contact-inquiries': ContactInquiry;
     'payload-kv': PayloadKv;
@@ -89,6 +90,7 @@ export interface Config {
     properties: PropertiesSelect<false> | PropertiesSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
     amenities: AmenitiesSelect<false> | AmenitiesSelect<true>;
+    'channel-partners': ChannelPartnersSelect<false> | ChannelPartnersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'contact-inquiries': ContactInquiriesSelect<false> | ContactInquiriesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -306,6 +308,34 @@ export interface Property {
      * Additional property photos. Drag to reorder. Set alt text and optional caption on each Media item. Only media filed under this property's own folder can be selected.
      */
     gallery?: (number | Media)[] | null;
+  };
+  rentDetails?: {
+    /**
+     * Required once the property status is set to Rented.
+     */
+    licenseeName?: string | null;
+    licenseeContactNumber?: string | null;
+    /**
+     * Amount in INR. Numbers only — no currency symbol or commas.
+     */
+    monthlyRent?: number | null;
+    /**
+     * Amount in INR. Numbers only — no currency symbol or commas.
+     */
+    securityDeposit?: number | null;
+    agreementStartDate?: string | null;
+    agreementEndDate?: string | null;
+    /**
+     * Free text, e.g. "11 months", "36 months", "3 years".
+     */
+    agreementTerm?: string | null;
+    rentalSource?: ('direct' | 'through-agent') | null;
+    agentName?: string | null;
+    agentContactNumber?: string | null;
+    /**
+     * Internal notes — e.g. renewal preferences, who holds the keys, coordination details.
+     */
+    rentalNotes?: string | null;
   };
   updatedAt: string;
   createdAt: string;
@@ -598,6 +628,37 @@ export interface Project {
   createdAt: string;
 }
 /**
+ * RER developer inventory. Every developer RER tracks lives here; only those with Show on Website ticked appear in the "Official Channel Partners for" strip on the homepage, ordered by Display Order.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "channel-partners".
+ */
+export interface ChannelPartner {
+  id: number;
+  /**
+   * Used as the logo alt text and the link label.
+   */
+  name: string;
+  /**
+   * Upload the highest-quality source available — SVG first, otherwise a high-resolution PNG/WebP with a transparent background. Logos are shown contained, so the original aspect ratio is preserved. Optional, because this collection also holds developers kept for internal reference only — but a partner with no logo cannot be shown on the website, so Show on Website has no effect until one is added.
+   */
+  logo?: (number | null) | Media;
+  /**
+   * Optional. When set, the logo card links out to this address in a new tab.
+   */
+  websiteUrl?: string | null;
+  /**
+   * Lower numbers appear first. Ties fall back to alphabetical order.
+   */
+  displayOrder?: number | null;
+  /**
+   * Controls public visibility only. Unchecked keeps the developer in this internal inventory without showing it in the Official Channel Partners section; checked publishes it immediately, in Display Order. No code change is needed either way.
+   */
+  active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Submissions from the public Contact form. Not publicly readable.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -665,6 +726,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'amenities';
         value: number | Amenity;
+      } | null)
+    | ({
+        relationTo: 'channel-partners';
+        value: number | ChannelPartner;
       } | null)
     | ({
         relationTo: 'media';
@@ -834,6 +899,21 @@ export interface PropertiesSelect<T extends boolean = true> {
         featuredImage?: T;
         gallery?: T;
       };
+  rentDetails?:
+    | T
+    | {
+        licenseeName?: T;
+        licenseeContactNumber?: T;
+        monthlyRent?: T;
+        securityDeposit?: T;
+        agreementStartDate?: T;
+        agreementEndDate?: T;
+        agreementTerm?: T;
+        rentalSource?: T;
+        agentName?: T;
+        agentContactNumber?: T;
+        rentalNotes?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -956,6 +1036,19 @@ export interface AmenitiesSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   category?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "channel-partners_select".
+ */
+export interface ChannelPartnersSelect<T extends boolean = true> {
+  name?: T;
+  logo?: T;
+  websiteUrl?: T;
+  displayOrder?: T;
+  active?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -6,6 +6,7 @@ import { s3Storage } from '@payloadcms/storage-s3';
 import { buildConfig } from 'payload';
 import sharp from 'sharp';
 import { Amenities } from './collections/Amenities';
+import { ChannelPartners } from './collections/ChannelPartners';
 import { ContactInquiries } from './collections/ContactInquiries';
 import { Media } from './collections/Media';
 import { Projects } from './collections/Projects';
@@ -68,7 +69,7 @@ export default buildConfig({
     },
   },
 
-  collections: [Users, Properties, Projects, Amenities, Media, ContactInquiries],
+  collections: [Users, Properties, Projects, Amenities, ChannelPartners, Media, ContactInquiries],
 
   editor: lexicalEditor({}),
 

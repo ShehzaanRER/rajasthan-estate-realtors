@@ -142,7 +142,7 @@ function ProjectCard({ project, priority = false }) {
         <div className="mt-auto pt-6">
           <Link
             href={`/projects/${project.slug}`}
-            className="group/link flex w-full items-center justify-between border border-slate-300 px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:bg-[#B8862F] hover:text-white"
+            className="group/link flex w-full select-none items-center justify-between border border-slate-300 px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:bg-[#B8862F] hover:text-white"
           >
             <span>View Project</span>
             <ArrowRight

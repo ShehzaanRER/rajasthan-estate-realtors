@@ -88,7 +88,7 @@ function AboutTeaser() {
 
             <Link
               href="/about"
-              className="group mt-8 inline-flex items-center gap-3 rounded-lg bg-[#081221] px-7 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#152338] hover:shadow-lg"
+              className="group mt-8 inline-flex select-none items-center gap-3 rounded-lg bg-[#081221] px-7 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#152338] hover:shadow-lg"
             >
               Discover Our Story
 

@@ -16,7 +16,7 @@ function FooterAccordion({ title, id, children }) {
   return (
     <div id={id} className="border-b border-white/10 md:border-0">
 
-      <h4 className="text-xs font-semibold uppercase tracking-[0.3em] text-[#D4AF37]">
+      <h4 className="select-none text-xs font-semibold uppercase tracking-[0.3em] text-[#D4AF37]">
 
         <button
           type="button"

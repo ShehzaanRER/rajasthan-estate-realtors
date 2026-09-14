@@ -143,7 +143,7 @@ function FeaturedShowcase({ properties = [], projects = [] }) {
               looking at projects to the property listing. */}
           <Link
             href={active.href}
-            className="group inline-flex w-fit items-center gap-3 border-b border-slate-300 pb-2 text-sm font-semibold uppercase tracking-[0.15em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+            className="group inline-flex w-fit select-none items-center gap-3 border-b border-slate-300 pb-2 text-sm font-semibold uppercase tracking-[0.15em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
           >
             {active.linkLabel}
 
@@ -172,7 +172,7 @@ function FeaturedShowcase({ properties = [], projects = [] }) {
 
               <Link
                 href={active.href}
-                className="group mt-8 inline-flex items-center gap-3 border-b border-slate-300 pb-2 text-sm font-semibold uppercase tracking-[0.15em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+                className="group mt-8 inline-flex select-none items-center gap-3 border-b border-slate-300 pb-2 text-sm font-semibold uppercase tracking-[0.15em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
               >
                 {active.emptyLinkLabel}
 

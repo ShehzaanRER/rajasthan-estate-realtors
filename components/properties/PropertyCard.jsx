@@ -131,7 +131,7 @@ function PropertyCard({ property, priority = false }) {
         <div className="mt-auto pt-4 @2xs:pt-6">
           <Link
             href={`/properties/${property.slug}`}
-            className="group/link flex min-h-11 w-full items-center justify-between gap-1 border border-slate-300 px-3 py-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:bg-[#B8862F] hover:text-white @2xs:px-5 @2xs:py-3 @2xs:text-sm @2xs:tracking-[0.12em]"
+            className="group/link flex min-h-11 w-full select-none items-center justify-between gap-1 border border-slate-300 px-3 py-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:bg-[#B8862F] hover:text-white @2xs:px-5 @2xs:py-3 @2xs:text-sm @2xs:tracking-[0.12em]"
           >
             <span>View Property</span>
             <ArrowRight

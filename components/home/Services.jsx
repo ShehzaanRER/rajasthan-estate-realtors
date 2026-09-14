@@ -70,7 +70,7 @@ function Services() {
 
           <Link
             href="/contact"
-            className="group inline-flex w-fit shrink-0 items-center gap-3 border-b border-slate-400 pb-2 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+            className="group inline-flex w-fit shrink-0 select-none items-center gap-3 border-b border-slate-400 pb-2 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
           >
             Discuss your requirement
 
@@ -100,7 +100,7 @@ function Services() {
                 {copy}
               </p>
 
-              <span className="mt-auto inline-flex items-center gap-2 pt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#B8862F] sm:pt-5 sm:tracking-[0.25em]">
+              <span className="mt-auto inline-flex select-none items-center gap-2 pt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#B8862F] sm:pt-5 sm:tracking-[0.25em]">
                 Explore
 
                 <ArrowRight

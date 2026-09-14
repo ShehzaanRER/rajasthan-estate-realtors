@@ -173,3 +173,67 @@
   margin-top: 1.25rem;
   padding-left: 1rem;
 }
+
+/* ===========================
+   NON-SELECTABLE UI CHROME
+
+   Controls are interface, not content: dragging across a button label, a
+   slider arrow or an accordion toggle should not paint a selection highlight.
+   Scoped to real controls only — every piece of meaningful content (property
+   titles, descriptions, prices, addresses, contact details, article copy)
+   stays fully selectable and copyable.
+
+   Wrapped in :where() so it carries zero specificity, matching the focus
+   block above: any component can still opt back in with Tailwind's
+   `select-text`. The -webkit- prefix is kept because Safari (desktop and iOS)
+   still needs it.
+
+   Decorative text that isn't a control — the brand lockup, nav labels, the
+   hero headline — is marked up with Tailwind's `select-none` on the element
+   itself rather than being swept up by a selector here.
+=========================== */
+
+:where(button, summary, [role="button"]) {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ===========================
+   CHANNEL PARTNER MARQUEE
+
+   Drives the logo strip in components/home/OfficialChannelPartners.jsx. The
+   track holds the partner sequence twice, so travelling exactly one sequence
+   width (-50%) puts the second copy where the first started — the restart is
+   invisible. Duration comes from the component, which scales it with the
+   number of tiles so the speed stays the same however many partners the CMS
+   holds.
+=========================== */
+
+@keyframes partnerMarquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-partner-marquee {
+  animation: partnerMarquee var(--partner-marquee-duration, 40s) linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .animate-partner-marquee {
+    animation: none;
+  }
+
+  /* Without the animation the track is wider than the viewport and simply
+     clipped, so it becomes a normal horizontal scroller instead. */
+  .partner-marquee-viewport {
+    overflow-x: auto;
+  }
+
+}

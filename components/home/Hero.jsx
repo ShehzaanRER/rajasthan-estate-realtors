@@ -67,12 +67,12 @@ function Hero({ localities = [] }) {
           <div className="mb-7 flex items-center gap-4">
             <span className="h-px w-12 bg-[#B8862F]" />
 
-            <p className="text-xs font-medium uppercase tracking-[0.4em] text-[#D4AF37] sm:text-sm">
+            <p className="select-none text-xs font-medium uppercase tracking-[0.4em] text-[#D4AF37] sm:text-sm">
               Jogeshwari, Mumbai · Established 1988
             </p>
           </div>
 
-          <h1 className="font-serif text-5xl font-light leading-[0.95] tracking-tight text-white sm:text-6xl md:text-7xl lg:text-[5.5rem]">
+          <h1 className="select-none font-serif text-5xl font-light leading-[0.95] tracking-tight text-white sm:text-6xl md:text-7xl lg:text-[5.5rem]">
             Find your place
 
             <span className="block italic text-[#D4AF37]">
@@ -80,7 +80,7 @@ function Hero({ localities = [] }) {
             </span>
           </h1>
 
-          <p className="mt-7 max-w-2xl text-base font-light leading-7 text-slate-200 sm:text-lg">
+          <p className="mt-7 max-w-2xl select-none text-base font-light leading-7 text-slate-200 sm:text-lg">
             A family-run property consultancy in Jogeshwari since 1988, working
             across residential and commercial property in Mumbai&apos;s Western
             Suburbs.
@@ -89,7 +89,7 @@ function Hero({ localities = [] }) {
           <div className="mt-9 flex flex-col gap-4 sm:flex-row">
             <Link
               href="/properties"
-              className="group inline-flex items-center justify-center gap-3 rounded-lg bg-[#B8862F] px-8 py-4 text-sm font-semibold uppercase tracking-[0.15em] text-[#081221] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#CCA251] hover:shadow-[0_15px_40px_rgba(184,134,47,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#07101d]"
+              className="group inline-flex select-none items-center justify-center gap-3 rounded-lg bg-[#B8862F] px-8 py-4 text-sm font-semibold uppercase tracking-[0.15em] text-[#081221] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#CCA251] hover:shadow-[0_15px_40px_rgba(184,134,47,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#07101d]"
             >
               Explore Properties
 
@@ -101,7 +101,7 @@ function Hero({ localities = [] }) {
 
             <a
               href={`tel:${CONTACT_PHONE_TEL}`}
-              className="inline-flex items-center justify-center rounded-lg border border-white/40 bg-white/5 px-8 py-4 text-sm font-semibold uppercase tracking-[0.15em] text-white backdrop-blur-sm transition-all duration-300 hover:border-[#D4AF37] hover:bg-white/10 hover:text-[#D4AF37] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#07101d]"
+              className="inline-flex select-none items-center justify-center rounded-lg border border-white/40 bg-white/5 px-8 py-4 text-sm font-semibold uppercase tracking-[0.15em] text-white backdrop-blur-sm transition-all duration-300 hover:border-[#D4AF37] hover:bg-white/10 hover:text-[#D4AF37] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#07101d]"
             >
               Speak With Us
             </a>

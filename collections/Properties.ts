@@ -656,6 +656,137 @@ export const Properties: CollectionConfig = {
             },
           ],
         },
+        {
+          label: 'Rent Details',
+          description:
+            'Internal rental record for this property. Never shown on the public website — visible to signed-in RER staff only.',
+          fields: [
+            {
+              name: 'rentDetails',
+              type: 'group',
+              label: 'Rent Details',
+              // Internal inventory data. Stripped from every unauthenticated
+              // read (REST/GraphQL included) so it can never leak through the
+              // public API, even though non-public properties are already
+              // hidden by the collection's `read` access.
+              access: {
+                read: ({ req: { user } }) => Boolean(user),
+              },
+              fields: [
+                {
+                  name: 'licenseeName',
+                  type: 'text',
+                  label: 'Licensee Name',
+                  // Required only once the property is actually marked Rented,
+                  // so historical/incomplete inventory can still be saved.
+                  validate: (value: unknown, { data }: { data?: unknown }) => {
+                    const status = (data as { status?: string } | undefined)?.status;
+                    if (status === 'rented' && !String(value ?? '').trim()) {
+                      return 'Licensee Name is required when the property status is Rented.';
+                    }
+
+                    return true;
+                  },
+                  admin: {
+                    description: 'Required once the property status is set to Rented.',
+                  },
+                },
+                {
+                  name: 'licenseeContactNumber',
+                  type: 'text',
+                  label: 'Licensee Contact Number',
+                },
+                {
+                  name: 'monthlyRent',
+                  type: 'number',
+                  label: 'Monthly Rent',
+                  admin: {
+                    description: 'Amount in INR. Numbers only — no currency symbol or commas.',
+                  },
+                },
+                {
+                  name: 'securityDeposit',
+                  type: 'number',
+                  label: 'Security Deposit',
+                  admin: {
+                    description: 'Amount in INR. Numbers only — no currency symbol or commas.',
+                  },
+                },
+                {
+                  name: 'agreementStartDate',
+                  type: 'date',
+                  label: 'Agreement Start Date',
+                  admin: {
+                    date: {
+                      pickerAppearance: 'dayOnly',
+                    },
+                  },
+                },
+                {
+                  name: 'agreementEndDate',
+                  type: 'date',
+                  label: 'Agreement End Date',
+                  admin: {
+                    date: {
+                      pickerAppearance: 'dayOnly',
+                    },
+                  },
+                },
+                {
+                  name: 'agreementTerm',
+                  type: 'text',
+                  label: 'Agreement Term',
+                  admin: {
+                    description: 'Free text, e.g. "11 months", "36 months", "3 years".',
+                  },
+                },
+                {
+                  name: 'rentalSource',
+                  type: 'select',
+                  label: 'Rental Source',
+                  options: [
+                    { label: 'Direct', value: 'direct' },
+                    { label: 'Through Agent', value: 'through-agent' },
+                  ],
+                },
+                {
+                  name: 'agentName',
+                  type: 'text',
+                  label: 'Agent Name',
+                  validate: (value: unknown, { siblingData }: { siblingData?: unknown }) => {
+                    const source = (siblingData as { rentalSource?: string } | undefined)
+                      ?.rentalSource;
+                    if (source === 'through-agent' && !String(value ?? '').trim()) {
+                      return 'Agent Name is required when Rental Source is Through Agent.';
+                    }
+
+                    return true;
+                  },
+                  admin: {
+                    condition: (_, siblingData) => siblingData?.rentalSource === 'through-agent',
+                  },
+                },
+                {
+                  name: 'agentContactNumber',
+                  type: 'text',
+                  label: 'Agent Contact Number',
+                  admin: {
+                    condition: (_, siblingData) => siblingData?.rentalSource === 'through-agent',
+                  },
+                },
+                {
+                  name: 'rentalNotes',
+                  type: 'textarea',
+                  label: 'Rental Notes',
+                  admin: {
+                    description:
+                      'Internal notes — e.g. renewal preferences, who holds the keys, coordination details.',
+                  },
+                },
+              ],
+            },
+          ],
+        },
       ],
     },
   ],
