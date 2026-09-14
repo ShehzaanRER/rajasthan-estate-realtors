@@ -8,9 +8,52 @@ import { withPayload } from '@payloadcms/next/withPayload';
 // automatically instead of hardcoding a host.
 const siteUrl = new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000');
 
+/**
+ * Next 16 streams metadata by default: `<title>`, the canonical link and the
+ * description are flushed *after* `</head>` unless the requesting user agent
+ * matches its built-in `HTML_LIMITED_BOT_UA_RE`, in which case it falls back to
+ * a blocking render (see next/dist/server/lib/streaming-metadata.js).
+ *
+ * Googlebot is unaffected either way — it renders with headless Chrome, where
+ * React hoists those tags into `<head>` — and Bingbot is already in Next's
+ * list. Everything else is not: SEO crawlers reported RER's titles and
+ * canonicals as "outside <head>", and the AI search crawlers, which largely do
+ * not execute JavaScript, were reading the site with no title and no canonical
+ * at all.
+ *
+ * This is Next's own default pattern, copied verbatim from
+ * next/dist/shared/lib/router/utils/html-bots.js at v16.3.2, extended with the
+ * agents it does not know about. Copied rather than imported because it lives
+ * in Next's internals; re-check it on a major Next upgrade. Note that the
+ * JSDoc default printed in Next's own `config-shared.d.ts` is stale and shorter
+ * than the runtime value — html-bots.js is the one to copy from.
+ *
+ * Widening the list costs a blocking render for the listed agents only. No
+ * human visitor and no browser is affected.
+ */
+const NEXT_DEFAULT_HTML_LIMITED_BOTS =
+  '[\\w-]+-Google|Google-[\\w-]+|Chrome-Lighthouse|Slurp|DuckDuckBot|baiduspider|yandex|sogou|' +
+  'bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|' +
+  'facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|' +
+  'SkypeUriPreview|Yeti|googleweblight';
+
+const ADDITIONAL_HTML_LIMITED_BOTS =
+  // SEO crawlers — these are what reported metadata "outside <head>".
+  'Screaming Frog|AhrefsBot|SemrushBot|Sitebulb|rogerbot|dotbot|MJ12bot|BLEXBot|' +
+  // AI search crawlers — mostly no JavaScript execution, so streamed metadata
+  // never reaches them.
+  'GPTBot|OAI-SearchBot|ChatGPT-User|PerplexityBot|ClaudeBot|Claude-Web|Claude-SearchBot|' +
+  'Amazonbot|Bytespider|CCBot|Applebot-Extended|Google-Extended|meta-externalagent|' +
+  // Additional preview/unfurl agents not in Next's list.
+  'TelegramBot|Pinterestbot|redditbot-preview|Mastodon';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   allowedDevOrigins: ['127.0.0.1'],
+  htmlLimitedBots: new RegExp(
+    `${NEXT_DEFAULT_HTML_LIMITED_BOTS}|${ADDITIONAL_HTML_LIMITED_BOTS}`,
+    'i',
+  ),
   images: {
     remotePatterns: [
       {

@@ -4,8 +4,31 @@ import { PUBLIC_STATUSES } from '../lib/properties/publicScope';
 import { generateNearbyLocationsHandler } from './endpoints/generateNearbyLocations';
 import { createAssignMediaFolderHook, filterMediaByFolder } from './hooks/assignMediaFolder';
 import { assignPropertyId } from './hooks/assignPropertyId';
+import { assignPropertySlug } from './hooks/assignPropertySlug';
 
 const isAuthenticated: Access = ({ req: { user } }) => Boolean(user);
+
+/**
+ * Slugs that must stay available to the site's own routing rather than being
+ * claimed by a listing. `in` is reserved for the locality landing pages planned
+ * for a later phase (`/properties/in/<locality>`); the rest are obvious
+ * path segments someone could reach for by accident.
+ */
+const RESERVED_PROPERTY_SLUGS = new Set([
+  'in',
+  'all',
+  'new',
+  'page',
+  'search',
+  'properties',
+  'projects',
+]);
+
+/** Lowercase words and digits, joined by single hyphens. */
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+/** Characters that would break a URL path segment outright. */
+const UNSAFE_SLUG_PATTERN = /[\s/?#%\\]/;
 
 const readPublicOrAuthenticated: Access = ({ req: { user } }) => {
   if (user) {
@@ -38,7 +61,10 @@ export const Properties: CollectionConfig = {
   },
 
   hooks: {
-    beforeChange: [assignPropertyId],
+    // Order matters: assignPropertySlug reads the propertyId that
+    // assignPropertyId allocates. Both run before field validation, which
+    // Payload performs during its field-level beforeChange pass.
+    beforeChange: [assignPropertyId, assignPropertySlug],
     afterChange: [createAssignMediaFolderHook({ collectionSlug: 'properties', rerIdField: 'propertyId' })],
   },
 
@@ -139,8 +165,48 @@ export const Properties: CollectionConfig = {
             {
               name: 'slug',
               type: 'text',
+              // Kept required so the database column stays NOT NULL. The custom
+              // `validate` below replaces Payload's default check (a custom
+              // validate fully supersedes it), which is what lets the field be
+              // left empty in the admin on create and filled by
+              // assignPropertySlug before the record is written.
               required: true,
               unique: true,
+              admin: {
+                description:
+                  'Leave blank — generated automatically from BHK, property type, locality and the RER ID (e.g. 2-bhk-apartment-andheri-west-rer-00042). Set once when the property is created and never changed afterwards, because it is the public URL.',
+              },
+              validate: (value: unknown, { operation }: { operation?: string }) => {
+                if (typeof value !== 'string' || !value.trim()) {
+                  // Expected on create: assignPropertySlug fills it server-side.
+                  return operation === 'create' ? true : 'A slug is required.';
+                }
+
+                const slug = value.trim();
+
+                if (operation === 'create') {
+                  if (!SLUG_PATTERN.test(slug)) {
+                    return 'Use lowercase letters, numbers and single hyphens only — for example 2-bhk-apartment-andheri-west.';
+                  }
+
+                  if (RESERVED_PROPERTY_SLUGS.has(slug)) {
+                    return `"${slug}" is reserved for site navigation. Please choose a different slug.`;
+                  }
+
+                  return true;
+                }
+
+                // On update the strict shape is deliberately not enforced.
+                // Properties created before automatic slugs exist with slugs
+                // such as "Andheri", and those URLs are already live — refusing
+                // the save would make those records uneditable. Only reject
+                // characters that would genuinely break the URL.
+                if (UNSAFE_SLUG_PATTERN.test(slug)) {
+                  return 'A slug cannot contain spaces, slashes or other URL-reserved characters.';
+                }
+
+                return true;
+              },
             },
             {
               name: 'purpose',

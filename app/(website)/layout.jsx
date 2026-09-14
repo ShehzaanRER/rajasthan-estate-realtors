@@ -1,7 +1,7 @@
 import Navbar from "../../components/layouts/Navbar";
 import Footer from "../../components/layouts/Footer";
 import EnquiryPopup from "../../components/EnquiryPopup";
-import { CONTACTS, SITE_NAME, SITE_URL } from "../../lib/siteConfig";
+import { CONTACT_EMAIL, CONTACTS, SITE_NAME, SITE_URL } from "../../lib/siteConfig";
 import "../../src/index.css";
 
 const title = "Rajasthan Estate Realtors | Real Estate in Mumbai";
@@ -32,12 +32,24 @@ export const metadata = {
   },
 };
 
+/**
+ * Only facts that exist in the repository: the trading name, the two partners'
+ * numbers, the public email, the city, and the founding year stated on the
+ * About page. No opening hours, no rating, no street address and no awards —
+ * none of those are recorded anywhere, and inventing them for markup would be
+ * a fabrication Google can penalise.
+ *
+ * `@id` is what makes this entity referenceable, so per-page schema can point
+ * at one organisation rather than implying a new one per page.
+ */
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "RealEstateAgent",
+  "@id": `${SITE_URL}/#organization`,
   name: SITE_NAME,
   url: SITE_URL,
   telephone: CONTACTS.map((contact) => contact.tel),
+  email: CONTACT_EMAIL,
   areaServed: {
     "@type": "City",
     name: "Mumbai",

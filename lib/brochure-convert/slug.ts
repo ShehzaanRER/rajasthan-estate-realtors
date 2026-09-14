@@ -1,4 +1,5 @@
 import type { Payload } from 'payload';
+import { slugify } from '../slugify';
 
 /**
  * Draft slugs always carry a "-draft" suffix and are checked for uniqueness
@@ -7,14 +8,12 @@ import type { Payload } from 'payload';
  * themselves when they review and publish the draft.
  */
 
-export function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 96);
-}
+/**
+ * Re-exported so existing importers of `brochure-convert/slug` keep working.
+ * The implementation now lives in `lib/slugify.ts`, shared with property slug
+ * generation — see the note there.
+ */
+export { slugify };
 
 const MAX_ATTEMPTS = 50;
 

@@ -64,6 +64,22 @@ const WIDEST_RENDERED_VARIANT = 2048;
  * routes emit them as Open Graph `image.width`/`image.height`, which have to
  * describe the file at `image.url`.
  */
+/**
+ * Absolute URL for a path this app serves. Open Graph requires absolute URLs,
+ * and so does schema.org — social crawlers and structured-data parsers do not
+ * resolve relative references the way a browser does.
+ *
+ * Tolerates an already-absolute input so callers can pass either a mapped
+ * `PublicImage.url` (relative, via `toRelativeMediaUrl`) or a raw Payload URL.
+ */
+export function toAbsoluteSiteUrl(url: string): string {
+  if (/^https?:\/\//i.test(url)) {
+    return url;
+  }
+
+  return `${SITE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+}
+
 export function toDeliveryImage(media: Media): {
   url: string;
   width: number | null;

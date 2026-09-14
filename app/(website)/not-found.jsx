@@ -1,7 +1,12 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Page Not Found | Rajasthan Estate Realtors",
+  // `absolute` stops the layout's "%s | Rajasthan Estate Realtors" template
+  // appending the brand a second time. `canonical: null` stops this page
+  // inheriting the layout's "/" — a 404 must not name the homepage as its
+  // canonical, which is what a sold or rented property's URL would otherwise do.
+  title: { absolute: "Page Not Found | Rajasthan Estate Realtors" },
+  alternates: { canonical: null },
   robots: { index: false, follow: false },
 };
 

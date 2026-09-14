@@ -31,6 +31,38 @@ if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL is not set. Refusing to start in production without a database.');
 }
 
+/**
+ * SITE_URL falls back to http://localhost:3000, and that fallback is silent —
+ * the rendered site looks completely normal while publishing localhost as its
+ * own canonical URLs, sitemap entries, Open Graph URLs and JSON-LD identifiers.
+ * There is no visible symptom and no error; the damage only shows up weeks
+ * later in Search Console.
+ *
+ * Failing to boot is the lesser harm, and it matches how PAYLOAD_SECRET,
+ * DATABASE_URL and the S3 variables are already handled.
+ *
+ * NEXT_PUBLIC_SITE_URL is inlined at build time, so setting it in the hosting
+ * environment requires a redeploy before the built application picks it up.
+ */
+if (process.env.NODE_ENV === 'production') {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
+  if (!siteUrl) {
+    throw new Error(
+      'NEXT_PUBLIC_SITE_URL is not set. Every canonical URL, sitemap entry, Open Graph tag and JSON-LD identifier is derived from it, and the fallback is http://localhost:3000 — which would be published as this site\'s own identity with no visible symptom. Set it in the hosting environment and redeploy; it is inlined at build time.',
+    );
+  }
+
+  // A local `next build` legitimately runs with NODE_ENV=production against the
+  // localhost value that .env.example documents, so this is a warning rather
+  // than a failure. On a real deployment it is visible in the build log.
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)/i.test(siteUrl)) {
+    console.warn(
+      `[RER] NEXT_PUBLIC_SITE_URL is "${siteUrl}". A production deployment must use the public domain, or canonical URLs, the sitemap, Open Graph tags and JSON-LD will all point at localhost.`,
+    );
+  }
+}
+
 const requiredS3Vars = [
   'S3_BUCKET',
   'S3_ENDPOINT',
