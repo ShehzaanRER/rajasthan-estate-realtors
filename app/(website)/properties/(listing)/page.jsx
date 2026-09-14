@@ -8,8 +8,8 @@ import {
   resolveLocalitySlug,
   serializePropertyFilters,
   toCmsPurpose,
-} from "../../../lib/properties";
-import PropertiesListing from "../../../components/properties/PropertiesListing";
+} from "../../../../lib/properties";
+import PropertiesListing from "../../../../components/properties/PropertiesListing";
 
 const title = "Properties";
 const description =

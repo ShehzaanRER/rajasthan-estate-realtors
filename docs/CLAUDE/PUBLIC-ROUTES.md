@@ -18,8 +18,20 @@ route file and passed down as props.
 | `/sitemap.xml` | `app/sitemap.ts` | `getProperties()` + `getProjects()` |
 | `/robots.txt` | `app/robots.ts` | Static; disallows `/admin` and `/api` |
 
-Supporting files: `properties/loading.jsx` and `projects/loading.jsx` for both
-listing and detail routes, `error.jsx`, `not-found.jsx`.
+Supporting files: `properties/(listing)/loading.jsx` and
+`projects/(listing)/loading.jsx`, `error.jsx`, `not-found.jsx`.
+
+**The `(listing)` route group is load-bearing, not cosmetic.** It adds nothing
+to the URL — `/properties` and `/projects` are unchanged — and exists solely to
+keep the listing skeleton's Suspense boundary off the `[slug]` detail routes.
+A `loading.jsx` anywhere above a page makes Next stream the shell and commit
+HTTP 200 before the page body runs, so `notFound()` can then only swap the UI:
+every missing, draft, sold and rented listing URL answered 200 instead of 404.
+The detail routes therefore have no `loading.jsx` of their own either.
+
+*Do not add a `loading.jsx` at `properties/` or `projects/` level, and do not
+add one under `[slug]/` — either reintroduces the soft 404.* See
+`DECISIONS.md`.
 
 Non-page endpoints: `POST /api/contact` (writes a `contact-inquiries` record),
 `/admin/*` (Payload panel) and `/api/*` (Payload API, including

@@ -21,8 +21,8 @@ app/
     layout.jsx          Metadata, JSON-LD, imports src/index.css
     page.jsx            Homepage
     about/ contact/ privacy-policy/ terms/
-    properties/         Listing + [slug] detail (+ loading.jsx)
-    projects/           Listing + [slug] detail (+ loading.jsx)
+    properties/         (listing)/page+loading.jsx, [slug]/ detail
+    projects/           (listing)/page+loading.jsx, [slug]/ detail
     error.jsx  not-found.jsx
   (payload)/            Payload admin + its REST/GraphQL API
     admin/[[...segments]]/   Admin panel
@@ -132,6 +132,16 @@ One `media` collection backs every image on the site.
   returns HTTP 400 for anything outside it; `minimumCacheTTL` is 7 days.
   Conventions in use: 82 for cards and listing tiles, 85 for detail heroes and
   plans, 88 for full-bleed/lightbox and partner logos.
+- **Card `sizes`** come from `lib/cardImageSizes.ts` and are a **required prop**
+  on `PropertyCard`/`ProjectCard` — `LISTING_CARD_SIZES` for the two-up
+  `/properties` grid, `SHOWCASE_CARD_SIZES` for the one-up sliders and the
+  projects listing, and `showcaseCardSizes(count)` for the narrowed
+  FeaturedShowcase tracks. Each clause is the card's real rendered width at that
+  breakpoint; above 1280px every grid is capped by `max-w-7xl`, so the clause is
+  a fixed `384px` rather than a `vw` unit. Card image boxes are `aspect-[3/2]`,
+  matching the dominant source aspect so `object-cover` crops almost nothing.
+  See `DECISIONS.md`: these strings encode grid arithmetic and go stale
+  silently if a card grid changes.
 - **SVG:** Payload/sharp produces **no derivatives** for SVG uploads — the
   `sizes` entries come back null. Vector logos are therefore served as the
   original file with `unoptimized` on `next/image`; running them through the

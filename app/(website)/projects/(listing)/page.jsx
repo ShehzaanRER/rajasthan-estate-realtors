@@ -2,8 +2,8 @@ import {
   getProjects,
   parseProjectFilters,
   toCmsProjectStatus,
-} from "../../../lib/projects";
-import ProjectsListing from "../../../components/projects/ProjectsListing";
+} from "../../../../lib/projects";
+import ProjectsListing from "../../../../components/projects/ProjectsListing";
 
 const title = "Projects";
 const description =
