@@ -82,7 +82,7 @@ function formatGroupedNumber(value: number): string {
 
 export function formatAreaDisplay(
   area: number | null | undefined,
-  areaUnit: NonNullable<Property['details']>['areaUnit'] | null | undefined,
+  areaUnit: NonNullable<Property['details']>['carpetAreaUnit'] | null | undefined,
 ): string | null {
   if (area == null || !Number.isFinite(area) || area <= 0) {
     return null;

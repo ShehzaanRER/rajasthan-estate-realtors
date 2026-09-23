@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap');
 @import "tailwindcss";
 
 /* ===========================
@@ -11,12 +10,35 @@
 =========================== */
 
 @theme {
+  /* Cormorant Garamond, self-hosted by next/font in the website layout, which
+     publishes the family under --font-cormorant-src.
+
+     This token is what makes the `font-cormorant` utility exist at all. It was
+     previously used by the Navbar and Footer wordmarks with no matching theme
+     key, so Tailwind emitted no rule for it and both silently rendered in the
+     default sans stack while the webfont was downloaded anyway. */
+  --font-cormorant: var(--font-cormorant-src), "Cormorant Garamond", Georgia,
+    Cambria, "Times New Roman", serif;
+
   --color-rer-navy: #081221;
   --color-rer-navy-deep: #07101d;
   --color-rer-navy-hover: #14233a;
   --color-rer-gold: #b8862f;
   --color-rer-gold-hover: #cca251;
   --color-rer-gold-light: #d4af37;
+
+  /* Gold for TEXT on a light ground, and only that.
+
+     The brand gold reaches 5.80:1 against the navy and is fine as a fill, a
+     rule or an icon, but as text it measures 3.24:1 on white and 2.97:1 on
+     --color-rer-sand — under the 4.5:1 WCAG AA needs for the 10-12px uppercase
+     eyebrow labels it is mostly used for.
+
+     Same hue (38.1deg), saturation moved 59.3% -> 55%, lightness 45.3% -> 35%:
+     the smallest move that clears AA on all three light grounds
+     (5.20:1 on white, 4.78:1 on sand, 4.58:1 on sand-deep). Do not use it on
+     the navy, where it drops to 3.5:1 — --color-rer-gold is correct there. */
+  --color-rer-gold-text: #8a6728;
   --color-rer-sand: #f7f5f1;
   --color-rer-sand-deep: #f5f0e8;
   --color-rer-sand-light: #fbfaf8;

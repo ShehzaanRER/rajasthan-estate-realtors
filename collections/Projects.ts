@@ -30,6 +30,11 @@ export const Projects: CollectionConfig = {
     group: 'Listings',
     useAsTitle: 'name',
     defaultColumns: ['projectId', 'name', 'developer', 'status', 'updatedAt'],
+    components: {
+      // Synchronized top scrollbar for the list table — see
+      // components/payload/TableScrollSync.tsx.
+      beforeListTable: ['/components/payload/TableScrollSync#TableScrollSync'],
+    },
   },
 
   defaultSort: '-updatedAt',

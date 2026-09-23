@@ -47,9 +47,67 @@ const ADDITIONAL_HTML_LIMITED_BOTS =
   // Additional preview/unfurl agents not in Next's list.
   'TelegramBot|Pinterestbot|redditbot-preview|Mastodon';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+/**
+ * Transport and content-type hardening.
+ *
+ * Railway terminates TLS at its edge and already answers plain HTTP with a
+ * redirect to HTTPS, so an application-level http->https redirect is not added
+ * here: behind a terminating proxy the app only ever sees the decrypted
+ * request, and a redirect written against `x-forwarded-proto` is the classic
+ * way to produce a loop when that header is absent or rewritten.
+ *
+ * What the platform does *not* send is HSTS, and that is the part that
+ * matters. Without it, the very first request a visitor makes — typing the
+ * bare domain, or following an old `http://` link — travels in clear text
+ * before the redirect answers, which is exactly the request an attacker on a
+ * hostile network intercepts. HSTS removes that first hop by making the
+ * browser rewrite the scheme itself.
+ *
+ * Two years, with subdomains. `preload` is deliberately omitted: submitting to
+ * the preload list is effectively irreversible on browser timelines, and that
+ * is the site owner's decision to make, not a default to inherit.
+ *
+ * Production only. On localhost the site is served over plain HTTP, and
+ * although browsers ignore HSTS from an insecure origin, emitting it there is
+ * still misleading in a `curl -I`.
+ */
+const securityHeaders = [
+  // Stops a browser second-guessing a declared Content-Type. The relevant
+  // surface here is `/api/media/file/:filename`, which streams visitor-
+  // uploadable bytes from the CMS.
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+
+  // Send the full URL to same-origin destinations, origin only on cross-origin
+  // HTTPS, nothing on a downgrade. This is the browser default in current
+  // Chrome and Firefox; stating it explicitly stops an older browser falling
+  // back to leaking full listing URLs to WhatsApp and Google Maps.
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+
+  // SAMEORIGIN rather than DENY: Payload's admin panel frames its own routes
+  // (live preview), and DENY would break that. The public site is never framed.
+  { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+
+  ...(isProduction
+    ? [
+        {
+          key: 'Strict-Transport-Security',
+          value: 'max-age=63072000; includeSubDomains',
+        },
+      ]
+    : []),
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   allowedDevOrigins: ['127.0.0.1'],
+  // Suppresses `X-Powered-By: Next.js`. Version-free, but it still names the
+  // stack for free on every response.
+  poweredByHeader: false,
+  async headers() {
+    return [{ source: '/:path*', headers: securityHeaders }];
+  },
   htmlLimitedBots: new RegExp(
     `${NEXT_DEFAULT_HTML_LIMITED_BOTS}|${ADDITIONAL_HTML_LIMITED_BOTS}`,
     'i',

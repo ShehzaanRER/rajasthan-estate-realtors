@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import PropertyCard from "./PropertyCard";
 import PropertyFilterBar from "./PropertyFilterBar";
+import { LISTING_CARD_SIZES } from "../../lib/cardImageSizes";
 import { describeFilters, propertiesHref } from "../../lib/properties/filterParams";
 import { CONTACT_PHONE_TEL, CONTACT_WHATSAPP_NUMBER } from "../../lib/siteConfig";
 
@@ -98,7 +99,7 @@ function PropertiesListing({ properties, filters, localities, activeLocality }) 
             {hasAnyFilter ? (
               <Link
                 href={propertiesHref({})}
-                className="inline-block py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#B8862F] underline-offset-4 hover:underline"
+                className="inline-block py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-rer-gold-text underline-offset-4 hover:underline"
               >
                 View all properties
               </Link>
@@ -128,7 +129,7 @@ function PropertiesListing({ properties, filters, localities, activeLocality }) 
                 {hasAnyFilter ? (
                   <Link
                     href={propertiesHref({})}
-                    className="inline-flex items-center justify-center rounded-lg border border-[#081221]/25 px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+                    className="inline-flex items-center justify-center rounded-lg border border-[#081221]/25 px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-rer-gold-text"
                   >
                     View All Properties
                   </Link>
@@ -141,6 +142,7 @@ function PropertiesListing({ properties, filters, localities, activeLocality }) 
                 <PropertyCard
                   key={property.slug}
                   property={property}
+                  sizes={LISTING_CARD_SIZES}
                   priority={index === 0}
                 />
               ))}
@@ -173,7 +175,7 @@ function PropertiesListing({ properties, filters, localities, activeLocality }) 
               href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-lg border border-[#081221]/25 px-8 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+              className="inline-flex items-center justify-center rounded-lg border border-[#081221]/25 px-8 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:text-rer-gold-text"
             >
               WhatsApp Us
             </a>

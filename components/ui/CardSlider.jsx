@@ -58,7 +58,7 @@ function CardSlider({ children, label, gridClassName = "md:grid-cols-2 lg:grid-c
   };
 
   const controlClasses =
-    "inline-flex h-11 w-11 items-center justify-center border border-slate-300 text-[#081221] transition-colors duration-200 enabled:hover:border-[#B8862F] enabled:hover:text-[#B8862F] disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-300";
+    "inline-flex h-11 w-11 items-center justify-center border border-slate-300 text-[#081221] transition-colors duration-200 enabled:hover:border-[#B8862F] enabled:hover:text-rer-gold-text disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-300";
 
   return (
     <div>

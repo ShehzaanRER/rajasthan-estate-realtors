@@ -114,8 +114,8 @@ function PropertyFilterBar({ filters, localities, resultCount }) {
                   className={[
                     "inline-flex min-h-[40px] items-center rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.12em] transition-colors duration-200",
                     isActive
-                      ? "border-[#B8862F] bg-[#B8862F] text-white"
-                      : "border-slate-300 text-slate-600 hover:border-[#B8862F] hover:text-[#B8862F]",
+                      ? "border-[#B8862F] bg-[#B8862F] text-[#081221]"
+                      : "border-slate-300 text-slate-600 hover:border-[#B8862F] hover:text-rer-gold-text",
                   ].join(" ")}
                 >
                   {option.label}
@@ -191,7 +191,7 @@ function PropertyFilterBar({ filters, localities, resultCount }) {
           <button
             type="button"
             onClick={() => update({ locality: null, bhk: null, budget: null })}
-            className="text-xs font-semibold uppercase tracking-[0.14em] text-[#B8862F] underline-offset-4 hover:underline"
+            className="text-xs font-semibold uppercase tracking-[0.14em] text-rer-gold-text underline-offset-4 hover:underline"
           >
             Clear filters
           </button>

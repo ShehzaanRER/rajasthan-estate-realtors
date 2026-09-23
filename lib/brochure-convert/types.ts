@@ -97,7 +97,7 @@ export type ExtractedProjectData = {
   highlights: string[];
   configurations: ExtractedConfiguration[];
   projectDetails: ExtractedProjectDetails;
-  /** Raw amenity names/phrases as found in the source — matched, never auto-created. */
+  /** Raw amenity names/phrases as found in the source — matched against existing Amenities, and any that don't match are auto-created as new Amenity records on draft creation. */
   amenities: string[];
   specifications: ExtractedSpecification[];
   nearbyConnectivity: {

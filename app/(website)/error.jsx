@@ -6,13 +6,13 @@ export default function WebsiteError({ reset }) {
   return (
     <main className="flex min-h-[60vh] items-center bg-white">
       <div className="mx-auto max-w-2xl px-6 py-24 text-center sm:px-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#B8862F]">
+        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-rer-gold-text">
           Something went wrong
         </p>
 
         <h1 className="mt-4 font-serif text-4xl font-light leading-tight text-[#081221] sm:text-5xl">
           We hit an
-          <span className="block italic text-[#B8862F]">unexpected error.</span>
+          <span className="block italic text-rer-gold-text">unexpected error.</span>
         </h1>
 
         <p className="mx-auto mt-5 max-w-md text-base leading-7 text-slate-600">
@@ -31,7 +31,7 @@ export default function WebsiteError({ reset }) {
 
           <a
             href={`tel:${CONTACT_PHONE_TEL}`}
-            className="inline-flex items-center justify-center rounded-lg border border-[#081221]/25 px-8 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+            className="inline-flex items-center justify-center rounded-lg border border-[#081221]/25 px-8 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:text-rer-gold-text"
           >
             Call Us Instead
           </a>

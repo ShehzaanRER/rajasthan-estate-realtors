@@ -3,6 +3,7 @@ import ProjectDetail from "../../../../components/projects/ProjectDetail";
 import { getProjectBySlug, getRelatedProjects } from "../../../../lib/projects";
 import { toAbsoluteSiteUrl } from "../../../../lib/mediaUrl";
 import { projectSeoTitle } from "../../../../lib/seo/titles";
+import { DEFAULT_OG_IMAGE } from "../../../../lib/seo/ogImage";
 
 /**
  * Collapses the rich-text plaintext onto one line, then truncates at a word
@@ -56,7 +57,9 @@ export async function generateMetadata({ params }) {
           alt: image.alt || project.name,
         },
       ]
-    : undefined;
+    : // A project with no featured image yet falls back to the branded card
+      // rather than sharing with no preview image at all.
+      [DEFAULT_OG_IMAGE];
 
   return {
     title: { absolute: title },
@@ -72,7 +75,7 @@ export async function generateMetadata({ params }) {
       images: ogImages,
     },
     twitter: {
-      card: ogImages ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title,
       description,
       images: ogImages,

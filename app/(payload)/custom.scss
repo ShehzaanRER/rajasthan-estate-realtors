@@ -415,7 +415,19 @@ html,
 
 /* -----------------------------------------------------------------------------
    8. TABLES
-   V1 fixes hierarchy and states only. Column composition is V4.
+   V4: column density. Payload's own list-table styles
+   (@payloadcms/ui Table/index.scss) give every `th`/`td` the same 150px
+   min-width with NO max-width, and its SortColumn header
+   (SortColumn/index.scss) forces the label onto one line with
+   `white-space: nowrap; text-overflow: ellipsis`. With no ceiling on the
+   column and no way for the header text to wrap, a column's width becomes
+   "however wide its longest single-line header is" — that is the actual
+   cause of the excessive horizontal spacing. Nested-field headers like
+   "Building Details > Building Name" are the worst offenders; the cell
+   content itself already wraps (List/index.scss's own
+   `-webkit-line-clamp: 4` on cell text). Fixed below by letting the header
+   wrap onto two lines and giving columns deliberate, content-tier-based
+   widths instead of one uniform min-width.
    -------------------------------------------------------------------------- */
 
 /* The list becomes a panel sitting on the ground. */
@@ -453,11 +465,278 @@ html,
     striped. Hover now uses its own step, distinguishable on BOTH parities. */
 .table tbody tr:nth-child(odd) {
   background: var(--rer-row-stripe);
+  /* Flattened below (8.4 grid) — Payload's default rounds the stripe's first/
+     last cell into a pill shape, which reads oddly once cells get their own
+     hairline borders. */
+  border-radius: 0;
 }
 
 .table tbody tr:hover,
 .table tbody tr:nth-child(odd):hover {
   background: var(--rer-row-hover);
+}
+
+/* --- 8.1 Density — a real floor AND a ceiling -------------------------------
+   Payload's `th, td { min-width: 150px }` has no matching max-width; this
+   replaces it with a smaller floor and an actual ceiling, and lets content
+   wrap instead of forcing a column wide. `_select`/`_dragHandle` are excluded
+   — List/index.scss already sizes them to the checkbox/handle and they must
+   stay tiny. */
+.table th,
+.table td {
+  min-width: calc(var(--base) * 4);
+  max-width: calc(var(--base) * 10);
+  padding-inline: var(--rer-space-2);
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.table th#heading-_select,
+.table td.cell-_select,
+.table th#heading-_dragHandle,
+.table td.cell-_dragHandle {
+  min-width: 0;
+  max-width: none;
+  padding-inline: var(--rer-space-1);
+}
+
+/* --- 8.2 Header wrapping ----------------------------------------------------
+   `.sort-column__label`'s own `white-space: nowrap; text-overflow: ellipsis`
+   is what forces a long nested-field label onto one line — the single
+   biggest contributor to column overflow (see the section note above). Let
+   it wrap onto up to two lines, and let `.sort-column` shrink to the
+   header's own width instead of pushing the column wider than it needs to
+   be. */
+.table .sort-column {
+  width: 100%;
+  min-width: 0;
+}
+
+.table .sort-column__label {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  min-width: 0;
+  flex: 1 1 auto;
+  white-space: normal;
+  text-overflow: clip;
+  line-height: 1.25;
+  /* Balances the two wrapped lines instead of "one long line + one short
+     word"; browsers without support just keep the normal wrap above. */
+  text-wrap: balance;
+}
+
+.table .sort-column__buttons {
+  flex-shrink: 0;
+}
+
+/* --- 8.3 Column tiers -------------------------------------------------------
+   Deliberate widths + alignment per column, grouped by what the field
+   actually IS (id / date / status / price / text) rather than by collection
+   — the same field name gets the same treatment on Properties and Projects.
+   Selectors match Payload's generated `heading-<accessor>` id /
+   `cell-<accessor>` class (dots become `__`); the `[id$="__x"]` /
+   `[class$="__x"]` form catches a field nested one level deep (e.g.
+   `location.address`) without hardcoding the parent group, so a column
+   keeps its tier even if it's re-nested later. */
+
+// IDs — short, tabular, never wrap.
+.table th#heading-propertyId,
+.table th#heading-projectId,
+.table td.cell-propertyId,
+.table td.cell-projectId {
+  width: calc(var(--base) * 4.5);
+  min-width: calc(var(--base) * 4.5);
+  max-width: calc(var(--base) * 5.5);
+}
+
+.table td.cell-propertyId,
+.table td.cell-projectId {
+  white-space: nowrap;
+}
+
+// Countdown/urgency pills (AgreementCountdownCell) — short, never wrap.
+.table th#heading-currentAgreementEndDate {
+  width: calc(var(--base) * 5);
+  min-width: calc(var(--base) * 5);
+  max-width: calc(var(--base) * 6);
+}
+
+.table td.cell-currentAgreementEndDate {
+  width: calc(var(--base) * 5);
+  min-width: calc(var(--base) * 5);
+  max-width: calc(var(--base) * 6);
+  white-space: nowrap;
+}
+
+// Plain formatted dates — these render as a full date + time string, so
+// (unlike the countdown pill above) they need room to wrap onto two lines
+// rather than being forced onto one and truncated.
+.table th#heading-updatedAt,
+.table th#heading-createdAt,
+.table th#heading-possessionDate,
+.table td.cell-updatedAt,
+.table td.cell-createdAt,
+.table td.cell-possessionDate {
+  width: calc(var(--base) * 8);
+  min-width: calc(var(--base) * 7);
+  max-width: calc(var(--base) * 9.5);
+}
+
+// Status / transaction type — compact pills, centered.
+.table th#heading-status,
+.table th#heading-purpose,
+.table th#heading-availability {
+  width: calc(var(--base) * 5);
+  min-width: calc(var(--base) * 5);
+  max-width: calc(var(--base) * 6);
+  text-align: center;
+}
+
+.table th#heading-status .sort-column,
+.table th#heading-purpose .sort-column,
+.table th#heading-availability .sort-column {
+  justify-content: center;
+}
+
+.table td.cell-status,
+.table td.cell-purpose,
+.table td.cell-availability {
+  text-align: center;
+  white-space: nowrap;
+}
+
+// Pricing — compact, right-aligned, never wraps (PriceCell already sets its
+// own white-space: nowrap; this aligns the column + header to match).
+.table th#heading-pricing,
+.table td.cell-pricing {
+  width: calc(var(--base) * 6.5);
+  min-width: calc(var(--base) * 6);
+  max-width: calc(var(--base) * 8);
+  text-align: right;
+}
+
+.table th#heading-pricing .sort-column {
+  justify-content: flex-end;
+}
+
+// Text-heavy identity/location fields — left-aligned, controlled width,
+// wraps rather than forcing the column wide.
+.table th#heading-title,
+.table th#heading-name,
+.table th#heading-developer,
+.table th[id$='__address'],
+.table th[id$='__buildingName'],
+.table th[id$='__locality'],
+.table th[id$='__area'],
+.table th[id$='__city'],
+.table td.cell-title,
+.table td.cell-name,
+.table td.cell-developer,
+.table td[class$='__address'],
+.table td[class$='__buildingName'],
+.table td[class$='__locality'],
+.table td[class$='__area'],
+.table td[class$='__city'] {
+  width: calc(var(--base) * 10);
+  min-width: calc(var(--base) * 8);
+  max-width: calc(var(--base) * 12);
+}
+
+/* --- 8.4 Grid ---------------------------------------------------------------
+   Subtle hairlines so columns read as columns without turning the table into
+   a spreadsheet: one soft vertical rule per column, one under each row, a
+   slightly stronger one under the header. */
+.table th,
+.table td {
+  border-right: 1px solid var(--rer-border-color-soft);
+  border-bottom: 1px solid var(--rer-border-color-soft);
+}
+
+.table th:last-child,
+.table td:last-child {
+  border-right: none;
+}
+
+.table thead th {
+  border-bottom: 1px solid var(--rer-border-color);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* --- 8.5 Narrower viewports --------------------------------------------------
+   Same tiers, tightened — horizontal scroll (8.6 / TableScrollSync) stays the
+   escape hatch, so columns only need to avoid being unreadably squeezed, not
+   fit everything at once. */
+@media (max-width: 1024px) {
+  .table th,
+  .table td {
+    min-width: calc(var(--base) * 3.5);
+  }
+
+  .table th#heading-title,
+  .table th#heading-name,
+  .table th#heading-developer,
+  .table th[id$='__address'],
+  .table th[id$='__buildingName'],
+  .table th[id$='__locality'],
+  .table th[id$='__area'],
+  .table th[id$='__city'],
+  .table td.cell-title,
+  .table td.cell-name,
+  .table td.cell-developer,
+  .table td[class$='__address'],
+  .table td[class$='__buildingName'],
+  .table td[class$='__locality'],
+  .table td[class$='__area'],
+  .table td[class$='__city'] {
+    width: calc(var(--base) * 8.5);
+    max-width: calc(var(--base) * 9.5);
+  }
+}
+
+/* --- 8.6 Synchronized horizontal scroll --------------------------------------
+   See components/payload/TableScrollSync.tsx (registered via
+   `admin.components.beforeListTable` on Properties and Projects) — it renders
+   this track as the table's immediate sibling and drives its scrollLeft in
+   both directions against the real `.table` scroll container below. */
+.rer-table-scroll-sync {
+  height: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+  transition: height 0.15s ease, margin-bottom 0.15s ease;
+}
+
+.rer-table-scroll-sync[data-has-overflow='true'] {
+  height: 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin-bottom: var(--rer-space-1);
+}
+
+.rer-table-scroll-sync__spacer {
+  height: 1px;
+}
+
+.rer-table-scroll-sync::-webkit-scrollbar {
+  height: 10px;
+}
+
+.rer-table-scroll-sync::-webkit-scrollbar-track {
+  background: var(--rer-surface-sunken);
+  border-radius: var(--rer-radius-pill);
+}
+
+.rer-table-scroll-sync::-webkit-scrollbar-thumb {
+  background: var(--theme-elevation-300);
+  border-radius: var(--rer-radius-pill);
+}
+
+.rer-table-scroll-sync::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-elevation-400);
 }
 
 /* -----------------------------------------------------------------------------
@@ -503,4 +782,445 @@ html,
   border: 1px solid var(--rer-border-color);
   border-radius: var(--rer-radius);
   box-shadow: var(--rer-shadow-md);
+}
+
+/* -----------------------------------------------------------------------------
+   11. DASHBOARD — RER PROPERTY MANAGEMENT CONSOLE
+   The console (components/payload/dashboard/) replaces the body of /admin.
+   It introduces NO new colour, radius, shadow or spacing value: every rule
+   below resolves to a token declared in §1 and reuses the §3 panel recipe,
+   which is what that recipe was written for.
+
+   Structural only — status and countdown badges are coloured from Payload's
+   own semantic tokens in TypeScript (lib/statusTiers.ts,
+   lib/properties/agreementCountdown.ts), shared with the list-view Cells so
+   the same status cannot render two different ways.
+   -------------------------------------------------------------------------- */
+
+.rer-console {
+  display: grid;
+  gap: var(--rer-space-5);
+  padding-bottom: var(--rer-space-6);
+  padding-top: var(--rer-space-5);
+}
+
+/* --- 11.1 Page header ------------------------------------------------------ */
+
+.rer-console__header {
+  align-items: flex-end;
+  border-bottom: 1px solid var(--rer-border-color);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rer-space-2);
+  justify-content: space-between;
+  padding-bottom: var(--rer-space-3);
+}
+
+/* The one gold accent on the page. Gold is an identity marker here, not a
+   status colour — nothing actionable is gold. */
+.rer-console__eyebrow {
+  color: var(--rer-accent);
+  font-size: var(--rer-eyebrow-size);
+  font-weight: var(--rer-eyebrow-weight);
+  letter-spacing: var(--rer-eyebrow-tracking);
+  margin: 0 0 2px;
+  text-transform: uppercase;
+}
+
+.rer-console__title {
+  font-size: var(--rer-page-title-size);
+  font-weight: var(--rer-page-title-weight);
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+.rer-console__signed-in {
+  color: var(--theme-elevation-500);
+  font-size: var(--rer-meta-size);
+  margin: 0;
+}
+
+/* --- 11.2 Quick actions ---------------------------------------------------- */
+
+.rer-console__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rer-space-2);
+}
+
+.rer-console__action {
+  background: var(--rer-surface);
+  border: 1px solid var(--rer-border-color);
+  border-radius: var(--rer-radius-sm);
+  color: var(--theme-text);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 14px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.rer-console__action:hover {
+  background: var(--rer-hover-surface);
+  border-color: var(--theme-elevation-300);
+}
+
+.rer-console__action--primary {
+  background: var(--rer-primary-bg);
+  border-color: var(--rer-primary-bg);
+  color: var(--rer-primary-fg);
+}
+
+.rer-console__action--primary:hover {
+  background: var(--rer-primary-bg-hover);
+  border-color: var(--rer-primary-bg-hover);
+  color: var(--rer-primary-fg);
+}
+
+/* --- 11.3 Panels ----------------------------------------------------------- */
+
+.rer-console__panel {
+  padding: var(--rer-space-3) var(--rer-space-4) var(--rer-space-4);
+}
+
+.rer-console__panel-head {
+  align-items: baseline;
+  border-bottom: 1px solid var(--rer-border-color-soft);
+  display: flex;
+  gap: var(--rer-space-2);
+  justify-content: space-between;
+  margin-bottom: var(--rer-space-3);
+  padding-bottom: var(--rer-space-2);
+}
+
+.rer-console__panel-title {
+  font-size: var(--rer-section-size);
+  font-weight: var(--rer-section-weight);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.rer-console__panel-meta {
+  color: var(--theme-elevation-500);
+  font-size: var(--rer-meta-size);
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+  margin-left: var(--rer-space-2);
+}
+
+.rer-console__panel-action {
+  color: var(--theme-elevation-500);
+  font-size: var(--rer-meta-size);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.rer-console__panel-action:hover {
+  color: var(--theme-text);
+}
+
+.rer-console__empty {
+  color: var(--theme-elevation-400);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* --- 11.4 Overview tiles ---------------------------------------------------
+   The 1px gap over a bordered ground is what draws the hairline grid between
+   tiles — no per-tile borders, so the counts stay the loudest thing in the
+   panel. */
+
+.rer-console__overview {
+  display: grid;
+  gap: var(--rer-space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rer-console__overview > :last-child {
+  grid-column: 1 / -1;
+}
+
+.rer-console__tiles {
+  background: var(--rer-border-color-soft);
+  border: 1px solid var(--rer-border-color-soft);
+  border-radius: var(--rer-radius-sm);
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  overflow: hidden;
+}
+
+.rer-console__tiles--wide {
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+}
+
+.rer-console__tile {
+  background: var(--rer-surface);
+  color: var(--theme-text);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  text-decoration: none;
+}
+
+.rer-console__tile:hover {
+  background: var(--rer-hover-surface);
+}
+
+.rer-console__tile-count {
+  font-size: 21px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.rer-console__tile--emphasis .rer-console__tile-count {
+  font-size: 26px;
+}
+
+.rer-console__tile-label {
+  color: var(--theme-elevation-500);
+  font-size: 11.5px;
+  line-height: 1.3;
+}
+
+.rer-console__tile--emphasis .rer-console__tile-label {
+  color: var(--theme-text);
+}
+
+/* --- 11.5 Two-panel rows --------------------------------------------------- */
+
+.rer-console__split {
+  display: grid;
+  gap: var(--rer-space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* --- 11.6 Row lists (issues, renewals, recent) -----------------------------
+   One list idiom for all three panels. The negative inline margin lets a row
+   highlight edge-to-edge on hover while its text still aligns with the panel
+   heading above it. */
+
+.rer-console__issues,
+.rer-console__rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rer-console__issues > li + li,
+.rer-console__rows > li + li {
+  border-top: 1px solid var(--rer-border-color-soft);
+}
+
+.rer-console__issue,
+.rer-console__row {
+  align-items: center;
+  border-radius: var(--rer-radius-sm);
+  color: var(--theme-text);
+  display: grid;
+  gap: var(--rer-space-2);
+  margin: 0 calc(var(--rer-space-2) * -1);
+  padding: 8px var(--rer-space-2);
+  text-decoration: none;
+}
+
+.rer-console__issue:hover,
+.rer-console__row:hover {
+  background: var(--rer-row-hover);
+}
+
+.rer-console__issue {
+  grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+}
+
+.rer-console__issue-count {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+}
+
+.rer-console__issue-count--high {
+  color: var(--theme-warning-800);
+}
+
+.rer-console__issue-count--normal {
+  color: var(--theme-elevation-500);
+}
+
+.rer-console__issue-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.rer-console__issue-label {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.rer-console__issue-detail {
+  color: var(--theme-elevation-500);
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+/* Hidden until the row is hovered or focused, so a panel of eleven rows does
+   not read as eleven buttons. */
+.rer-console__issue-go {
+  color: var(--theme-elevation-400);
+  font-size: 11.5px;
+  opacity: 0;
+  white-space: nowrap;
+}
+
+.rer-console__issue:hover .rer-console__issue-go,
+.rer-console__issue:focus-visible .rer-console__issue-go {
+  opacity: 1;
+}
+
+.rer-console__cleared {
+  border-top: 1px solid var(--rer-border-color-soft);
+  color: var(--theme-elevation-400);
+  font-size: 11.5px;
+  line-height: 1.5;
+  margin: var(--rer-space-3) 0 0;
+  padding-top: var(--rer-space-2);
+}
+
+.rer-console__cleared-label {
+  color: var(--theme-elevation-500);
+  font-size: var(--rer-eyebrow-size);
+  font-weight: var(--rer-eyebrow-weight);
+  letter-spacing: var(--rer-eyebrow-tracking);
+  margin-right: var(--rer-space-2);
+  text-transform: uppercase;
+}
+
+.rer-console__row {
+  grid-template-columns: 5.5rem minmax(0, 1fr) auto auto;
+}
+
+.rer-console__row-id {
+  color: var(--theme-elevation-500);
+  font-size: var(--rer-meta-size);
+  font-variant-numeric: tabular-nums;
+}
+
+.rer-console__row-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.rer-console__row-title,
+.rer-console__row-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rer-console__row-title {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.rer-console__row-sub {
+  color: var(--theme-elevation-500);
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+.rer-console__row-time {
+  color: var(--theme-elevation-500);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Shared by the status badge and the agreement countdown badge; their
+   colours come from TypeScript (see the section note above). */
+.rer-console__status {
+  border-radius: var(--rer-radius-pill);
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 18px;
+  padding: 1px 9px;
+  white-space: nowrap;
+}
+
+/* --- 11.7 Collection index ------------------------------------------------- */
+
+.rer-console__collections {
+  display: grid;
+  gap: var(--rer-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.rer-console__collection-group ul {
+  list-style: none;
+  margin: var(--rer-space-1) 0 0;
+  padding: 0;
+}
+
+.rer-console__collection {
+  align-items: center;
+  display: flex;
+  gap: var(--rer-space-2);
+  justify-content: space-between;
+}
+
+.rer-console__collection-link {
+  color: var(--theme-text);
+  display: block;
+  flex: 1;
+  font-size: 13px;
+  padding: 5px 0;
+  text-decoration: none;
+}
+
+.rer-console__collection-link:hover {
+  color: var(--rer-accent);
+}
+
+.rer-console__collection-create {
+  border: 1px solid var(--rer-border-color);
+  border-radius: var(--rer-radius-sm);
+  color: var(--theme-elevation-500);
+  font-size: 13px;
+  line-height: 16px;
+  padding: 1px 7px 3px;
+  text-decoration: none;
+}
+
+.rer-console__collection-create:hover {
+  background: var(--rer-hover-surface);
+  color: var(--theme-text);
+}
+
+/* --- 11.8 Narrower viewports ------------------------------------------------
+   Two columns down to 1100px, then a single column. The row grids drop their
+   trailing metadata column before they start truncating titles. */
+
+@media (max-width: 1100px) {
+  .rer-console__overview,
+  .rer-console__split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .rer-console__row {
+    grid-template-columns: 5.5rem minmax(0, 1fr) auto;
+  }
+
+  .rer-console__row-time {
+    display: none;
+  }
 }

@@ -54,7 +54,7 @@ function OfficialChannelPartners({ partners }) {
             id="channel-partners-heading"
             className="text-center font-serif text-2xl font-medium tracking-tight text-[#081221] sm:text-3xl"
           >
-            <span className="text-[#B8862F]">Official</span> Channel Partners for
+            <span className="text-rer-gold-text">Official</span> Channel Partners for
           </h2>
 
           <span aria-hidden="true" className="h-px w-8 max-w-[15vw] bg-[#B8862F]/45 sm:w-16" />

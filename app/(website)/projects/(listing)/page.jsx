@@ -4,6 +4,7 @@ import {
   toCmsProjectStatus,
 } from "../../../../lib/projects";
 import ProjectsListing from "../../../../components/projects/ProjectsListing";
+import { DEFAULT_OG_IMAGE } from "../../../../lib/seo/ogImage";
 
 const title = "Projects";
 const description =
@@ -19,6 +20,7 @@ export const metadata = {
     title,
     description,
     url: "/projects",
+    images: [DEFAULT_OG_IMAGE],
   },
 };
 

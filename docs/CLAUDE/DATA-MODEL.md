@@ -48,15 +48,29 @@ generate-nearby-locations endpoint; they are not required to save.
 purposes: `currency` (INR), `price`, `priceOnRequest`, `negotiable`,
 `pricePerSqFt`, `additionalCharges`, `rentAmount`, `rentPeriod`,
 `securityDeposit`, `maintenanceCharges`, `maintenanceIncluded`, `brokerageFee`,
-`totalLeaseAmount`, `monthlyLeasePayment`. Because the amount lives in a
-different field per purpose, budget filtering picks the field from the purpose
-(see `ARCHITECTURE.md`).
+`totalLeaseAmount`, `monthlyLeasePayment`, `parkingCharges`. Because the amount
+lives in a different field per purpose, budget filtering picks the field from
+the purpose (see `ARCHITECTURE.md`). `parkingCharges` is unconditional
+(no purpose gate) — a parking charge can be a one-off (sale) or recurring
+(rent/lease) cost and is always separate from the price/rent fields above.
 
-**Property Details tab** — `details` group (`bedrooms`, `bathrooms`, `area` +
-`areaUnit`, `furnishing`, `balconies`, `propertyAge`, `possessionStatus`, and
-the commercial-only `cabins`, `workstations`, `meetingRooms`,
-`pantryAvailable`, `fitOutStatus`) and `buildingDetails` (`buildingName`,
-`totalFloors`, `floorNumber`, `liftAvailable`).
+**Property Details tab** — `details` group (`bedrooms`, `bathrooms`,
+`carpetArea` + `carpetAreaUnit` (default `sq-ft`), `builtUpArea` +
+`builtUpAreaUnit` (default `sq-ft`), `furnishing`, `parking`, `balconies`,
+`propertyAge`, `possessionStatus`, and the commercial-only `cabins`,
+`workstations`, `meetingRooms`, `pantryAvailable`, `fitOutStatus`) and
+`buildingDetails` (`buildingName`, `totalFloors`, `floorNumber`,
+`liftAvailable`). `carpetArea` and `builtUpArea` are the precise RERA-style
+figures, each with its own unit — added because the CSV import already
+distinguishes the two source columns but previously had nowhere to put both
+(see `DECISIONS.md`). There is no single generic `area` field: an earlier
+version had one, all 19 properties' values were migrated into `carpetArea`,
+and the field was then removed — `areaDisplay` (public site) now prefers
+`carpetArea`, falling back to `builtUpArea`. `parking` is a plain number
+(count of parking spots) — applies to both residential and commercial units,
+so it sits alongside `furnishing` rather
+than in either
+category-conditional block.
 
 **Amenities tab** — `amenities`, a has-many relationship to the `amenities`
 collection. Amenities are never duplicated onto a listing.
@@ -65,6 +79,17 @@ collection. Amenities are never duplicated onto a listing.
 `gallery` (has-many upload), both to `media`, both optional.
 
 **Rent Details tab** — internal rental record, described next.
+
+**Owner Details tab** — `ownerDetails` group: `ownerName`, `ownerContact`,
+`ownerBasedIn` (`jogeshwari` / `elsewhere-in-mumbai` / `outside-mumbai` /
+`nri`), `withRerSince` (4-digit year, validated: integer, 1000–9999, not in
+the future), `openToSelling` (`not-discussed` default / `open-to-offers` /
+`actively-selling` / `will-not-sell`), `renewalCalledOn` (date). Internal-only
+— gated the same way as `rentDetails`/`rentHistory`/`flatNo`
+(`access.read: ({ req: { user } }) => Boolean(user)`) **at the group level**,
+so every field added to this group inherits the same protection with no
+per-field access code needed. Nothing under `app/`, `components/` or `lib/`
+reads this group, so it has no path to the public site.
 
 ### Featured / public behaviour
 
@@ -103,6 +128,78 @@ incomplete historical inventory can still be saved.
 Note that rental *pricing* for a property being advertised to rent lives in
 `pricing.rentAmount` / `rentPeriod` (purpose = `rent`), which is public.
 `rentDetails` is about an executed agreement and is not.
+
+**`currentAgreementEndDate`** (also in the Rent Details tab, above the
+Tenancy History array) is a denormalized, read-only, top-level `date` field —
+the current (last) `rentHistory` entry's end date, kept in sync by its own
+`beforeChange` hook every time the property is saved. It exists purely so the
+property list can **sort and filter** by it (`admin.defaultColumns`), which a
+`virtual` field cannot do — Payload's list view queries the database directly,
+before any `afterRead` hook would compute a virtual value. Gated with the same
+`access.read: Boolean(user)` as `rentHistory` — since it's a plain top-level
+field rather than nested inside `rentHistory`'s own group, that gate had to be
+applied explicitly; it is not inherited automatically. The list-view column
+renders through `components/payload/AgreementCountdownCell.tsx` ("N days
+left" / "Expired N days ago", coloured by urgency — matching the ≤60-day
+window this field exists to answer) rather than a bare date.
+`scripts/backfill-current-agreement-end-date.ts` is the one-time backfill for
+properties that existed before this field did — a hook-computed field, unlike
+one with a static `defaultValue`, is never backfilled by Postgres's own schema
+push, so existing rows stayed `null` until this ran.
+
+The same value also shows in the **sidebar**, directly under `status` — not a
+second data field (a field can only live at one path), but a `type: 'ui'`
+field (`agreementCountdown`) whose `AgreementCountdownSidebar` component reads
+`status` and `currentAgreementEndDate` live out of the edit form, rendering
+only when `status === 'rented'`. Shares its day-math and urgency tiering with
+the list Cell via `lib/properties/agreementCountdown.ts`.
+
+### CSV property import
+
+`scripts/import-properties.ts` (`npm run import:properties -- "<csv path>"`,
+dry run by default — see the script header) bulk-imports property records,
+including `rentHistory`, from RER's spreadsheet-tracked inventory. It never
+invents data and never overwrites a populated field with a blank CSV value.
+
+Column mapping (source columns not listed here have no destination field and
+are reported as unmapped by the script — the CSV's `Source`, `Source Contact`,
+`Photos`, `Video`, `Documents`, `Owner Permission`, `Last Verified`,
+`Next Verification`, `Listing Ready`, `Website`, `Portals`, `Assigned To` and
+`Remarks` columns currently fall in this category; see `DECISIONS.md` for why
+`Owner Name`/`Owner Contact`/`Parking`/`Parking Charges` moved out of it):
+
+| CSV column | Payload field | Notes |
+| --- | --- | --- |
+| `Property ID` | `propertyId` | Used exactly as given by default; a per-run `IMPORT_PROPERTY_ID_START` override can instead assign sequential IDs in CSV row order — see "Property ID range for the first CSV import" in `DECISIONS.md`. The first real import used this override to assign `RER-00001`–`RER-00018` (the CSV's own column said `RER-00008`–`RER-00025`); the sequence's next value after that import is `RER-00019`. |
+| `Property Title` | `title` | |
+| `Status` | `status` | Matched case-insensitively against the existing option values. |
+| `Listing Type` | `purpose` | |
+| `Category` | `propertyCategory` | |
+| `Property Type` | `propertyType` | |
+| `Location` | `location.locality` | The CSV's broader named suburb (e.g. "Jogeshwari West") — matches how `locality` is used elsewhere (see `scripts/seed-test-inventory.ts`), **not** the CSV's own "Locality" column. |
+| `Locality` | `location.area` | The CSV's smaller pocket/complex name (e.g. "Vaishali Nagar") — the two CSV column names are the reverse of the Payload field names they map to. |
+| `Flat No.` | `location.flatNo` | |
+| `Building / Society` | `buildingDetails.buildingName` | |
+| `Address` | `location.address` | `location.city` is set to "Mumbai" only when the address text contains it; otherwise the field's own default applies. |
+| `Carpet Area` (+ unit) | `details.carpetArea` / `details.carpetAreaUnit` | Each figure has its own field — a row with both Carpet Area and Built-up Area populated writes both, no reconciliation needed. |
+| `Built-up Area` (+ unit) | `details.builtUpArea` / `details.builtUpAreaUnit` | See above. |
+| `BHK / Configuration` | `details.bedrooms` | Parsed from `"<N>BHK"`. |
+| `Floor` / `Total Floors` | `buildingDetails.floorNumber` / `totalFloors` | |
+| `Furnishing` | `details.furnishing` | `"Fully Furnished"` → `furnished`. |
+| `Property Age` | `details.propertyAge` | |
+| `Parking` | `details.parking` | `"None"` → `0`; a bare count (e.g. `"1"`) → that number. |
+| `Asking Price` | `pricing.price` | |
+| `Rent` | `pricing.rentAmount` **and** `rentHistory[].monthlyRent` | Same figure, two legitimate destinations — advertised/reference rent vs. the specific tenancy's contracted rent. |
+| `Parking Charges` | `pricing.parkingCharges` | Kept separate from `price`/`rentAmount` — never folded into the property's price or rent. |
+| `Owner Name` | `ownerDetails.ownerName` | |
+| `Owner Contact` | `ownerDetails.ownerContact` | |
+| `Deposit` | `pricing.securityDeposit` **and** `rentHistory[].securityDeposit` | Same reasoning as `Rent`. |
+| `Maintenance` | `pricing.maintenanceCharges` | |
+| `Brokerage` | `pricing.brokerageFee` | |
+| `Licensee Name` / `Licensee Contact Number` | `rentHistory[].licenseeName` / `licenseeContactNumber` | |
+| `Agreement Term` | `rentHistory[].agreementTermMonths` | Not the free-text `agreementTerm` field — the CSV's term is already a clean number of months. |
+| `Agreement Start Date` | `rentHistory[].agreementStartDate` | |
+| `Agreement End Date` | **not written** | Compared against the value `calculateAgreementEndDate()` produces — the last calendar day of the term (Start Date + Term − 1 day) — and reported as MATCH/DISCREPANCY; the calculated value is what Payload's own field hook stores. See `DECISIONS.md`. |
 
 ## Projects
 

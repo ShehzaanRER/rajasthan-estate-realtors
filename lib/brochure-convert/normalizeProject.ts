@@ -53,7 +53,7 @@ export function buildReviewFlags(
 
   if (context.unmatchedAmenities.length > 0) {
     flags.push(
-      `These amenities from the source could not be matched to existing Amenities records and were NOT added: ${context.unmatchedAmenities.join(', ')}. Add them manually, or create the matching Amenity records first and re-run.`,
+      `These amenities from the source did not match an existing Amenities record and will be created as new master-data records on save: ${context.unmatchedAmenities.join(', ')}. Review their category in the Amenities collection afterward.`,
     );
   }
 

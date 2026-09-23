@@ -2,9 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, MapPin } from "lucide-react";
 
-const CARD_IMAGE_SIZES =
-  "(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw";
-
 /** A badge wall reads as a portal listing, not a consultancy's selection. */
 const MAX_HIGHLIGHT_TAGS = 2;
 
@@ -35,8 +32,14 @@ function highlightLabels(project) {
  * when is it ready" — a range and a timeline, not a single unit at a single
  * price. The configuration chips are the clearest signal that this object
  * contains many homes rather than being one of them.
+ *
+ * The image box matches PropertyCard exactly — same ratio, same delivery,
+ * required `sizes` from the call site. The two card types sit side by side in
+ * the homepage showcase tabs, so their photographs have to be the same shape.
+ * Everything below the image is deliberately different: a development is a
+ * range and a timeline, not one unit at one price.
  */
-function ProjectCard({ project, priority = false }) {
+function ProjectCard({ project, sizes, priority = false }) {
   const image = project.featuredImage;
   const configurations = project.configurations ?? [];
   const possession =
@@ -45,13 +48,13 @@ function ProjectCard({ project, priority = false }) {
 
   return (
     <article className="group flex h-full flex-col overflow-hidden border border-slate-200 bg-white transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(8,18,33,0.12)]">
-      <div className="relative h-[260px] shrink-0 overflow-hidden bg-[#081221]">
+      <div className="relative aspect-[3/2] w-full shrink-0 overflow-hidden bg-[#081221]">
         {image?.url ? (
           <Image
             src={image.url}
             alt={image.alt || project.name}
             fill
-            sizes={CARD_IMAGE_SIZES}
+            sizes={sizes}
             quality={82}
             priority={priority}
             loading={priority ? undefined : "lazy"}
@@ -66,7 +69,8 @@ function ProjectCard({ project, priority = false }) {
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-[#081221]/50 via-transparent to-transparent opacity-70" />
+        {/* No scrim — see PropertyCard. The status badge and highlight chips
+            carry their own fills and sit clear of the photograph's subject. */}
 
         <div className="absolute left-5 top-5 flex flex-wrap items-center gap-2">
           <span className="inline-flex bg-[#081221] px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white">
@@ -142,7 +146,7 @@ function ProjectCard({ project, priority = false }) {
         <div className="mt-auto pt-6">
           <Link
             href={`/projects/${project.slug}`}
-            className="group/link flex w-full select-none items-center justify-between border border-slate-300 px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:bg-[#B8862F] hover:text-white"
+            className="group/link flex min-h-11 w-full select-none items-center justify-between border border-slate-300 px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:bg-[#B8862F] hover:text-[#081221]"
           >
             <span>View Project</span>
             <ArrowRight

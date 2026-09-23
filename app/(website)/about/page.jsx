@@ -5,6 +5,7 @@ import {
   CONTACT_PHONE_TEL,
   CONTACT_WHATSAPP_NUMBER,
 } from "../../../lib/siteConfig";
+import { DEFAULT_OG_IMAGE } from "../../../lib/seo/ogImage";
 
 const title = "About";
 const description =
@@ -20,6 +21,7 @@ export const metadata = {
     title,
     description,
     url: "/about",
+    images: [DEFAULT_OG_IMAGE],
   },
 };
 
@@ -59,13 +61,13 @@ export default function AboutPage() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
 
           <div className="order-2 lg:order-1">
-            <p className="text-[11px] font-medium uppercase tracking-[0.35em] text-[#B8862F]">
+            <p className="text-[11px] font-medium uppercase tracking-[0.35em] text-rer-gold-text">
               Established 1988
             </p>
 
             <h2 className="mt-4 font-serif text-3xl font-light leading-tight text-[#081221] sm:text-4xl md:text-5xl">
               Mr. Hanif Zamindar
-              <span className="mt-2 block text-xl italic text-[#B8862F] sm:text-2xl">
+              <span className="mt-2 block text-xl italic text-rer-gold-text sm:text-2xl">
                 Founder &amp; Proprietor
               </span>
             </h2>
@@ -188,14 +190,14 @@ export default function AboutPage() {
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href="/properties"
-              className="inline-flex items-center justify-center border border-[#081221] px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+              className="inline-flex items-center justify-center border border-[#081221] px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-rer-gold-text"
             >
               Explore Properties
             </Link>
 
             <a
               href={`tel:${CONTACT_PHONE_TEL}`}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 transition-colors duration-300 hover:text-[#B8862F]"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 transition-colors duration-300 hover:text-rer-gold-text"
             >
               <Phone size={14} />
               Speak With Us
@@ -205,7 +207,7 @@ export default function AboutPage() {
               href={`https://wa.me/${CONTACT_WHATSAPP_NUMBER}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 transition-colors duration-300 hover:text-[#B8862F]"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 transition-colors duration-300 hover:text-rer-gold-text"
             >
               <MessageCircle size={14} />
               WhatsApp Us

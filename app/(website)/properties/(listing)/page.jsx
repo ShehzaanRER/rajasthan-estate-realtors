@@ -10,6 +10,7 @@ import {
   toCmsPurpose,
 } from "../../../../lib/properties";
 import PropertiesListing from "../../../../components/properties/PropertiesListing";
+import { DEFAULT_OG_IMAGE } from "../../../../lib/seo/ogImage";
 
 const title = "Properties";
 const description =
@@ -25,6 +26,7 @@ export const metadata = {
     title,
     description,
     url: "/properties",
+    images: [DEFAULT_OG_IMAGE],
   },
 };
 

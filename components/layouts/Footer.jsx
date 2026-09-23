@@ -39,7 +39,7 @@ function Footer() {
 
                   <span className="h-px w-10 bg-[#B8862F]" />
 
-                  <span className="text-xs font-medium uppercase tracking-[0.35em] text-[#B8862F]">
+                  <span className="text-xs font-medium uppercase tracking-[0.35em] text-rer-gold-text">
                     Let's Find The Right Property
                   </span>
 
@@ -49,7 +49,7 @@ function Footer() {
 
                   Looking for the right property
 
-                  <span className="block italic text-[#B8862F]">
+                  <span className="block italic text-rer-gold-text">
                     in Mumbai?
                   </span>
 
@@ -81,7 +81,7 @@ function Footer() {
 
                 <a
                   href={`tel:${CONTACT_PHONE_TEL}`}
-                  className="inline-flex items-center justify-center gap-3 rounded-lg border border-[#081221]/20 px-7 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+                  className="inline-flex items-center justify-center gap-3 rounded-lg border border-[#081221]/20 px-7 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:text-rer-gold-text"
                 >
                   Speak With Us
                 </a>

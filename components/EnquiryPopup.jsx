@@ -248,7 +248,7 @@ function EnquiryPopup() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleEngage}
-            className="flex items-center justify-center gap-3 rounded-lg border border-slate-300 bg-white px-6 py-4 text-sm font-semibold uppercase tracking-[0.12em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+            className="flex items-center justify-center gap-3 rounded-lg border border-slate-300 bg-white px-6 py-4 text-sm font-semibold uppercase tracking-[0.12em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:text-rer-gold-text"
           >
             <MessageCircle size={16} />
             WhatsApp Us

@@ -297,7 +297,7 @@ function BrochureConvertForm() {
               ))}
               {result.amenityMatch.unmatched.length > 0 ? (
                 <p style={{ color: 'var(--theme-elevation-500, #666)' }}>
-                  Not matched to an existing Amenity (not added): {result.amenityMatch.unmatched.join(', ')}
+                  New amenities (will be created automatically): {result.amenityMatch.unmatched.join(', ')}
                 </p>
               ) : null}
             </div>

@@ -149,7 +149,7 @@ export default function PrivacyPolicyPage() {
                 {CONTACTS.map((contact, index) => (
                   <span key={contact.tel}>
                     {index > 0 ? ", " : ""}
-                    <a href={`tel:${contact.tel}`} className="text-[#B8862F] hover:underline">
+                    <a href={`tel:${contact.tel}`} className="text-rer-gold-text hover:underline">
                       {contact.display}
                     </a>
                   </span>
@@ -157,7 +157,7 @@ export default function PrivacyPolicyPage() {
               </li>
               <li>
                 Email:{" "}
-                <a href={`mailto:${CONTACT_EMAIL}`} className="text-[#B8862F] hover:underline">
+                <a href={`mailto:${CONTACT_EMAIL}`} className="text-rer-gold-text hover:underline">
                   {CONTACT_EMAIL}
                 </a>
               </li>
@@ -167,7 +167,7 @@ export default function PrivacyPolicyPage() {
           <div className="pt-8">
             <Link
               href="/"
-              className="inline-flex items-center justify-center border border-[#081221] px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+              className="inline-flex items-center justify-center border border-[#081221] px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-rer-gold-text"
             >
               Back to Home
             </Link>

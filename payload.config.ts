@@ -95,9 +95,24 @@ export default buildConfig({
           path: '/brochure-convert',
           exact: true,
         },
+        /**
+         * The RER Property Management Console replaces the body of `/admin`.
+         *
+         * Payload's own DashboardView still wraps it (HydrateAuthProvider +
+         * SetStepNav), and every other admin route, the nav rail and the
+         * account menu are untouched — only the landing page's content
+         * changes. This supersedes the old `afterDashboard` summary panel,
+         * which the console absorbed.
+         *
+         * What is replaced: Payload's collection-cards widget. The console
+         * ends with its own permission-filtered collection grid so nothing
+         * that widget offered is lost.
+         */
+        dashboard: {
+          Component: '/components/payload/dashboard/RerConsoleView#RerConsoleView',
+        },
       },
       afterNavLinks: ['/components/payload/BrochureConvertNavLink#BrochureConvertNavLink'],
-      afterDashboard: ['/components/payload/AdminDashboardSummary#AdminDashboardSummary'],
     },
   },
 

@@ -1,8 +1,42 @@
+import { Cormorant_Garamond } from "next/font/google";
 import Navbar from "../../components/layouts/Navbar";
 import Footer from "../../components/layouts/Footer";
 import EnquiryPopup from "../../components/EnquiryPopup";
+import Analytics from "../../components/Analytics";
 import { CONTACT_EMAIL, CONTACTS, SITE_NAME, SITE_URL } from "../../lib/siteConfig";
+import { DEFAULT_OG_IMAGE } from "../../lib/seo/ogImage";
 import "../../src/index.css";
+
+/**
+ * The wordmark face, self-hosted rather than pulled from Google.
+ *
+ * This was previously an `@import url(fonts.googleapis.com/...)` at the top of
+ * src/index.css, which is the worst place to ask for a font: the browser has
+ * to fetch and parse the stylesheet before it even discovers the request, then
+ * fetch a second stylesheet, then the font files — a three-deep chain in front
+ * of first paint. It also handed every visitor's IP address to a third party
+ * on every page load, which is the sort of thing the privacy policy would have
+ * had to account for.
+ *
+ * `next/font` inlines the @font-face rules into the app's own CSS and serves
+ * the files from this origin, so the chain collapses and no third party is
+ * involved. It is part of Next, not a new dependency.
+ *
+ * Weight 600 only — that is the single weight the face is actually set in
+ * (`font-semibold` on the Navbar and Footer wordmarks, the only two
+ * `font-cormorant` usages in the codebase). Declaring 500 and 700 as well
+ * would ship two more @font-face rules the site never selects, and invite a
+ * stray `font-bold` somewhere to start fetching a second file silently.
+ *
+ * `display: swap`, so the wordmark paints immediately in the fallback rather
+ * than blocking on the webfont.
+ */
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["600"],
+  display: "swap",
+  variable: "--font-cormorant-src",
+});
 
 const title = "Rajasthan Estate Realtors | Real Estate in Mumbai";
 const description =
@@ -24,9 +58,14 @@ export const metadata = {
     title,
     description,
     url: SITE_URL,
+    images: [DEFAULT_OG_IMAGE],
   },
   twitter: {
-    card: "summary",
+    // `opengraph-image.png` in this segment is inherited by every page that
+    // does not set its own, so there is always a 1200x630 image to fill the
+    // wide card. Property and project pages override both the image and this
+    // field with their own first photograph.
+    card: "summary_large_image",
     title,
     description,
   },
@@ -65,7 +104,7 @@ const organizationJsonLd = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={cormorant.variable}>
       <body>
         <script
           type="application/ld+json"
@@ -75,6 +114,7 @@ export default function RootLayout({ children }) {
         {children}
         <Footer />
         <EnquiryPopup />
+        <Analytics />
       </body>
     </html>
   );

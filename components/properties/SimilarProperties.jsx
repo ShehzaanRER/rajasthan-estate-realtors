@@ -1,5 +1,6 @@
 import PropertyCard from "./PropertyCard";
 import CardSlider from "../ui/CardSlider";
+import { SHOWCASE_CARD_SIZES } from "../../lib/cardImageSizes";
 
 function SimilarProperties({ properties }) {
   if (!properties || properties.length === 0) {
@@ -16,7 +17,11 @@ function SimilarProperties({ properties }) {
         {/* One card at a time on a phone, the same grid as before from md up. */}
         <CardSlider label="similar property">
           {properties.map((property) => (
-            <PropertyCard key={property.slug} property={property} />
+            <PropertyCard
+              key={property.slug}
+              property={property}
+              sizes={SHOWCASE_CARD_SIZES}
+            />
           ))}
         </CardSlider>
       </div>

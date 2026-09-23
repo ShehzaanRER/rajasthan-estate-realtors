@@ -171,6 +171,6 @@ This is the exact JSON shape the RER Claude Skill must produce for the admin to 
 ## What still requires human review after import (by design)
 
 - **`projectDetails.possessionDate`** is captured as free text but is never written to the Payload `possessionDate` date field (which requires an exact month/year) — it's surfaced as a review note on the draft for the admin to set manually.
-- **Unmatched amenities** (names that don't exactly match an existing Amenities record) are not added to the project — they're surfaced as a review note. No new Amenity records are ever auto-created.
+- **Unmatched amenities** (names that don't exactly match an existing Amenities record) are auto-created as new Amenity master-data records when the draft is created, and surfaced as a review note so the admin can set their category afterward.
 - **`configurations[].availability`** and **`nearbyConnectivity.connections[]`** are new as of contract v3 — always double-check them in the editor, since this is their first round of live use.
 - Nothing this contract produces is ever published automatically. Every import creates a `status: 'draft'` project; a human must review and change the status in the normal Payload editor.

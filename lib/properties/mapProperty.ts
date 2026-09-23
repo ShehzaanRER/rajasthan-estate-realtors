@@ -383,7 +383,13 @@ export function mapProperty(doc: Property | null | undefined): PublicProperty | 
   const pricing = mapPricing(doc.purpose, doc.pricing);
   const amenities = mapAmenities(doc.amenities);
   const description = mapDescription(doc.description);
-  const areaDisplay = formatAreaDisplay(doc.details?.area, doc.details?.areaUnit);
+  // Carpet Area is the precise, preferred figure; Built-up Area is the
+  // fallback when only that was recorded (mirrors the CSV import's own
+  // carpet-preferred-over-built-up ordering — see scripts/import-properties.ts).
+  const areaDisplay =
+    doc.details?.carpetArea != null
+      ? formatAreaDisplay(doc.details.carpetArea, doc.details.carpetAreaUnit)
+      : formatAreaDisplay(doc.details?.builtUpArea, doc.details?.builtUpAreaUnit);
   const category = doc.propertyCategory ?? null;
   const categoryLabel = category ? CATEGORY_LABELS_MAP[category] : null;
   const propertyTypeLabel = PROPERTY_TYPE_LABELS[doc.propertyType];

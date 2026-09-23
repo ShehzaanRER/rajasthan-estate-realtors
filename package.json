@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "import:properties": "payload run scripts/import-properties.ts --",
     "frontend": "vite",
     "backend": "cd server && npm run dev"
   },

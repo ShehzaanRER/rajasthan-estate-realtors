@@ -5,6 +5,7 @@ import Link from "next/link";
 import PropertyCard from "../properties/PropertyCard";
 import ProjectCard from "../projects/ProjectCard";
 import CardSlider from "../ui/CardSlider";
+import { showcaseCardSizes } from "../../lib/cardImageSizes";
 
 /**
  * Track count drives the column count from `md` up. A fixed three-column grid
@@ -24,11 +25,18 @@ function gridClassesFor(count) {
   return "md:grid-cols-2 lg:grid-cols-3";
 }
 
-// whitespace-nowrap and the smaller mobile step keep both tabs on one line at
-// 375px: stacked tabs read as two headings rather than as a choice.
+// whitespace-nowrap and the smaller mobile step keep both tabs on one line:
+// stacked tabs read as two headings rather than as a choice.
+//
+// The base step is sized for 320px, not 375px. "Properties" + "New Projects"
+// at text-xl with a 24px gap measured 28px wider than the 272px of content box
+// a 320px viewport leaves after the section's px-6, and because the labels are
+// whitespace-nowrap that pushed the whole document 4px wide — every page at
+// that width got a horizontal scrollbar from this one row. text-lg and a 16px
+// gap below `sm` fit with room to spare; 375px and up are unchanged.
 function tabClasses(isActive) {
   return [
-    "-mb-px whitespace-nowrap border-b-2 pb-2 font-serif text-xl font-medium tracking-tight transition-colors duration-200 sm:pb-3 sm:text-3xl md:text-4xl",
+    "-mb-px whitespace-nowrap border-b-2 pb-2 font-serif text-lg font-medium tracking-tight transition-colors duration-200 sm:pb-3 sm:text-3xl md:text-4xl",
     isActive
       ? "border-[#B8862F] text-[#081221]"
       : "border-transparent text-slate-400 hover:text-[#081221]",
@@ -75,6 +83,10 @@ function FeaturedShowcase({ properties = [], projects = [] }) {
   const active = tabs.find((tab) => tab.key === activeTab) ?? tabs[0];
   const count = active.items.length;
 
+  // gridClassesFor() narrows the track below three cards, which makes each
+  // card *wider*, so the sizes string has to follow the same count.
+  const cardSizes = showcaseCardSizes(count);
+
   // Arrow keys move between tabs the way a tablist is expected to behave;
   // the Tab key still moves out of the tablist to the panel below.
   const onTabKeyDown = (event) => {
@@ -107,7 +119,7 @@ function FeaturedShowcase({ properties = [], projects = [] }) {
               role="tablist"
               aria-label="Featured properties and new projects"
               onKeyDown={onTabKeyDown}
-              className="flex items-end gap-x-6 border-b border-slate-300 sm:gap-x-8"
+              className="flex items-end gap-x-4 border-b border-slate-300 sm:gap-x-8"
             >
               {tabs.map((tab) => {
                 const isActive = tab.key === activeTab;
@@ -143,7 +155,7 @@ function FeaturedShowcase({ properties = [], projects = [] }) {
               looking at projects to the property listing. */}
           <Link
             href={active.href}
-            className="group inline-flex w-fit select-none items-center gap-3 border-b border-slate-300 pb-2 text-sm font-semibold uppercase tracking-[0.15em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+            className="group inline-flex w-fit select-none items-center gap-3 border-b border-slate-300 pb-2 text-sm font-semibold uppercase tracking-[0.15em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-rer-gold-text"
           >
             {active.linkLabel}
 
@@ -172,7 +184,7 @@ function FeaturedShowcase({ properties = [], projects = [] }) {
 
               <Link
                 href={active.href}
-                className="group mt-8 inline-flex select-none items-center gap-3 border-b border-slate-300 pb-2 text-sm font-semibold uppercase tracking-[0.15em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+                className="group mt-8 inline-flex select-none items-center gap-3 border-b border-slate-300 pb-2 text-sm font-semibold uppercase tracking-[0.15em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-rer-gold-text"
               >
                 {active.emptyLinkLabel}
 
@@ -187,16 +199,25 @@ function FeaturedShowcase({ properties = [], projects = [] }) {
               label={active.key === "properties" ? "property" : "project"}
               gridClassName={gridClassesFor(count)}
             >
+              {/* No priority here. This is the fourth section of the homepage,
+                  below Hero and Services, so preloading a card image only put
+                  it in competition with the hero background — which is the
+                  actual LCP element and already carries fetchPriority="high".
+                  These stay lazy. */}
               {active.key === "properties"
-                ? active.items.map((property, index) => (
+                ? active.items.map((property) => (
                     <PropertyCard
                       key={property.slug}
                       property={property}
-                      priority={index === 0}
+                      sizes={cardSizes}
                     />
                   ))
                 : active.items.map((project) => (
-                    <ProjectCard key={project.slug} project={project} />
+                    <ProjectCard
+                      key={project.slug}
+                      project={project}
+                      sizes={cardSizes}
+                    />
                   ))}
             </CardSlider>
           )}

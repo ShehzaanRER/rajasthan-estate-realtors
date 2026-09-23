@@ -3,6 +3,196 @@
 Significant changes only, newest first. Keep entries short — a few lines and
 the files that matter. Architectural reasoning belongs in `DECISIONS.md`.
 
+## 2026-09-23 — Site quality pass: favicon, HSTS, contrast, spam, analytics hook
+
+A quality/security/accessibility pass over the public site. No schema change,
+no new dependency, no change to property/project data, media storage, the
+admin console or the public URL structure.
+
+**Added**
+
+- **Favicon and icons.** There were none at all — `/favicon.ico` 404'd.
+  `app/icon.png` (48px) and `app/apple-icon.png` (180px), plus
+  `public/icon-192.png` / `icon-512.png` for `app/manifest.ts`. All generated
+  with sharp from `public/logo-HOUSE-white.svg` on the brand navy.
+- **Default social image.** `public/og-default.png` (1200x630, brand lockup on
+  navy), exported as `DEFAULT_OG_IMAGE` from `lib/seo/ogImage.ts` and wired
+  into the layout, `/about`, `/contact`, both listing pages, and as the
+  fallback on property/project detail pages that have no photograph. Only `/`
+  and the two legal pages previously had any OG image.
+- **Security headers** in `next.config.mjs`: HSTS (production only),
+  `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options: SAMEORIGIN`,
+  and `poweredByHeader: false`. No HTTP->HTTPS redirect — Railway already does
+  that at its edge.
+- **Rate limiting** on `POST /api/contact`: `lib/rateLimit.ts`, 5 requests per
+  10 minutes per IP, answering 429 with `Retry-After`. The honeypot and timing
+  checks only inspect one request's shape; a bot that omits `renderedAt`
+  passed both.
+- **Optional analytics.** `components/Analytics.jsx` renders nothing unless
+  `NEXT_PUBLIC_ANALYTICS_SRC` and `NEXT_PUBLIC_ANALYTICS_DOMAIN` are set. No
+  provider chosen, no values committed. Documented in `.env.example`.
+- **Branded 404 for unmatched URLs.** `app/(website)/[...notFound]/page.jsx`.
+  With two root layouts Next could not pick one for a globally-unmatched URL
+  and served its own bare "404 | This page could not be found" — only URLs
+  that reached a real route and called `notFound()` got the RER page. Status
+  was always correct; the page was not.
+
+**Changed**
+
+- **Cormorant Garamond is now self-hosted** via `next/font` in the website
+  layout, and `--font-cormorant` is defined in `src/index.css`'s `@theme`.
+  The face was being downloaded from Google via a render-blocking `@import`
+  and then never applied, because the `font-cormorant` utility had no matching
+  theme key — both wordmarks rendered in the default sans. Weight 600 only.
+- **Gold text on light backgrounds** now uses `--color-rer-gold-text`
+  (`#8a6728`); `--color-rer-gold` (`#b8862f`) is unchanged and still correct
+  on the navy, as a fill, a rule and an icon. Measured 3.24:1 on white and
+  2.97:1 on sand against a 4.5:1 requirement.
+- **White-on-gold badges and chips are now navy-on-gold**, matching what every
+  gold CTA on the site already did. White on `#b8862f` measured 3.24:1.
+- **FeaturedShowcase tabs** sized for 320px, not 375px — the two
+  `whitespace-nowrap` labels were 28px wider than the content box and put a
+  horizontal scrollbar on every page at that width.
+- `.env.example` documents the five required `S3_*` variables, which it
+  previously omitted entirely.
+
+
+## 2026-09-18 — `area`/`areaUnit` replaced by Carpet Area / Built-up Area
+
+Properties' single general `details.area`/`areaUnit` pair is gone, replaced
+by dedicated `details.carpetArea`/`carpetAreaUnit` and `details.builtUpArea`/
+`builtUpAreaUnit` (both unit selects default to `sq-ft`). Closes the gap
+`scripts/import-properties.ts` already flagged: Payload previously had
+nowhere to put both a CSV row's Carpet Area and Built-up Area figures.
+
+All 19 existing properties' `area` values were migrated into `carpetArea`
+first (dry-run verified, then applied, then diffed against a before/after
+snapshot confirming every sibling field was untouched) before `area`/
+`areaUnit` were removed from the schema — dropping the Postgres columns
+required accepting `@payloadcms/drizzle`'s interactive data-loss prompt (see
+`DECISIONS.md`).
+
+Updated to match: `lib/properties/mapProperty.ts` / `formatLocation.ts`
+(`areaDisplay` now prefers `carpetArea`, falls back to `builtUpArea`),
+`lib/admin-console/checks.ts`'s "no area recorded" check, and
+`scripts/import-properties.ts` (writes both CSV columns to their own field
+now, no more "both populated → error"). `scripts/seed-test-inventory.ts`'s
+five Property test records renamed `area`/`areaUnit` → `carpetArea`/
+`carpetAreaUnit` with the same values — Projects' own separate
+`configurations[].carpetArea` was not touched. `payload-types.ts`
+regenerated. See `DECISIONS.md` for the full account.
+
+## 2026-09-18 — RER Property Management Console replaces the admin dashboard
+
+`/admin` now opens on an operational console: status counts for Properties
+and Projects, quick actions, Needs Attention, Agreement Renewals, recently
+updated records, and a collection index. Registered as
+`admin.components.views.dashboard` in `payload.config.ts`, which replaces
+only the dashboard body — the nav rail, account menu, every collection route
+and `/admin/brochure-convert` are untouched. No schema change, no new
+dependency, nothing on the public website changed.
+
+New `lib/admin-console/` (URL/`Where` serialization, schema-derived status
+options, the data-quality checklist, the loader), new
+`components/payload/dashboard/` (server components, no client JS of their
+own), new `app/(payload)/custom.scss` §11. Status tiering moved to
+`lib/statusTiers.ts` and countdown badge styling into
+`lib/properties/agreementCountdown.ts`, both now shared with the list-view
+Cells. `components/payload/AdminDashboardSummary.tsx` and its
+`afterDashboard` registration removed — superseded.
+
+Every figure is a live `payload.count()` over the same `Where` its link
+navigates to, and checks cover only fields Payload lets staff leave empty.
+See `DECISIONS.md`.
+
+## 2026-09-17 — Denser Properties/Projects list tables + synchronized scroll
+
+Fixed the excessive column width on both list tables: `app/(payload)/
+custom.scss` §8 now caps `th`/`td` width (Payload's own default has no
+max-width), lets long nested-field headers wrap onto two lines instead of
+forcing the column to fit one line, sizes columns by field-name tier
+(id/date/status/price/text) with matching left/center/right alignment, and
+adds a subtle grid of hairline borders. New
+`components/payload/TableScrollSync.tsx`, registered via
+`admin.components.beforeListTable` on both `collections/Properties.ts` and
+`collections/Projects.ts`, adds a synchronized horizontal scrollbar above the
+table that drives the same underlying scroll position as the native one
+below it. See `DECISIONS.md` for the root cause and why the list-table header
+stays non-sticky.
+
+## 2026-09-17 — Agreement countdown also shown in the sidebar
+
+Added a sidebar display (right under Status) of the same
+`currentAgreementEndDate` countdown already shown in the property list —
+`agreementCountdown`, a `type: 'ui'` field (no second data column) whose
+`AgreementCountdownSidebar` component reads the live form's `status` and
+`currentAgreementEndDate` and renders only for `rented` properties. Extracted
+the shared day-math/urgency logic into `lib/properties/agreementCountdown.ts`
+so the list Cell and the sidebar display can't disagree on it.
+
+## 2026-09-17 — Owner-relationship fields; denormalized currentAgreementEndDate
+
+Added `ownerBasedIn`, `withRerSince` (validated 4-digit year), `openToSelling`
+(default `not-discussed`) and `renewalCalledOn` to the existing `ownerDetails`
+group — inherits its group-level `access.read: Boolean(user)` gate, no new
+access code needed.
+
+Added `currentAgreementEndDate`: a denormalized, read-only, top-level `date`
+field in the Rent Details tab, kept in sync by its own `beforeChange` hook
+from the last `rentHistory` entry (recomputed via `calculateAgreementEndDate`
+directly from that entry's start date + term, not read from the entry's own
+computed value, so correctness doesn't depend on field-hook execution order).
+Added to `admin.defaultColumns` and rendered there via the new
+`components/payload/AgreementCountdownCell.tsx` ("N days left" / "Expired Nd
+ago", coloured by urgency at the 60-day mark). Explicitly gated
+`access.read: Boolean(user)` — a top-level field doesn't inherit
+`rentHistory`'s own gate.
+
+`scripts/backfill-current-agreement-end-date.ts` (dry-run by default) applied
+to all 18 existing properties — a hook-computed field isn't backfilled by
+Postgres's own schema push the way a field with a static `defaultValue` is
+(confirmed directly: `openToSelling`'s default WAS retroactively present in
+the raw Postgres row for existing properties, correcting an earlier claim
+that it wouldn't be).
+
+Verified via the Local API: privacy (public/unauthenticated reads return
+nothing for these non-public "rented" records; authenticated reads see the
+real value) and sort order (the two properties whose agreements end 30 Sep
+2026 sort to the top).
+
+## 2026-09-17 — First property CSV import applied; Owner Details extended; Agreement End Date fixed
+
+Applied `scripts/import-properties.ts` for real: 18 properties created
+(`RER-00001`–`RER-00018`, via the script's `IMPORT_PROPERTY_ID_START` override
+— the CSV's own column said `RER-00008`–`RER-00025`), each with its tenancy
+recorded in `rentHistory`. Sequence now correctly hands out `RER-00019` next.
+Verified: no duplicate IDs or slugs, no unrelated collection touched.
+
+Added `ownerDetails` (Owner Details tab: `ownerName`, `ownerContact`),
+`details.parking` and `pricing.parkingCharges` to `collections/Properties.ts`,
+driven by real unmapped columns in the first CSV — see `DECISIONS.md` for why
+these three and not the rest.
+
+Fixed `calculateAgreementEndDate()` (`lib/properties/agreementDates.ts`): now
+returns the last calendar day of the term (Start + Term − 1 day), not the day
+the next term would begin. Every CSV row's previously-reported one-day
+"discrepancy" was this bug, not bad source data.
+
+Also fixed a sequence-priming edge case discovered while applying: priming
+for the very first record (target `RER-00001`) previously computed
+`setval(seq, 0, ...)`, which Postgres rejects (`MINVALUE 1`). Switched to
+`setval(seq, target, false)`, which has no such boundary case.
+
+## 2026-09-16 — Property CSV import script
+
+Added `scripts/import-properties.ts` (`npm run import:properties -- "<csv>"`),
+a dry-run-by-default, idempotent bulk import for the `properties` collection
+covering the new `rentHistory` array. Matches existing records on the CSV's
+exact `Property ID`; never overwrites a populated field with a blank CSV
+value; never deletes. See the CSV → Payload mapping table in
+`docs/CLAUDE/DATA-MODEL.md` and the Property ID sequence-priming approach in
+`docs/CLAUDE/DECISIONS.md`. No collection schema or hook logic changed.
+
 ## 2026-09-14 — Phase 1 technical SEO
 
 Technical SEO foundation. No URL, content or design changes, and no existing

@@ -115,7 +115,7 @@ function PropertyDetail({ property, similarProperties = [] }) {
         <div className="mx-auto max-w-7xl px-6 py-5 sm:px-10 md:px-16 lg:px-8">
           <Link
             href="/properties"
-            className="group inline-flex min-h-11 items-center gap-2 py-2 text-sm font-medium text-slate-600 transition-colors hover:text-[#B8862F] md:min-h-0 md:py-0"
+            className="group inline-flex min-h-11 items-center gap-2 py-2 text-sm font-medium text-slate-600 transition-colors hover:text-rer-gold-text md:min-h-0 md:py-0"
           >
             <ArrowLeft
               size={16}
@@ -145,7 +145,7 @@ function PropertyDetail({ property, similarProperties = [] }) {
                 </span>
 
                 {tag ? (
-                  <span className="inline-flex bg-[#B8862F] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white">
+                  <span className="inline-flex bg-[#B8862F] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#081221]">
                     {tag}
                   </span>
                 ) : null}
@@ -234,7 +234,7 @@ function PropertyDetail({ property, similarProperties = [] }) {
                 href={enquiryWhatsapp}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 flex items-center justify-center gap-3 rounded-lg border border-slate-300 bg-white px-6 py-4 text-sm font-semibold uppercase tracking-[0.12em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+                className="mt-3 flex items-center justify-center gap-3 rounded-lg border border-slate-300 bg-white px-6 py-4 text-sm font-semibold uppercase tracking-[0.12em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:text-rer-gold-text"
               >
                 <MessageCircle size={17} />
                 WhatsApp Us
@@ -340,7 +340,7 @@ function PropertyDetail({ property, similarProperties = [] }) {
                     key={`${connection.name}-${index}`}
                     className="bg-white px-6 py-5"
                   >
-                    <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#B8862F]">
+                    <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-rer-gold-text">
                       {connection.categoryLabel}
                     </p>
                     <p className="mt-2 text-base font-medium text-[#081221]">
@@ -414,7 +414,7 @@ function PropertyDetail({ property, similarProperties = [] }) {
               href={enquiryWhatsapp}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-3 rounded-lg border border-[#081221]/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+              className="inline-flex items-center justify-center gap-3 rounded-lg border border-[#081221]/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-rer-gold-text"
             >
               <MessageCircle size={16} />
               WhatsApp

@@ -52,7 +52,7 @@ function AboutTeaser() {
             <div className="mb-5 flex items-center gap-4">
               <span className="h-px w-12 bg-[#B8862F]" />
 
-              <p className="text-xs font-medium uppercase tracking-[0.4em] text-[#B8862F]">
+              <p className="text-xs font-medium uppercase tracking-[0.4em] text-rer-gold-text">
                 Our Story
               </p>
             </div>
@@ -60,7 +60,7 @@ function AboutTeaser() {
             <h2 className="font-serif text-4xl font-light leading-[1.02] tracking-tight text-[#081221] sm:text-5xl">
               A legacy
 
-              <span className="block italic text-[#B8862F]">
+              <span className="block italic text-rer-gold-text">
                 built on trust.
               </span>
             </h2>
@@ -75,7 +75,7 @@ function AboutTeaser() {
             <dl className="mt-7 flex flex-wrap gap-x-12 gap-y-5 border-t border-[#081221]/10 pt-6">
               {FACTS.map(({ label, value }) => (
                 <div key={label}>
-                  <dt className="text-[10px] font-medium uppercase tracking-[0.28em] text-[#B8862F]">
+                  <dt className="text-[10px] font-medium uppercase tracking-[0.28em] text-rer-gold-text">
                     {label}
                   </dt>
 

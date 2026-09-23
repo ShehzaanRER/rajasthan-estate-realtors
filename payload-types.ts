@@ -175,6 +175,9 @@ export interface Property {
   mediaFolder?: (number | null) | FolderInterface;
   status: 'draft' | 'available' | 'under-offer' | 'sold' | 'rented';
   title: string;
+  /**
+   * Leave blank — generated automatically from BHK, property type, locality and the RER ID (e.g. 2-bhk-apartment-andheri-west-rer-00042). Set once when the property is created and never changed afterwards, because it is the public URL.
+   */
   slug: string;
   purpose: 'sale' | 'rent' | 'lease';
   propertyCategory?: ('residential' | 'commercial') | null;
@@ -213,6 +216,10 @@ export interface Property {
     city: string;
     state?: string | null;
     address?: string | null;
+    /**
+     * Internal reference only — never shown on the public website.
+     */
+    flatNo?: string | null;
     /**
      * Optional. Used later to generate nearby connectivity. Not required to save a property.
      */
@@ -270,13 +277,29 @@ export interface Property {
     brokerageFee?: number | null;
     totalLeaseAmount?: number | null;
     monthlyLeasePayment?: number | null;
+    /**
+     * Separate from the price/rent above — a one-off or recurring charge for parking, when applicable.
+     */
+    parkingCharges?: number | null;
   };
   details?: {
     bedrooms?: number | null;
     bathrooms?: number | null;
-    area?: number | null;
-    areaUnit?: ('sq-ft' | 'sq-m') | null;
+    /**
+     * Usable floor area within the walls, excluding common areas — the RERA carpet area figure.
+     */
+    carpetArea?: number | null;
+    carpetAreaUnit?: ('sq-ft' | 'sq-m') | null;
+    /**
+     * Carpet area plus wall thickness, balconies and other covered space — typically larger than Carpet Area.
+     */
+    builtUpArea?: number | null;
+    builtUpAreaUnit?: ('sq-ft' | 'sq-m') | null;
     furnishing?: ('unfurnished' | 'semi-furnished' | 'furnished') | null;
+    /**
+     * Number of parking spots included with this unit. Leave blank if not tracked.
+     */
+    parking?: number | null;
     balconies?: number | null;
     propertyAge?: number | null;
     possessionStatus?: ('ready-to-move' | 'under-construction') | null;
@@ -309,10 +332,11 @@ export interface Property {
      */
     gallery?: (number | Media)[] | null;
   };
+  /**
+   * System-calculated from the last Tenancy History entry below (Agreement Start Date + Term − 1 day). Read-only — add or edit a Tenancy History entry to change it. Kept here, denormalized, so the property list can be sorted by it.
+   */
+  currentAgreementEndDate?: string | null;
   rentDetails?: {
-    /**
-     * Required once the property status is set to Rented.
-     */
     licenseeName?: string | null;
     licenseeContactNumber?: string | null;
     /**
@@ -324,9 +348,16 @@ export interface Property {
      */
     securityDeposit?: number | null;
     agreementStartDate?: string | null;
+    /**
+     * Whole number of months (e.g. 11, 36). Drives the automatic Agreement End Date below — leave blank if the term is only described in the free-text Agreement Term field further down.
+     */
+    agreementTermMonths?: number | null;
+    /**
+     * Calculated automatically as the last day of the term — Agreement Start Date + Agreement Term (Months) − 1 day. Fill in both fields above to set it — it cannot be edited directly.
+     */
     agreementEndDate?: string | null;
     /**
-     * Free text, e.g. "11 months", "36 months", "3 years".
+     * Free text for a term that Agreement Term (Months) can't express cleanly, e.g. "3 years". Display/reference only — does not drive the automatic end-date calculation above.
      */
     agreementTerm?: string | null;
     rentalSource?: ('direct' | 'through-agent') | null;
@@ -336,6 +367,58 @@ export interface Property {
      * Internal notes — e.g. renewal preferences, who holds the keys, coordination details.
      */
     rentalNotes?: string | null;
+  };
+  /**
+   * Add a new entry each time the tenant or lease term changes. Drag rows to reorder — there is no separate "current" flag: the LAST row is always treated as the current tenancy.
+   */
+  rentHistory?:
+    | {
+        licenseeName: string;
+        licenseeContactNumber?: string | null;
+        /**
+         * Amount in INR. Numbers only — no currency symbol or commas.
+         */
+        monthlyRent?: number | null;
+        /**
+         * Amount in INR. Numbers only — no currency symbol or commas.
+         */
+        securityDeposit?: number | null;
+        agreementStartDate?: string | null;
+        /**
+         * Whole number of months (e.g. 11, 36). Drives the automatic Agreement End Date below — leave blank if the term is only described in the free-text Agreement Term field further down.
+         */
+        agreementTermMonths?: number | null;
+        /**
+         * Calculated automatically as the last day of the term — Agreement Start Date + Agreement Term (Months) − 1 day. Fill in both fields above to set it — it cannot be edited directly.
+         */
+        agreementEndDate?: string | null;
+        /**
+         * Free text for a term that Agreement Term (Months) can't express cleanly, e.g. "3 years". Display/reference only — does not drive the automatic end-date calculation above.
+         */
+        agreementTerm?: string | null;
+        rentalSource?: ('direct' | 'through-agent') | null;
+        agentName?: string | null;
+        agentContactNumber?: string | null;
+        /**
+         * Internal notes — e.g. renewal preferences, who holds the keys, coordination details.
+         */
+        rentalNotes?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  ownerDetails?: {
+    ownerName?: string | null;
+    ownerContact?: string | null;
+    ownerBasedIn?: ('jogeshwari' | 'elsewhere-in-mumbai' | 'outside-mumbai' | 'nri') | null;
+    /**
+     * Four-digit year the owner's relationship with RER began, e.g. 2011.
+     */
+    withRerSince?: number | null;
+    openToSelling?: ('not-discussed' | 'open-to-offers' | 'actively-selling' | 'will-not-sell') | null;
+    /**
+     * Date of the last renewal conversation with the owner.
+     */
+    renewalCalledOn?: string | null;
   };
   updatedAt: string;
   createdAt: string;
@@ -831,6 +914,7 @@ export interface PropertiesSelect<T extends boolean = true> {
         city?: T;
         state?: T;
         address?: T;
+        flatNo?: T;
         latitude?: T;
         longitude?: T;
       };
@@ -866,15 +950,19 @@ export interface PropertiesSelect<T extends boolean = true> {
         brokerageFee?: T;
         totalLeaseAmount?: T;
         monthlyLeasePayment?: T;
+        parkingCharges?: T;
       };
   details?:
     | T
     | {
         bedrooms?: T;
         bathrooms?: T;
-        area?: T;
-        areaUnit?: T;
+        carpetArea?: T;
+        carpetAreaUnit?: T;
+        builtUpArea?: T;
+        builtUpAreaUnit?: T;
         furnishing?: T;
+        parking?: T;
         balconies?: T;
         propertyAge?: T;
         possessionStatus?: T;
@@ -899,6 +987,7 @@ export interface PropertiesSelect<T extends boolean = true> {
         featuredImage?: T;
         gallery?: T;
       };
+  currentAgreementEndDate?: T;
   rentDetails?:
     | T
     | {
@@ -907,12 +996,40 @@ export interface PropertiesSelect<T extends boolean = true> {
         monthlyRent?: T;
         securityDeposit?: T;
         agreementStartDate?: T;
+        agreementTermMonths?: T;
         agreementEndDate?: T;
         agreementTerm?: T;
         rentalSource?: T;
         agentName?: T;
         agentContactNumber?: T;
         rentalNotes?: T;
+      };
+  rentHistory?:
+    | T
+    | {
+        licenseeName?: T;
+        licenseeContactNumber?: T;
+        monthlyRent?: T;
+        securityDeposit?: T;
+        agreementStartDate?: T;
+        agreementTermMonths?: T;
+        agreementEndDate?: T;
+        agreementTerm?: T;
+        rentalSource?: T;
+        agentName?: T;
+        agentContactNumber?: T;
+        rentalNotes?: T;
+        id?: T;
+      };
+  ownerDetails?:
+    | T
+    | {
+        ownerName?: T;
+        ownerContact?: T;
+        ownerBasedIn?: T;
+        withRerSince?: T;
+        openToSelling?: T;
+        renewalCalledOn?: T;
       };
   updatedAt?: T;
   createdAt?: T;

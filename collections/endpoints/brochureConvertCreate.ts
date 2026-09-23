@@ -1,4 +1,5 @@
 import type { PayloadHandler } from 'payload';
+import { createMissingAmenities, matchAmenities } from '../../lib/brochure-convert/amenityMatching';
 import { createDraftProject } from '../../lib/brochure-convert/createDraft';
 import { generateUniqueDraftSlug } from '../../lib/brochure-convert/slug';
 import { ExtractionValidationError, validateExtractedProject } from '../../lib/brochure-convert/validateProject';
@@ -40,9 +41,17 @@ export const brochureConvertCreateHandler: PayloadHandler = async (req) => {
     return Response.json({ message: 'A project name is required before creating a draft.' }, { status: 400 });
   }
 
-  const amenityIds = Array.isArray(body.amenityIds)
+  const selectedAmenityIds = Array.isArray(body.amenityIds)
     ? body.amenityIds.filter((id): id is number => typeof id === 'number')
     : [];
+
+  // Re-match against the live Amenities collection at creation time (not just
+  // the client's /validate-time snapshot) and auto-create a master-data
+  // record for anything still unmatched, so an extracted amenity is never
+  // silently dropped just because it hasn't been catalogued yet.
+  const amenityMatch = await matchAmenities(req.payload, data.amenities);
+  const createdAmenities = await createMissingAmenities(req.payload, amenityMatch.unmatched);
+  const amenityIds = Array.from(new Set([...selectedAmenityIds, ...createdAmenities.map((amenity) => amenity.id)]));
 
   const reviewFlags = Array.isArray(body.reviewFlags)
     ? body.reviewFlags.filter((flag): flag is string => typeof flag === 'string')

@@ -3,6 +3,7 @@ import PropertyDetail from "../../../../components/properties/PropertyDetail";
 import { getPropertyBySlug, getSimilarProperties } from "../../../../lib/properties";
 import { toAbsoluteSiteUrl } from "../../../../lib/mediaUrl";
 import { propertySeoTitle } from "../../../../lib/seo/titles";
+import { DEFAULT_OG_IMAGE } from "../../../../lib/seo/ogImage";
 
 /**
  * Collapses the rich-text plaintext onto one line, then truncates at a word
@@ -52,6 +53,8 @@ export async function generateMetadata({ params }) {
   const description = metaDescription(property);
   const canonicalPath = `/properties/${property.slug}`;
   const image = property.images?.[0];
+  // A listing with no photograph yet falls back to the branded card rather
+  // than sharing with no preview image at all.
   const ogImages = image
     ? [
         {
@@ -61,7 +64,7 @@ export async function generateMetadata({ params }) {
           alt: image.alt || property.title,
         },
       ]
-    : undefined;
+    : [DEFAULT_OG_IMAGE];
 
   return {
     title: { absolute: title },
@@ -77,9 +80,10 @@ export async function generateMetadata({ params }) {
       images: ogImages,
     },
     twitter: {
-      // Only claim the wide card when there is actually an image to fill it;
-      // `summary_large_image` with no image renders worse than `summary`.
-      card: ogImages ? "summary_large_image" : "summary",
+      // Always safe to claim the wide card now: `ogImages` is the property's
+      // own photograph when it has one and the branded fallback when it does
+      // not, so there is never a `summary_large_image` with nothing to fill it.
+      card: "summary_large_image",
       title,
       description,
       images: ogImages,

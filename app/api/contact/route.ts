@@ -1,7 +1,25 @@
 import { NextResponse } from 'next/server';
 import { getPayloadClient } from '../../../lib/payload';
+import { clientKey, rateLimit } from '../../../lib/rateLimit';
 
 export const runtime = 'nodejs';
+
+/**
+ * Five enquiries per ten minutes per caller.
+ *
+ * Generous for a human: a genuine visitor sends one, occasionally two if they
+ * mistype an address. Anything past five in ten minutes is a script, a stuck
+ * retry loop, or someone testing the form — none of which need to reach the
+ * CMS. An office behind one NAT address shares a bucket, which is why the
+ * limit is five and not one.
+ *
+ * This is the piece the honeypot and the timing check could not cover. Both of
+ * those inspect the *shape* of a single request, so a bot that sends
+ * well-formed JSON and simply omits `renderedAt` passes them; only counting
+ * requests catches repetition.
+ */
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 
 const REQUIREMENT_VALUES = [
   'buy-property',
@@ -40,6 +58,21 @@ function badRequest(message: string) {
 }
 
 export async function POST(request: Request) {
+  // Counted before the body is read, so a flood of oversized or malformed
+  // payloads is rejected without being parsed.
+  const limit = rateLimit(clientKey(request, 'contact'), RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_MS);
+
+  if (!limit.allowed) {
+    return NextResponse.json(
+      {
+        ok: false,
+        message:
+          'Too many enquiries from this connection. Please try again shortly, or call us directly.',
+      },
+      { status: 429, headers: { 'Retry-After': String(limit.retryAfter) } },
+    );
+  }
+
   let body: Record<string, unknown>;
 
   try {

@@ -1,5 +1,6 @@
 import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import type { Access, CollectionConfig } from 'payload';
+import { calculateAgreementEndDate } from '../lib/properties/agreementDates';
 import { PUBLIC_STATUSES } from '../lib/properties/publicScope';
 import { generateNearbyLocationsHandler } from './endpoints/generateNearbyLocations';
 import { createAssignMediaFolderHook, filterMediaByFolder } from './hooks/assignMediaFolder';
@@ -48,7 +49,12 @@ export const Properties: CollectionConfig = {
   admin: {
     group: 'Listings',
     useAsTitle: 'title',
-    defaultColumns: ['propertyId', 'title', 'purpose', 'propertyCategory', 'propertyType', 'pricing', 'status', 'updatedAt'],
+    defaultColumns: ['propertyId', 'title', 'purpose', 'propertyCategory', 'propertyType', 'pricing', 'status', 'currentAgreementEndDate', 'updatedAt'],
+    components: {
+      // Synchronized top scrollbar for the list table — see
+      // components/payload/TableScrollSync.tsx.
+      beforeListTable: ['/components/payload/TableScrollSync#TableScrollSync'],
+    },
   },
 
   defaultSort: '-updatedAt',
@@ -91,6 +97,16 @@ export const Properties: CollectionConfig = {
       access: {
         update: () => false,
       },
+      // Duplicating a property re-runs `assignPropertyId` (it treats the
+      // duplicate as a normal `create`), which always allocates a fresh ID
+      // from the sequence regardless of what's here — this hook is
+      // defense-in-depth so a duplicate's transient copy never resembles a
+      // real ID even for the brief moment before that hook runs. Returns
+      // `null`, not `undefined` — see the identical note on the `slug`
+      // field below for why `undefined` would be a no-op here.
+      hooks: {
+        beforeDuplicate: [() => null],
+      },
       admin: {
         readOnly: true,
         position: 'sidebar',
@@ -105,6 +121,19 @@ export const Properties: CollectionConfig = {
       unique: true,
       access: {
         update: () => false,
+      },
+      // A `unique` relationship field gets a Payload-injected default
+      // `beforeDuplicate` hook that resolves to `undefined` — but Payload's
+      // own beforeDuplicate runner only writes a hook result back when it is
+      // NOT `undefined` (see the note on `slug` above), so that default is
+      // silently a no-op and the duplicate would otherwise carry the SAME
+      // folder ID as the original, violating this field's own unique
+      // constraint. Explicitly clearing it here lets
+      // createAssignMediaFolderHook (afterChange) create a fresh folder
+      // scoped to the duplicate's own new Property ID — the same path a
+      // brand-new property already takes.
+      hooks: {
+        beforeDuplicate: [() => null],
       },
       admin: {
         readOnly: true,
@@ -128,6 +157,15 @@ export const Properties: CollectionConfig = {
       type: 'select',
       required: true,
       defaultValue: 'draft',
+      // A duplicate must never accidentally publish: force every duplicate
+      // to start as Draft (never public — see publicScope.ts) regardless of
+      // the source property's status. This collection has no drafts/versions
+      // system, so Payload's own built-in duplicate-as-draft behavior (which
+      // only applies to the `_status` field of versioned collections) does
+      // not cover this field — this hook is what makes duplication safe.
+      hooks: {
+        beforeDuplicate: [() => 'draft'],
+      },
       admin: {
         position: 'sidebar',
         components: {
@@ -141,6 +179,21 @@ export const Properties: CollectionConfig = {
         { label: 'Sold', value: 'sold' },
         { label: 'Rented', value: 'rented' },
       ],
+    },
+    {
+      // Sidebar-only display, not a second data field — currentAgreementEndDate
+      // already lives in the Rent Details tab (see below); this just reads
+      // that same value out of the live form and shows it here too, for a
+      // quick-glance "when does this lease end" right under Status. Rented
+      // properties only — see AgreementCountdownSidebar.
+      name: 'agreementCountdown',
+      type: 'ui',
+      admin: {
+        position: 'sidebar',
+        components: {
+          Field: '/components/payload/AgreementCountdownSidebar#AgreementCountdownSidebar',
+        },
+      },
     },
 
     // ==========================================================
@@ -172,6 +225,25 @@ export const Properties: CollectionConfig = {
               // assignPropertySlug before the record is written.
               required: true,
               unique: true,
+              // Without this, duplicating a property would default (per
+              // Payload's own handling of required/unique text fields on
+              // duplicate) to "<original-slug> - Copy" — a value that both
+              // collides in spirit with the original and fails the slug
+              // format validation below (spaces, capital letters). Clearing
+              // it here means the duplicate arrives with no slug, so
+              // assignPropertySlug generates a fresh, valid, unique one from
+              // the duplicate's own newly-assigned Property ID — exactly the
+              // same path a brand-new property takes.
+              //
+              // Must return `null`, not `undefined`: Payload's beforeDuplicate
+              // field-hook runner only writes a hook's return value back onto
+              // the duplicated document when that value is NOT `undefined`
+              // (see @payloadcms's fields/hooks/beforeDuplicate/promise.js) —
+              // `undefined` means "leave this field's copied value alone,"
+              // which is the opposite of what's needed here.
+              hooks: {
+                beforeDuplicate: [() => null],
+              },
               admin: {
                 description:
                   'Leave blank — generated automatically from BHK, property type, locality and the RER ID (e.g. 2-bhk-apartment-andheri-west-rer-00042). Set once when the property is created and never changed afterwards, because it is the public URL.',
@@ -298,6 +370,22 @@ export const Properties: CollectionConfig = {
                 {
                   name: 'address',
                   type: 'textarea',
+                },
+                {
+                  name: 'flatNo',
+                  type: 'text',
+                  label: 'Flat No.',
+                  // Internal reference only — same field-level gate as
+                  // Rent Details, so it is stripped from every
+                  // unauthenticated read (REST/GraphQL) and never reaches
+                  // the public website regardless of what mapProperty.ts
+                  // chooses to expose.
+                  access: {
+                    read: ({ req: { user } }) => Boolean(user),
+                  },
+                  admin: {
+                    description: 'Internal reference only — never shown on the public website.',
+                  },
                 },
                 {
                   name: 'latitude',
@@ -523,6 +611,14 @@ export const Properties: CollectionConfig = {
                     condition: (data) => data?.purpose === 'lease',
                   },
                 },
+                {
+                  name: 'parkingCharges',
+                  type: 'number',
+                  label: 'Parking Charges',
+                  admin: {
+                    description: 'Separate from the price/rent above — a one-off or recurring charge for parking, when applicable.',
+                  },
+                },
               ],
             },
           ],
@@ -543,12 +639,38 @@ export const Properties: CollectionConfig = {
                   type: 'number',
                 },
                 {
-                  name: 'area',
+                  name: 'carpetArea',
                   type: 'number',
+                  label: 'Carpet Area',
+                  admin: {
+                    description:
+                      'Usable floor area within the walls, excluding common areas — the RERA carpet area figure.',
+                  },
                 },
                 {
-                  name: 'areaUnit',
+                  name: 'carpetAreaUnit',
                   type: 'select',
+                  label: 'Carpet Area Unit',
+                  defaultValue: 'sq-ft',
+                  options: [
+                    { label: 'sq ft', value: 'sq-ft' },
+                    { label: 'sq m', value: 'sq-m' },
+                  ],
+                },
+                {
+                  name: 'builtUpArea',
+                  type: 'number',
+                  label: 'Built-up Area',
+                  admin: {
+                    description:
+                      'Carpet area plus wall thickness, balconies and other covered space — typically larger than Carpet Area.',
+                  },
+                },
+                {
+                  name: 'builtUpAreaUnit',
+                  type: 'select',
+                  label: 'Built-up Area Unit',
+                  defaultValue: 'sq-ft',
                   options: [
                     { label: 'sq ft', value: 'sq-ft' },
                     { label: 'sq m', value: 'sq-m' },
@@ -562,6 +684,14 @@ export const Properties: CollectionConfig = {
                     { label: 'Semi-furnished', value: 'semi-furnished' },
                     { label: 'Furnished', value: 'furnished' },
                   ],
+                },
+                {
+                  name: 'parking',
+                  type: 'number',
+                  label: 'Parking',
+                  admin: {
+                    description: 'Number of parking spots included with this unit. Leave blank if not tracked.',
+                  },
                 },
                 {
                   name: 'balconies',
@@ -725,12 +855,78 @@ export const Properties: CollectionConfig = {
         {
           label: 'Rent Details',
           description:
-            'Internal rental record for this property. Never shown on the public website — visible to signed-in RER staff only.',
+            'Internal tenancy record for this property — add a new Tenancy History entry each time the tenant or lease term changes. Never shown on the public website — visible to signed-in RER staff only.',
           fields: [
             {
+              // Denormalized from the LAST Tenancy History entry below, so
+              // the property list can sort/filter on it — a `virtual` field
+              // (computed only at read time) cannot be sorted or filtered by
+              // Payload's list view, since that view queries the database
+              // directly before any afterRead hook runs. This is a real
+              // stored column, kept in sync on every save.
+              name: 'currentAgreementEndDate',
+              type: 'date',
+              label: 'Current Agreement End Date',
+              admin: {
+                readOnly: true,
+                date: {
+                  pickerAppearance: 'dayOnly',
+                },
+                description:
+                  'System-calculated from the last Tenancy History entry below (Agreement Start Date + Term − 1 day). Read-only — add or edit a Tenancy History entry to change it. Kept here, denormalized, so the property list can be sorted by it.',
+                components: {
+                  Cell: '/components/payload/AgreementCountdownCell#AgreementCountdownCell',
+                },
+              },
+              // Internal inventory data — same gate as the Tenancy History
+              // it's derived from. A denormalized top-level field does NOT
+              // inherit rentHistory's own access rule, so this must be set
+              // explicitly or the data would leak through the public API.
+              access: {
+                read: ({ req: { user } }) => Boolean(user),
+              },
+              // Recomputed from scratch on every save — deliberately NOT
+              // read from `rentHistory[last].agreementEndDate` (that value
+              // is itself produced by that row's own beforeChange hook, and
+              // this field's hook could run before or after it depending on
+              // field-declaration order; recomputing directly from the same
+              // start date + term makes correctness independent of hook
+              // ordering). Falls back to the row's own stored end date only
+              // when a fresh calculation isn't possible — e.g. a historical
+              // entry with a manually-entered end date and no term months.
+              hooks: {
+                beforeChange: [
+                  ({ data }) => {
+                    const history = Array.isArray(data?.rentHistory) ? data.rentHistory : [];
+                    const last = history[history.length - 1];
+                    if (!last) {
+                      return null;
+                    }
+
+                    const calculated = calculateAgreementEndDate({
+                      startDate: last.agreementStartDate ?? null,
+                      termMonths: last.agreementTermMonths ?? null,
+                    });
+
+                    return calculated ? calculated.toISOString() : (last.agreementEndDate ?? null);
+                  },
+                ],
+              },
+            },
+            {
+              // LEGACY — superseded by `rentHistory` below. Kept (not
+              // deleted) as a hidden backup of the one pre-existing flat
+              // rental record this project had before Tenancy History
+              // existed, per an explicit decision to migrate-then-hide
+              // rather than migrate-then-delete. `admin.hidden` only
+              // affects rendering — the field and its data stay fully live
+              // in the schema/DB/API.
               name: 'rentDetails',
               type: 'group',
-              label: 'Rent Details',
+              label: 'Rent Details (Legacy)',
+              admin: {
+                hidden: true,
+              },
               // Internal inventory data. Stripped from every unauthenticated
               // read (REST/GraphQL included) so it can never leak through the
               // public API, even though non-public properties are already
@@ -738,24 +934,31 @@ export const Properties: CollectionConfig = {
               access: {
                 read: ({ req: { user } }) => Boolean(user),
               },
+              // Tenancy history is unit-specific: a duplicated property must
+              // start with a clean slate, never a copy of another unit's
+              // tenant/agreement/notes. Must return a real empty object, not
+              // `undefined` — Payload's beforeDuplicate runner only writes a
+              // hook's result back onto the duplicate when it is NOT
+              // `undefined` (confirmed against
+              // @payloadcms/*/fields/hooks/beforeDuplicate/promise.js), so
+              // `undefined` here would be a no-op and silently carry the
+              // old tenant's data into the new property.
+              hooks: {
+                beforeDuplicate: [() => ({})],
+              },
               fields: [
                 {
                   name: 'licenseeName',
                   type: 'text',
                   label: 'Licensee Name',
-                  // Required only once the property is actually marked Rented,
-                  // so historical/incomplete inventory can still be saved.
-                  validate: (value: unknown, { data }: { data?: unknown }) => {
-                    const status = (data as { status?: string } | undefined)?.status;
-                    if (status === 'rented' && !String(value ?? '').trim()) {
-                      return 'Licensee Name is required when the property status is Rented.';
-                    }
-
-                    return true;
-                  },
-                  admin: {
-                    description: 'Required once the property status is set to Rented.',
-                  },
+                  // The old "required when Rented" validate is deliberately
+                  // removed: this field is hidden and no longer editable via
+                  // the admin UI, but Payload still runs field validation on
+                  // every save regardless of admin.hidden. Leaving that
+                  // check in place would re-evaluate the live `status` field
+                  // on every future save and block it, since staff can no
+                  // longer fill in this frozen field. That responsibility
+                  // now belongs to `rentHistory`'s own array-level validate.
                 },
                 {
                   name: 'licenseeContactNumber',
@@ -789,13 +992,46 @@ export const Properties: CollectionConfig = {
                   },
                 },
                 {
+                  name: 'agreementTermMonths',
+                  type: 'number',
+                  label: 'Agreement Term (Months)',
+                  admin: {
+                    description:
+                      'Whole number of months (e.g. 11, 36). Drives the automatic Agreement End Date below — leave blank if the term is only described in the free-text Agreement Term field further down.',
+                  },
+                },
+                {
                   name: 'agreementEndDate',
                   type: 'date',
                   label: 'Agreement End Date',
                   admin: {
+                    readOnly: true,
                     date: {
                       pickerAppearance: 'dayOnly',
                     },
+                    description:
+                      'Calculated automatically as the last day of the term — Agreement Start Date + Agreement Term (Months) − 1 day. Fill in both fields above to set it — it cannot be edited directly.',
+                  },
+                  // Recomputes deterministically whenever both inputs are
+                  // present, overwriting any prior value — that's the one
+                  // case this field is allowed to change on its own. If
+                  // either input is missing, the field is left exactly as
+                  // submitted: empty on a brand-new record, or untouched on
+                  // a record that already had an explicit end date (e.g.
+                  // one entered before this field existed, or one entered
+                  // for a term that only exists as free text below) — never
+                  // nulled out or guessed at.
+                  hooks: {
+                    beforeChange: [
+                      ({ siblingData, value }) => {
+                        const calculated = calculateAgreementEndDate({
+                          startDate: siblingData?.agreementStartDate ?? null,
+                          termMonths: siblingData?.agreementTermMonths ?? null,
+                        });
+
+                        return calculated ? calculated.toISOString() : value;
+                      },
+                    ],
                   },
                 },
                 {
@@ -803,7 +1039,8 @@ export const Properties: CollectionConfig = {
                   type: 'text',
                   label: 'Agreement Term',
                   admin: {
-                    description: 'Free text, e.g. "11 months", "36 months", "3 years".',
+                    description:
+                      'Free text for a term that Agreement Term (Months) can\'t express cleanly, e.g. "3 years". Display/reference only — does not drive the automatic end-date calculation above.',
                   },
                 },
                 {
@@ -847,6 +1084,273 @@ export const Properties: CollectionConfig = {
                   admin: {
                     description:
                       'Internal notes — e.g. renewal preferences, who holds the keys, coordination details.',
+                  },
+                },
+              ],
+            },
+            {
+              name: 'rentHistory',
+              type: 'array',
+              label: 'Rent History',
+              labels: {
+                singular: 'Tenancy',
+                plural: 'Tenancy History',
+              },
+              // Internal inventory data — same gate as the legacy group
+              // above. Confirmed nowhere in lib/properties/mapProperty.ts
+              // (or anywhere else) reads this, so it can never leak through
+              // the public API.
+              access: {
+                read: ({ req: { user } }) => Boolean(user),
+              },
+              admin: {
+                isSortable: true,
+                initCollapsed: true,
+                description:
+                  'Add a new entry each time the tenant or lease term changes. Drag rows to reorder — there is no separate "current" flag: the LAST row is always treated as the current tenancy.',
+                components: {
+                  RowLabel: '/components/payload/RentHistoryRowLabel#RentHistoryRowLabel',
+                },
+              },
+              // Tenancy history is unit-specific: a duplicated property must
+              // start with a clean slate. Must return a real empty array,
+              // not `undefined` — see the identical note on the legacy
+              // `rentDetails` group above for why `undefined` would be a
+              // no-op and silently carry the old tenancy over.
+              hooks: {
+                beforeDuplicate: [() => []],
+              },
+              // Array-appropriate replacement for the old group's per-field
+              // "required when Rented" rule: a property can't be marked
+              // Rented with zero tenancy history entries.
+              validate: (value: unknown, { data }: { data?: unknown }) => {
+                const status = (data as { status?: string } | undefined)?.status;
+                if (status === 'rented' && !(Array.isArray(value) && value.length > 0)) {
+                  return 'At least one Tenancy History entry is required when the property status is Rented.';
+                }
+
+                return true;
+              },
+              fields: [
+                {
+                  name: 'licenseeName',
+                  type: 'text',
+                  label: 'Licensee Name',
+                  // Unconditionally required: unlike the old single-record
+                  // group, an entry only exists because staff deliberately
+                  // added one, so a nameless entry isn't meaningful history.
+                  // This also avoids needing row-index-aware validation to
+                  // detect "is this the current entry".
+                  required: true,
+                },
+                {
+                  name: 'licenseeContactNumber',
+                  type: 'text',
+                  label: 'Licensee Contact Number',
+                },
+                {
+                  name: 'monthlyRent',
+                  type: 'number',
+                  label: 'Monthly Rent',
+                  admin: {
+                    description: 'Amount in INR. Numbers only — no currency symbol or commas.',
+                  },
+                },
+                {
+                  name: 'securityDeposit',
+                  type: 'number',
+                  label: 'Security Deposit',
+                  admin: {
+                    description: 'Amount in INR. Numbers only — no currency symbol or commas.',
+                  },
+                },
+                {
+                  name: 'agreementStartDate',
+                  type: 'date',
+                  label: 'Agreement Start Date',
+                  admin: {
+                    date: {
+                      pickerAppearance: 'dayOnly',
+                    },
+                  },
+                },
+                {
+                  name: 'agreementTermMonths',
+                  type: 'number',
+                  label: 'Agreement Term (Months)',
+                  admin: {
+                    description:
+                      'Whole number of months (e.g. 11, 36). Drives the automatic Agreement End Date below — leave blank if the term is only described in the free-text Agreement Term field further down.',
+                  },
+                },
+                {
+                  name: 'agreementEndDate',
+                  type: 'date',
+                  label: 'Agreement End Date',
+                  admin: {
+                    readOnly: true,
+                    date: {
+                      pickerAppearance: 'dayOnly',
+                    },
+                    description:
+                      'Calculated automatically as the last day of the term — Agreement Start Date + Agreement Term (Months) − 1 day. Fill in both fields above to set it — it cannot be edited directly.',
+                  },
+                  // Identical to the legacy group's own hook — sibling
+                  // scoping for an array row works exactly like a group's
+                  // (confirmed against Payload's beforeDuplicate traversal,
+                  // which passes `siblingDoc: row` for each array row just
+                  // like a group's own siblingDoc).
+                  hooks: {
+                    beforeChange: [
+                      ({ siblingData, value }) => {
+                        const calculated = calculateAgreementEndDate({
+                          startDate: siblingData?.agreementStartDate ?? null,
+                          termMonths: siblingData?.agreementTermMonths ?? null,
+                        });
+
+                        return calculated ? calculated.toISOString() : value;
+                      },
+                    ],
+                  },
+                },
+                {
+                  name: 'agreementTerm',
+                  type: 'text',
+                  label: 'Agreement Term',
+                  admin: {
+                    description:
+                      'Free text for a term that Agreement Term (Months) can\'t express cleanly, e.g. "3 years". Display/reference only — does not drive the automatic end-date calculation above.',
+                  },
+                },
+                {
+                  name: 'rentalSource',
+                  type: 'select',
+                  label: 'Rental Source',
+                  options: [
+                    { label: 'Direct', value: 'direct' },
+                    { label: 'Through Agent', value: 'through-agent' },
+                  ],
+                },
+                {
+                  name: 'agentName',
+                  type: 'text',
+                  label: 'Agent Name',
+                  validate: (value: unknown, { siblingData }: { siblingData?: unknown }) => {
+                    const source = (siblingData as { rentalSource?: string } | undefined)
+                      ?.rentalSource;
+                    if (source === 'through-agent' && !String(value ?? '').trim()) {
+                      return 'Agent Name is required when Rental Source is Through Agent.';
+                    }
+
+                    return true;
+                  },
+                  admin: {
+                    condition: (_, siblingData) => siblingData?.rentalSource === 'through-agent',
+                  },
+                },
+                {
+                  name: 'agentContactNumber',
+                  type: 'text',
+                  label: 'Agent Contact Number',
+                  admin: {
+                    condition: (_, siblingData) => siblingData?.rentalSource === 'through-agent',
+                  },
+                },
+                {
+                  name: 'rentalNotes',
+                  type: 'textarea',
+                  label: 'Rental Notes',
+                  admin: {
+                    description:
+                      'Internal notes — e.g. renewal preferences, who holds the keys, coordination details.',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          label: 'Owner Details',
+          description:
+            'Internal record of who owns this property — never shown on the public website, visible to signed-in RER staff only.',
+          fields: [
+            {
+              name: 'ownerDetails',
+              type: 'group',
+              label: 'Owner Details',
+              // Internal inventory data — same gate as Rent Details/flatNo, so
+              // it is stripped from every unauthenticated read (REST/GraphQL
+              // included) and never reaches the public website.
+              access: {
+                read: ({ req: { user } }) => Boolean(user),
+              },
+              fields: [
+                {
+                  name: 'ownerName',
+                  type: 'text',
+                  label: 'Owner Name',
+                },
+                {
+                  name: 'ownerContact',
+                  type: 'text',
+                  label: 'Owner Contact',
+                },
+                {
+                  name: 'ownerBasedIn',
+                  type: 'select',
+                  label: 'Owner Based In',
+                  options: [
+                    { label: 'Jogeshwari', value: 'jogeshwari' },
+                    { label: 'Elsewhere in Mumbai', value: 'elsewhere-in-mumbai' },
+                    { label: 'Outside Mumbai', value: 'outside-mumbai' },
+                    { label: 'NRI', value: 'nri' },
+                  ],
+                },
+                {
+                  name: 'withRerSince',
+                  type: 'number',
+                  label: 'With RER Since',
+                  admin: {
+                    description: 'Four-digit year the owner\'s relationship with RER began, e.g. 2011.',
+                  },
+                  validate: (value: unknown) => {
+                    if (value === undefined || value === null || value === '') {
+                      return true;
+                    }
+
+                    const year = Number(value);
+                    const currentYear = new Date().getFullYear();
+                    if (!Number.isInteger(year) || year < 1000 || year > 9999) {
+                      return 'Enter a four-digit year, e.g. 2011.';
+                    }
+                    if (year > currentYear) {
+                      return `Year cannot be later than ${currentYear}.`;
+                    }
+
+                    return true;
+                  },
+                },
+                {
+                  name: 'openToSelling',
+                  type: 'select',
+                  label: 'Open to Selling',
+                  defaultValue: 'not-discussed',
+                  options: [
+                    { label: 'Not discussed', value: 'not-discussed' },
+                    { label: 'Open to offers', value: 'open-to-offers' },
+                    { label: 'Actively selling', value: 'actively-selling' },
+                    { label: 'Will not sell', value: 'will-not-sell' },
+                  ],
+                },
+                {
+                  name: 'renewalCalledOn',
+                  type: 'date',
+                  label: 'Renewal Called On',
+                  admin: {
+                    description: 'Date of the last renewal conversation with the owner.',
+                    date: {
+                      pickerAppearance: 'dayOnly',
+                    },
                   },
                 },
               ],

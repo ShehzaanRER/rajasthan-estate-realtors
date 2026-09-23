@@ -17,6 +17,9 @@ route file and passed down as props.
 | `/privacy-policy`, `/terms` | respective `page.jsx` | Static content + `lib/siteConfig` |
 | `/sitemap.xml` | `app/sitemap.ts` | `getProperties()` + `getProjects()` |
 | `/robots.txt` | `app/robots.ts` | Static; disallows `/admin` and `/api` |
+| `/manifest.webmanifest` | `app/manifest.ts` | Static; icons from `public/` |
+| `/icon.png`, `/apple-icon.png` | file conventions | Static brand mark |
+| *anything unmatched* | `[...notFound]/page.jsx` | Calls `notFound()` — HTTP 404, branded page |
 
 Supporting files: `properties/(listing)/loading.jsx` and
 `projects/(listing)/loading.jsx`, `error.jsx`, `not-found.jsx`.
@@ -29,9 +32,18 @@ HTTP 200 before the page body runs, so `notFound()` can then only swap the UI:
 every missing, draft, sold and rented listing URL answered 200 instead of 404.
 The detail routes therefore have no `loading.jsx` of their own either.
 
-*Do not add a `loading.jsx` at `properties/` or `projects/` level, and do not
-add one under `[slug]/` — either reintroduces the soft 404.* See
-`DECISIONS.md`.
+*Do not add a `loading.jsx` at `properties/` or `projects/` level, do not add
+one under `[slug]/`, and do not add one above `[...notFound]/` — any of them
+reintroduces the soft 404.* See `DECISIONS.md`.
+
+**`[...notFound]` is what makes an unmatched URL branded.** The app has two
+root layouts, so Next could not choose one for a URL that matched no route at
+all and served its own bare 404 screen instead — correct status, but no
+Navbar, no Footer and no route back into the site. Claiming those URLs inside
+`(website)` gives Next an unambiguous layout; the page calls `notFound()` and
+nothing else. It is the lowest-priority route in the app, so every real route
+— including `/admin/*`, `/api/*`, `/sitemap.xml` and both `[slug]` routes —
+still wins. See `DECISIONS.md`.
 
 Non-page endpoints: `POST /api/contact` (writes a `contact-inquiries` record),
 `/admin/*` (Payload panel) and `/api/*` (Payload API, including

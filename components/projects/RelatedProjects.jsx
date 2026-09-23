@@ -1,5 +1,6 @@
 import ProjectCard from "./ProjectCard";
 import CardSlider from "../ui/CardSlider";
+import { SHOWCASE_CARD_SIZES } from "../../lib/cardImageSizes";
 
 function RelatedProjects({ projects }) {
   if (!projects || projects.length === 0) {
@@ -16,7 +17,11 @@ function RelatedProjects({ projects }) {
         {/* Matches Similar properties on the property detail page. */}
         <CardSlider label="related project">
           {projects.map((project) => (
-            <ProjectCard key={project.slug} project={project} />
+            <ProjectCard
+              key={project.slug}
+              project={project}
+              sizes={SHOWCASE_CARD_SIZES}
+            />
           ))}
         </CardSlider>
       </div>

@@ -1,6 +1,7 @@
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import ContactForm from "../../../components/contact/ContactForm";
 import { CONTACTS, CONTACT_EMAIL } from "../../../lib/siteConfig";
+import { DEFAULT_OG_IMAGE } from "../../../lib/seo/ogImage";
 
 const title = "Contact Us";
 const description =
@@ -16,6 +17,7 @@ export const metadata = {
     title,
     description,
     url: "/contact",
+    images: [DEFAULT_OG_IMAGE],
   },
 };
 
@@ -71,7 +73,7 @@ export default async function ContactPage({ searchParams }) {
             <div className="min-w-0">
               <div className="mb-8 flex items-center gap-3">
                 <span className="h-px w-10 bg-[#B8862F]" />
-                <p className="text-xs font-medium uppercase tracking-[0.35em] text-[#B8862F]">
+                <p className="text-xs font-medium uppercase tracking-[0.35em] text-rer-gold-text">
                   Reach Us Directly
                 </p>
               </div>
@@ -89,7 +91,7 @@ export default async function ContactPage({ searchParams }) {
                           target; they were text-height only on mobile. */}
                       <a
                         href={telHref}
-                        className="group inline-flex items-center gap-2.5 py-1.5 text-base font-medium text-[#081221] hover:text-[#B8862F]"
+                        className="group inline-flex items-center gap-2.5 py-1.5 text-base font-medium text-[#081221] hover:text-rer-gold-text"
                       >
                         <Phone size={17} className="shrink-0 text-[#B8862F]" />
                         {display}
@@ -99,7 +101,7 @@ export default async function ContactPage({ searchParams }) {
                         href={whatsappHref}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2.5 py-1.5 text-sm font-medium text-slate-600 hover:text-[#B8862F]"
+                        className="inline-flex items-center gap-2.5 py-1.5 text-sm font-medium text-slate-600 hover:text-rer-gold-text"
                       >
                         <MessageCircle size={17} className="shrink-0 text-[#B8862F]" />
                         WhatsApp
@@ -120,7 +122,7 @@ export default async function ContactPage({ searchParams }) {
                     <span className="block text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">
                       Email Us
                     </span>
-                    <span className="mt-1 block break-words text-base font-medium text-[#081221] group-hover:text-[#B8862F]">
+                    <span className="mt-1 block break-words text-base font-medium text-[#081221] group-hover:text-rer-gold-text">
                       {CONTACT_EMAIL}
                     </span>
                   </span>
@@ -145,7 +147,7 @@ export default async function ContactPage({ searchParams }) {
             <div className="min-w-0">
               <div className="mb-8 flex items-center gap-3">
                 <span className="h-px w-10 bg-[#B8862F]" />
-                <p className="text-xs font-medium uppercase tracking-[0.35em] text-[#B8862F]">
+                <p className="text-xs font-medium uppercase tracking-[0.35em] text-rer-gold-text">
                   Send An Enquiry
                 </p>
               </div>

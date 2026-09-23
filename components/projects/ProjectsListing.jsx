@@ -7,6 +7,7 @@ import {
   PROJECT_STATUS_OPTIONS,
 } from "../../lib/projects/filterParams";
 import ProjectCard from "./ProjectCard";
+import { SHOWCASE_CARD_SIZES } from "../../lib/cardImageSizes";
 
 const TYPE_TABS = [
   { key: null, label: "All" },
@@ -29,8 +30,8 @@ function chipClasses(isActive) {
   return [
     "inline-flex min-h-[40px] items-center rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.12em] transition-colors duration-200",
     isActive
-      ? "border-[#B8862F] bg-[#B8862F] text-white"
-      : "border-slate-300 text-slate-600 hover:border-[#B8862F] hover:text-[#B8862F]",
+      ? "border-[#B8862F] bg-[#B8862F] text-[#081221]"
+      : "border-slate-300 text-slate-600 hover:border-[#B8862F] hover:text-rer-gold-text",
   ].join(" ");
 }
 
@@ -143,7 +144,7 @@ function ProjectsListing({ projects, filters }) {
             {hasFilter ? (
               <Link
                 href={projectsHref({})}
-                className="inline-block py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#B8862F] underline-offset-4 hover:underline"
+                className="inline-block py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-rer-gold-text underline-offset-4 hover:underline"
               >
                 View all projects
               </Link>
@@ -173,7 +174,7 @@ function ProjectsListing({ projects, filters }) {
                 {hasFilter ? (
                   <Link
                     href={projectsHref({})}
-                    className="inline-flex items-center justify-center rounded-lg border border-[#081221]/25 px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+                    className="inline-flex items-center justify-center rounded-lg border border-[#081221]/25 px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-rer-gold-text"
                   >
                     View All Projects
                   </Link>
@@ -186,6 +187,7 @@ function ProjectsListing({ projects, filters }) {
                 <ProjectCard
                   key={project.slug}
                   project={project}
+                  sizes={SHOWCASE_CARD_SIZES}
                   priority={index === 0}
                 />
               ))}
@@ -217,7 +219,7 @@ function ProjectsListing({ projects, filters }) {
               href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-lg border border-[#081221]/25 px-8 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+              className="inline-flex items-center justify-center rounded-lg border border-[#081221]/25 px-8 py-4 text-sm font-semibold uppercase tracking-[0.14em] text-[#081221] transition-all duration-300 hover:border-[#B8862F] hover:text-rer-gold-text"
             >
               WhatsApp Us
             </a>

@@ -108,7 +108,7 @@ function Navbar() {
           <li>
             <Link
               href={SELL_PROPERTY_HREF}
-              className="inline-flex items-center whitespace-nowrap rounded-lg border border-[#B8862F] px-3.5 py-2 text-base font-medium text-[#081221] transition-colors duration-200 hover:bg-[#B8862F] hover:text-white xl:px-4"
+              className="inline-flex items-center whitespace-nowrap rounded-lg border border-[#B8862F] px-3.5 py-2 text-base font-medium text-[#081221] transition-colors duration-200 hover:bg-[#B8862F] hover:text-[#081221] xl:px-4"
             >
               Sell Property
             </Link>

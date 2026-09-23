@@ -125,7 +125,7 @@ function ContactForm({ defaultRequirement = "" }) {
         role="status"
         className="rounded-2xl border border-[#B8862F]/30 bg-[#F5F0E8] p-8 text-center sm:p-10"
       >
-        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#B8862F]">
+        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-rer-gold-text">
           Thank You
         </p>
         <p className="mt-4 font-serif text-2xl font-medium text-[#081221] sm:text-3xl">
@@ -137,7 +137,7 @@ function ContactForm({ defaultRequirement = "" }) {
         <button
           type="button"
           onClick={() => setStatus("idle")}
-          className="mt-6 inline-flex items-center justify-center rounded-lg border border-[#081221]/25 px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-[#B8862F]"
+          className="mt-6 inline-flex items-center justify-center rounded-lg border border-[#081221]/25 px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#081221] transition-colors duration-300 hover:border-[#B8862F] hover:text-rer-gold-text"
         >
           Send Another Enquiry
         </button>
