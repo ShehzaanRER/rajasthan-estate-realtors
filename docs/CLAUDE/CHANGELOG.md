@@ -3,6 +3,62 @@
 Significant changes only, newest first. Keep entries short — a few lines and
 the files that matter. Architectural reasoning belongs in `DECISIONS.md`.
 
+## 2026-09-26 — Laptop-migration audit, setup guide and backup bundle
+
+**Added**
+
+- **`docs/NEW-LAPTOP-SETUP.md`** — prerequisites, the full environment-variable
+  table, validation checklist and a before/after migration checklist. Records
+  that the database and media are remote, so neither needs restoring.
+- **`.gitignore`** — now ignores `graphify-out/` (4 MB of derived graph),
+  `.claude/scheduled_tasks.lock`, and dump/snapshot/backup patterns so a
+  database export can never be committed.
+
+**Fixed**
+
+- **`.env`** was missing `NEXT_PUBLIC_SITE_URL`, so `npm run build` failed at
+  `payload.config.ts:51`. Added locally (the file is gitignored);
+  `.env.example` already documented it.
+
+**Verified**
+
+- Sequences in sync: `rer_property_id_seq` = 22 / `RER-00022`,
+  `rer_project_id_seq` = 7 / `RER-P-0007`. No duplicate-ID risk.
+- All 38 media records have their physical file among the bucket's 120 objects.
+- `tsc --noEmit`, `npm run lint` and `npm run build` all pass.
+
+**Open security item**
+
+- A live `GOOGLE_MAPS_API_KEY` is readable in commit `0a24536` (`.env` and
+  `server/.env`, deleted in `a1b116c`) and this repository is public. The
+  database password, `PAYLOAD_SECRET` and the `S3_*` keys were never committed.
+  Rotation is pending in Google Cloud Console — see `NEW-LAPTOP-SETUP.md`.
+
+## 2026-09-24 — "Slug Update" button on the property slug field
+
+**Added**
+
+- **`components/payload/RegenerateSlugButton.tsx`** — a **Slug Update** button
+  beside the Properties `slug` field. It rebuilds the slug from the form's
+  current BHK, property type, locality and RER ID using the same
+  `buildPropertySlug()` the create hook uses, writes to form state only, and
+  stays disabled until the property has a `propertyId`.
+  Registered as the field's `admin.components.afterInput`.
+- **`app/(payload)/custom.scss` §12** — lays the slug input and the button out as
+  a two-column grid (stacked below 880px). The field carries
+  `admin.className: 'rer-slug-field'` for that rule to hook onto.
+
+**Why**
+
+Slugs are generated on create only, so a duplicated property inherits the source
+listing's descriptive tokens (it does get a fresh RER ID), and a locality/BHK
+correction made after creation leaves the slug quoting the old value. The only
+previous fix was retyping the slug by hand. See `DECISIONS.md` — "The one escape
+hatch is a button, not a hook".
+
+No schema change, no new dependency, no change to how slugs are generated on
+create and none to any existing public URL.
+
 ## 2026-09-23 — Site quality pass: favicon, HSTS, contrast, spam, analytics hook
 
 A quality/security/accessibility pass over the public site. No schema change,

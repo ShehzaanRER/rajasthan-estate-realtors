@@ -1,6 +1,7 @@
 import { MediaFolderLink as MediaFolderLink_5d27ce8a8c1d843d3bd203b599013d88 } from '../../../components/payload/MediaFolderLink'
 import { StatusBadge as StatusBadge_85bc492d6fa9e6b23025ea2ca162f96c } from '../../../components/payload/StatusBadge'
 import { AgreementCountdownSidebar as AgreementCountdownSidebar_1e9aef2f5d8dc122aa17e1b4066939dc } from '../../../components/payload/AgreementCountdownSidebar'
+import { RegenerateSlugButton as RegenerateSlugButton_2e38f85dd8a9e6f31e9ee506216802b2 } from '../../../components/payload/RegenerateSlugButton'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -43,6 +44,7 @@ export const importMap = {
   "/components/payload/MediaFolderLink#MediaFolderLink": MediaFolderLink_5d27ce8a8c1d843d3bd203b599013d88,
   "/components/payload/StatusBadge#StatusBadge": StatusBadge_85bc492d6fa9e6b23025ea2ca162f96c,
   "/components/payload/AgreementCountdownSidebar#AgreementCountdownSidebar": AgreementCountdownSidebar_1e9aef2f5d8dc122aa17e1b4066939dc,
+  "/components/payload/RegenerateSlugButton#RegenerateSlugButton": RegenerateSlugButton_2e38f85dd8a9e6f31e9ee506216802b2,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,

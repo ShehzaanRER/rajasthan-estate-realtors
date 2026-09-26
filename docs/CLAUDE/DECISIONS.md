@@ -161,9 +161,11 @@ print 404.
 
 `collections/hooks/assignPropertySlug.ts` fills `slug` on **create only**, from
 `[<bedrooms>-bhk-]<propertyType>-<locality>-<rer-id>` (see
-`lib/properties/slug.ts`). Nothing regenerates it afterwards: editing the title,
-locality, BHK, purpose or price leaves the slug alone, and the hook returns
-untouched whenever `operation !== 'create'` or a slug already exists.
+`lib/properties/slug.ts`). Nothing regenerates it automatically afterwards:
+editing the title, locality, BHK, purpose or price leaves the slug alone, and
+the hook returns untouched whenever `operation !== 'create'` or a slug already
+exists. The single exception is an explicit staff click — see the escape hatch
+below.
 
 The RER ID carries the uniqueness. `propertyId` is already permanent,
 non-editable and allocated atomically from the `rer_property_id_seq` sequence,
@@ -200,6 +202,49 @@ rejects a short reserved list — `in`, `all`, `new`, `page`, `search`,
   network call in a write hook adds latency, cost and a failure mode for no
   gain. This matches the existing brochure-convert pattern, where AI produces a
   proposal outside the app and deterministic server code persists it.
+
+### The one escape hatch is a button, not a hook
+
+"Frozen" means *no code rewrites a slug on its own*. It does not mean the value
+can never be corrected — two cases genuinely need correcting, and before this
+the only route was retyping the slug by hand:
+
+1. **Duplication.** Payload's duplicate runs as a `create`, so `assignPropertySlug`
+   does regenerate the slug — but by then the field-level `beforeValidate` pass
+   has hydrated `data` from the source document (`getFallbackValue()` copies any
+   field absent from the incoming payload, and the admin's duplicate request
+   sends an empty body). The duplicate therefore gets a *fresh RER ID* wrapped in
+   the *source listing's* descriptive tokens. Edit it into a different unit and
+   the slug still describes the one it was copied from.
+2. **Correction.** A locality, BHK or property-type typo fixed after creation
+   leaves the slug quoting the wrong value permanently.
+
+`components/payload/RegenerateSlugButton.tsx` — the **Slug Update** button beside
+the field — rebuilds the slug from the live form state by calling the *same*
+`buildPropertySlug()` the create hook uses. It is registered as the field's
+`afterInput` component.
+
+*Consequences:*
+
+- The escape hatch stays a deliberate human action. Nothing about this weakens
+  the create-only rule above; there is still no hook that can rewrite a URL.
+- It computes client-side and needs no endpoint, because the slug is a pure
+  function of four values that are all in the form. One slug format, one
+  implementation — a `/regenerate-slug` endpoint would be a second place to
+  update whenever the format changes.
+- It needs no uniqueness query either: the regenerated slug ends in this
+  property's own permanent RER ID.
+- It writes to form state only and marks the document modified, so the change is
+  discarded by navigating away and applied by Save — the same contract as
+  **Generate Nearby Locations**.
+- It dispatches `{ type: 'UPDATE', path: 'slug' }` rather than mounting a second
+  `useField({ path: 'slug' })`. The reducer's `UPDATE` case merges only the keys
+  it is handed, so the field keeps its registered `validate`; a second `useField`
+  would re-register the field without it.
+- The button is disabled until the property has a `propertyId`, i.e. until it has
+  been saved once. There is no unique tail to build on before that.
+- **Projects have no equivalent** and should not get one by symmetry: their slug
+  is hand-entered, with no generator to re-run.
 
 ## Property ID on CSV import: prime the sequence, never bypass the hook
 
@@ -766,3 +811,35 @@ inherited image and shared with no preview at all.
 
 *Consequence:* a page that sets `openGraph` must also set `images`. Detail
 pages pass the listing's own first photograph and fall back to this constant.
+
+## The repository is not a backup, and backups live outside it
+
+Every piece of RER's actual content is remote: the Postgres database is hosted on
+Supabase and every media file sits in a Supabase Storage bucket. The repo's
+`media/` directory is empty and gitignored. Git therefore holds the code that
+*renders* the business, and none of the business itself.
+
+Two things follow, and they pull in opposite directions.
+
+Migrating machines is nearly free — clone, `npm ci`, supply `.env`, done. There
+is no database to restore, no media to copy and no PostgreSQL server to install,
+so a setup guide that walks through `pg_restore` would be describing work that
+does not exist.
+
+But the repo being clean is not evidence the data is safe. A pushed commit backs
+up nothing that editors have typed into the admin panel. Backups are a separate,
+deliberate act, and their output must be stored **outside** the working tree:
+a database export carries password hashes and customer contact details, and the
+migration bundle also carries `.env` itself. `.gitignore` blocks `*.dump`,
+`*.sql.gz`, `*-snapshot.json` and `rer-migration-backup*/` as a guard, but the
+real protection is keeping the bundle out of the repository directory entirely.
+
+*Consequence:* never commit a dump or a snapshot, and never treat a green
+`git status` as a statement about the data. Local development also writes
+straight to the one live database — there is no second environment — so
+destructive experiments need a snapshot taken first.
+
+*Consequence:* `.env` is the single laptop-bound asset, and `PAYLOAD_SECRET` is
+the one value in it that cannot be recovered from any dashboard. Losing it logs
+every admin out and invalidates outstanding reset tokens, though salted password
+hashes survive.

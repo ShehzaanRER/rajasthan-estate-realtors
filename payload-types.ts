@@ -176,7 +176,7 @@ export interface Property {
   status: 'draft' | 'available' | 'under-offer' | 'sold' | 'rented';
   title: string;
   /**
-   * Leave blank — generated automatically from BHK, property type, locality and the RER ID (e.g. 2-bhk-apartment-andheri-west-rer-00042). Set once when the property is created and never changed afterwards, because it is the public URL.
+   * Leave blank on a new property — generated automatically from BHK, property type, locality and the RER ID (e.g. 2-bhk-apartment-andheri-west-rer-00042). It is the public URL, so it is never rewritten by later edits. Use "Slug Update" to rebuild it from the current values — after duplicating a property, or after correcting its locality, BHK or type.
    */
   slug: string;
   purpose: 'sale' | 'rent' | 'lease';

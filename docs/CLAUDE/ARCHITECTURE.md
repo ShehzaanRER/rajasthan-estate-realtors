@@ -37,8 +37,9 @@ app/
 `components/` holds the public components, grouped by area: `home/`,
 `properties/`, `projects/`, `layouts/`, `contact/`, `ui/`, plus
 `components/payload/` for custom admin UI (status badge, price cell,
-brochure-convert view, list-table scroll sync, agreement countdown) and
-`components/payload/dashboard/` for the admin console that replaces `/admin`.
+brochure-convert view, list-table scroll sync, agreement countdown, slug update)
+and `components/payload/dashboard/` for the admin console that replaces
+`/admin`.
 
 ### Server / client conventions
 
@@ -118,6 +119,26 @@ collection grid.
 - Status and agreement-countdown badges take their tiers and colours from
   `lib/statusTiers.ts` and `lib/properties/agreementCountdown.ts`, shared with
   the list-view Cells so the same value cannot render two different ways.
+
+### The property slug field
+
+`slug` on Properties is generated once, on create, by
+`collections/hooks/assignPropertySlug.ts` (see `DECISIONS.md`). The admin adds
+one control to it: a **Slug Update** button that rebuilds the value from the
+form's current BHK, property type, locality and RER ID.
+
+- `components/payload/RegenerateSlugButton.tsx` — client component, registered
+  as the field's `admin.components.afterInput`, so Payload renders it inside the
+  field's own wrapper right after the input. It calls the same
+  `buildPropertySlug()` the create hook uses, writes to form state only
+  (`dispatchFields` + `setModified`), and is disabled until the property has
+  been saved and has a `propertyId`.
+- `app/(payload)/custom.scss` §12 turns that field's `.field-type__wrap` into a
+  two-column grid so the button sits beside the input rather than under it, and
+  stacks them again below 880px.
+- It is needed most often after **duplicating** a property: the duplicate gets a
+  fresh RER ID but inherits the source listing's descriptive tokens, so its slug
+  describes the wrong unit until the button is pressed.
 
 ### How CMS data reaches the website
 

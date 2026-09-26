@@ -1224,3 +1224,50 @@ html,
     display: none;
   }
 }
+
+/* -----------------------------------------------------------------------------
+   12. PROPERTY SLUG FIELD — INPUT + "SLUG UPDATE" BUTTON
+   The button is registered as `afterInput` on the slug field, so Payload
+   renders it inside `.field-type__wrap`, between the input and the description.
+   Making that wrap a two-column grid puts it BESIDE the input instead of below
+   it, and drops the description back onto a full-width row underneath.
+
+   `.field-error` is Payload's tooltip (absolutely positioned against
+   `.field-type.text`, which sets `position: relative`), so it is unaffected by
+   the grid and needs no placement of its own.
+   -------------------------------------------------------------------------- */
+
+.field-type.text.rer-slug-field > .field-type__wrap {
+  align-items: center;
+  column-gap: var(--base, 1.25rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+/* Full-width rows under the input/button pair. */
+.field-type.text.rer-slug-field > .field-type__wrap > .field-description {
+  grid-column: 1 / -1;
+}
+
+.rer-slug-update {
+  display: flex;
+}
+
+/* Payload's small button is sized for toolbars; match the input's height so the
+   pair reads as one control rather than two stacked scales. */
+.rer-slug-update .btn {
+  white-space: nowrap;
+}
+
+/* Below the document sidebar breakpoint the editor column is narrow enough that
+   a side-by-side pair would squeeze the input. Stack instead. */
+@media (max-width: 880px) {
+  .field-type.text.rer-slug-field > .field-type__wrap {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: calc(var(--base, 1.25rem) / 2);
+  }
+
+  .field-type.text.rer-slug-field > .field-type__wrap > .field-description {
+    grid-column: auto;
+  }
+}

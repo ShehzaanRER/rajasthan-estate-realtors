@@ -44,8 +44,50 @@ public site and a Payload CMS admin panel running as one application.
 | `docs/CLAUDE/PUBLIC-ROUTES.md` | Public routes, what powers them, visibility rules |
 | `docs/CLAUDE/DECISIONS.md` | Architectural decisions and their reasoning |
 | `docs/CLAUDE/CHANGELOG.md` | Significant changes, newest first |
+| `docs/NEW-LAPTOP-SETUP.md` | Environment variables, prerequisites, where the database and media actually live |
 
 `docs/MEMORY.md` is a separate, human-owned record of business and brand
 context. Do not edit it without explicit approval. `docs/PRD.md`,
 `docs/PHASES.md` and `docs/COMPETITORS.md` are likewise product documents, not
 agent documentation.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+### How to invoke it on this machine
+
+**There is no `graphify` on PATH, and it is not an npm package** — `npx graphify`
+and `command -v graphify` both fail. It is the Python package `graphifyy`,
+installed with `uv tool`. The skill records the interpreter that can import it in
+`graphify-out/.graphify_python`, which is the reliable way to find it:
+
+```bash
+PYTHONHASHSEED=0 "$(cat graphify-out/.graphify_python)" -m graphify <command>
+```
+
+`PYTHONHASHSEED=0` is load-bearing on Windows, not decoration. graphify pins the
+hash seed for deterministic clustering by re-executing itself via `os.execvpe`
+(`graphify/__main__.py`, `_pin_hash_seed_if_needed`). Windows has no real `exec`
+and that call dies with an access violation — exit `-1073741819` / `139`, often
+with **no output at all**, sometimes after the work has already been done by the
+child process. The function's own `except OSError` guard does not catch a native
+crash, so it fails hard instead of degrading. Setting the variable makes the
+function return early, skipping the re-exec while pinning the exact seed it
+wanted.
+
+Read the commands below as taking that prefix. Substitute the real path when
+writing a command for a human to run.
+
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+- **No LLM backend is configured here** (no `GEMINI_API_KEY`, `GOOGLE_API_KEY`,
+  `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`), so community names are hub filenames
+  such as `mapProject.ts`, never descriptive LLM-written names. `graphify label`
+  therefore costs nothing and changes nothing — do not run it expecting better
+  names, and do not read the "run `graphify label` to refresh names with the LLM"
+  hint after an update as something actionable. It becomes real only once a key
+  is set.

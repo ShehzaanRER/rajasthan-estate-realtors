@@ -245,8 +245,20 @@ export const Properties: CollectionConfig = {
                 beforeDuplicate: [() => null],
               },
               admin: {
+                // Lays the input and the Slug Update button out side by side —
+                // see §12 of app/(payload)/custom.scss.
+                className: 'rer-slug-field',
+                components: {
+                  // Renders inside this field's own wrapper, right after the
+                  // input. The slug is only generated automatically on create
+                  // (see assignPropertySlug), so this is the one way to rebuild
+                  // it afterwards — needed most often on a duplicate, whose
+                  // generated slug still describes the property it was copied
+                  // from. See components/payload/RegenerateSlugButton.tsx.
+                  afterInput: ['/components/payload/RegenerateSlugButton#RegenerateSlugButton'],
+                },
                 description:
-                  'Leave blank — generated automatically from BHK, property type, locality and the RER ID (e.g. 2-bhk-apartment-andheri-west-rer-00042). Set once when the property is created and never changed afterwards, because it is the public URL.',
+                  'Leave blank on a new property — generated automatically from BHK, property type, locality and the RER ID (e.g. 2-bhk-apartment-andheri-west-rer-00042). It is the public URL, so it is never rewritten by later edits. Use "Slug Update" to rebuild it from the current values — after duplicating a property, or after correcting its locality, BHK or type.',
               },
               validate: (value: unknown, { operation }: { operation?: string }) => {
                 if (typeof value !== 'string' || !value.trim()) {

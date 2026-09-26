@@ -37,3 +37,19 @@ server/.env.*
 
 # Claude Code local (machine-specific) settings
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# graphify knowledge graph — derived from the source tree by `graphify update .`,
+# 4 MB of it, and regenerated rather than restored. The skill that produces it is
+# committed under .claude/skills/graphify/; its output is not.
+graphify-out/
+
+# Database dumps and migration backups. These carry password hashes, customer
+# contact details and live credentials, so they must never enter git history —
+# the real backup bundle lives OUTSIDE this repository (see
+# docs/NEW-LAPTOP-SETUP.md). These patterns are a guard in case one is ever
+# copied in by hand.
+*.dump
+*.sql.gz
+*-snapshot.json
+rer-migration-backup*/

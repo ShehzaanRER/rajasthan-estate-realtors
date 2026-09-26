@@ -38,6 +38,11 @@ house, villa, office, shop, showroom, warehouse, land, other), `tags`
 `ready-to-move`, `premium`, `price-reduced`, `commercial`, `residential`),
 `description` (Lexical rich text).
 
+`slug` is generated on create only and is the public URL. The **Slug Update**
+button beside the field (`components/payload/RegenerateSlugButton.tsx`) rebuilds
+it from the current BHK, property type, locality and RER ID — the way to fix a
+duplicate's inherited slug, or one left stale by a later correction.
+
 **Location tab** — `location` group (`locality` and `city` required; `area`,
 `state`, `address`, `latitude`, `longitude` optional) and `nearbyConnectivity`
 with a `connections` array (place `name`, `category`, `travelTimeMinutes`,
