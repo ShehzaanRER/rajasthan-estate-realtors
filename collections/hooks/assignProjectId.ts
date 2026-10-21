@@ -1,5 +1,6 @@
 import { sql } from '@payloadcms/db-postgres';
 import type { CollectionBeforeChangeHook, Payload } from 'payload';
+import { allocateIdSequence } from './allocateIdSequence';
 import { syncIdSequence } from './syncIdSequence';
 
 /**
@@ -29,22 +30,10 @@ export async function ensureProjectIdSequence(payload: Payload): Promise<void> {
   });
 }
 
-function formatProjectId(n: number): string {
+export function formatProjectId(n: number): string {
   return `RER-P-${String(n).padStart(4, '0')}`;
 }
 
-function parseNextval(result: unknown): number {
-  const rows = Array.isArray(result)
-    ? result
-    : (result as { rows?: Record<string, unknown>[] })?.rows;
-  const first = rows?.[0] as Record<string, unknown> | undefined;
-  const raw = first?.nextval ?? (first ? Object.values(first)[0] : undefined);
-  const n = typeof raw === 'number' ? raw : Number(raw);
-  if (!Number.isInteger(n) || n < 1) {
-    throw new Error('Failed to allocate the next RER Project Number from PostgreSQL sequence.');
-  }
-  return n;
-}
 
 /**
  * Assigns the permanent RER Project Number on create only. Never
@@ -68,9 +57,12 @@ export const assignProjectId: CollectionBeforeChangeHook = async ({
     return data;
   }
 
-  const result = await req.payload.db.drizzle.execute(
-    sql.raw(`SELECT nextval('${RER_PROJECT_ID_SEQUENCE}')`),
-  );
-  data.projectId = formatProjectId(parseNextval(result));
+  const next = await allocateIdSequence({
+    payload: req.payload,
+    sequence: RER_PROJECT_ID_SEQUENCE,
+    label: 'RER Project Number',
+    ensure: ensureProjectIdSequence,
+  });
+  data.projectId = formatProjectId(next);
   return data;
 };

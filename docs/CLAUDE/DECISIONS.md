@@ -843,3 +843,26 @@ destructive experiments need a snapshot taken first.
 the one value in it that cannot be recovered from any dashboard. Losing it logs
 every admin out and invalidates outstanding reset tokens, though salted password
 hashes survive.
+
+## ID sequences are declared to Drizzle, not left as raw SQL (2026-10-19)
+
+`rer_property_id_seq` / `rer_project_id_seq` were created only by raw
+`CREATE SEQUENCE IF NOT EXISTS` in `onInit`. In development Payload runs in
+push mode: drizzle-kit introspects every sequence in `public` and emits
+`DROP SEQUENCE` for any not in the Drizzle schema. A push happens at boot and on
+every HMR schema change, but `onInit` runs only at boot, so a mid-session
+schema edit silently dropped the sequences and every property/project create
+failed at `nextval`. Dev and production share one Supabase database, so this
+hit the live ID counters.
+
+*Decision:* declare both sequences with `pgSequence` in an `afterSchemaInit`
+hook (`collections/hooks/idSequenceSchema.ts`), options identical to the
+`ensure*` SQL so the push sees no drift. They travel in the hook's `enums` map,
+the only non-table carrier Payload spreads into the schema given to drizzle-kit.
+`onInit` ensure/sync stays as the production path (production never pushes) and
+the allocator self-heals once on a missing sequence.
+
+*Not chosen:* Payload migrations — the repo is push-based (`payload_migrations`
+holds only the `dev` batch), and `payload migrate` against a push-mode database
+prompts to wipe it; `NEW-LAPTOP-SETUP.md` already says not to run migrations.
+A one-off manual SQL fix was rejected as non-permanent.

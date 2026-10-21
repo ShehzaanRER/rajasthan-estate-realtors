@@ -3,6 +3,25 @@
 Significant changes only, newest first. Keep entries short — a few lines and
 the files that matter. Architectural reasoning belongs in `DECISIONS.md`.
 
+## 2026-10-19 — Fix: Create Draft Project failed on `rer_project_id_seq`
+
+**Fixed** `Failed query: SELECT nextval('rer_project_id_seq')`. Root cause: the
+dev schema push (`next dev`, every boot and every HMR schema reload) dropped
+`rer_project_id_seq` and `rer_property_id_seq` as unknown to the Drizzle
+schema; `onInit` does not re-run on HMR, so they stayed missing. Both were
+absent from the live DB; the next app boot recreated them (project = 7,
+property = 22, in sync with stored IDs).
+
+- `collections/hooks/idSequenceSchema.ts` (new) declares both sequences to
+  Drizzle via `afterSchemaInit` in `payload.config.ts` so the push keeps them.
+- `collections/hooks/allocateIdSequence.ts` (new) is the shared `nextval`
+  allocator for both hooks; on "relation does not exist" it runs the idempotent
+  `ensure*IdSequence` once and retries.
+- `tests/id-sequences.test.ts` + `npm test` (node:test via tsx, no new deps).
+  The real-DB suite runs only with `RER_TEST_DATABASE_URL`, inside a rolled-back
+  transaction.
+- ID formats, JSON import, amenity matching unchanged. No migration file.
+
 ## 2026-09-26 — Laptop-migration audit, setup guide and backup bundle
 
 **Added**

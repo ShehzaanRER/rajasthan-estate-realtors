@@ -147,6 +147,10 @@ Both exactly in sync, so the next property created is `RER-00023`. Existing IDs
 are stored values in their rows and are never rewritten — `assignPropertyId`
 returns the original on every update.
 
+The sequences are declared to Drizzle (`collections/hooks/idSequenceSchema.ts`) so
+`next dev`'s schema push keeps them; before 2026-10-19 it dropped them on HMR
+schema reloads. Restarting the app recreates and re-syncs them.
+
 There is also a safety net for the one case that *would* be dangerous, a
 database restored from a dump (sequence state is not carried by table data):
 `collections/hooks/syncIdSequence.ts` runs on every boot and advances each

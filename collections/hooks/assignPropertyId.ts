@@ -1,5 +1,6 @@
 import { sql } from '@payloadcms/db-postgres';
 import type { CollectionBeforeChangeHook, Payload } from 'payload';
+import { allocateIdSequence } from './allocateIdSequence';
 import { syncIdSequence } from './syncIdSequence';
 
 /**
@@ -24,21 +25,8 @@ export async function ensurePropertyIdSequence(payload: Payload): Promise<void> 
   });
 }
 
-function formatPropertyId(n: number): string {
+export function formatPropertyId(n: number): string {
   return `RER-${String(n).padStart(5, '0')}`;
-}
-
-function parseNextval(result: unknown): number {
-  const rows = Array.isArray(result)
-    ? result
-    : (result as { rows?: Record<string, unknown>[] })?.rows;
-  const first = rows?.[0] as Record<string, unknown> | undefined;
-  const raw = first?.nextval ?? (first ? Object.values(first)[0] : undefined);
-  const n = typeof raw === 'number' ? raw : Number(raw);
-  if (!Number.isInteger(n) || n < 1) {
-    throw new Error('Failed to allocate the next RER Property ID from PostgreSQL sequence.');
-  }
-  return n;
 }
 
 export const assignPropertyId: CollectionBeforeChangeHook = async ({
@@ -56,9 +44,12 @@ export const assignPropertyId: CollectionBeforeChangeHook = async ({
     return data;
   }
 
-  const result = await req.payload.db.drizzle.execute(
-    sql.raw(`SELECT nextval('${RER_PROPERTY_ID_SEQUENCE}')`),
-  );
-  data.propertyId = formatPropertyId(parseNextval(result));
+  const next = await allocateIdSequence({
+    payload: req.payload,
+    sequence: RER_PROPERTY_ID_SEQUENCE,
+    label: 'RER Property ID',
+    ensure: ensurePropertyIdSequence,
+  });
+  data.propertyId = formatPropertyId(next);
   return data;
 };

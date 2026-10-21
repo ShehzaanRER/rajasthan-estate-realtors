@@ -214,7 +214,7 @@ Neither the rental architecture nor Channel Partners applies to Projects:
 Projects have no `rented` status, no `rentDetails`, and no relationship to
 `channel-partners`.
 
-- Sidebar: `projectId` (sequence `rer_project_id_seq`), `mediaFolder`,
+- Sidebar: `projectId` (sequence `rer_project_id_seq`, declared in `collections/hooks/idSequenceSchema.ts` so the dev schema push cannot drop it), `mediaFolder`,
   `mediaFolderLink`, `status` (`draft`, `upcoming`, `under-construction`,
   `ready-to-move`, `completed`, `sold-out`).
 - Overview: `name`, `slug`, `developer`, `isNew` (drives the homepage "new

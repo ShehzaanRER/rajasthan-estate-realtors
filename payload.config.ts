@@ -17,6 +17,7 @@ import { brochureConvertValidateHandler } from './collections/endpoints/brochure
 import { ensureProjectIdSequence } from './collections/hooks/assignProjectId';
 import { ensurePropertyIdSequence } from './collections/hooks/assignPropertyId';
 import { ensureDefaultAmenities } from './collections/hooks/ensureDefaultAmenities';
+import { idSequenceSchemaHook } from './collections/hooks/idSequenceSchema';
 import { SITE_URL } from './lib/siteConfig';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -131,6 +132,9 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URL,
     },
+    // Declares rer_property_id_seq / rer_project_id_seq so the dev schema push
+    // keeps them instead of dropping them as unknown. See idSequenceSchema.ts.
+    afterSchemaInit: [idSequenceSchemaHook],
   }),
 
   /**
