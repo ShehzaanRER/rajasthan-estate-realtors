@@ -4,6 +4,7 @@ import {
   toCmsProjectStatus,
 } from "../../../../lib/projects";
 import ProjectsListing from "../../../../components/projects/ProjectsListing";
+import { getBanner } from "../../../../lib/website-banners";
 import { DEFAULT_OG_IMAGE } from "../../../../lib/seo/ogImage";
 
 const title = "Projects";
@@ -28,10 +29,13 @@ export default async function ProjectsPage({ searchParams }) {
   const params = (await searchParams) ?? {};
   const filters = parseProjectFilters(params);
 
-  const projects = await getProjects({
-    projectType: filters.projectType ?? undefined,
-    status: toCmsProjectStatus(filters.status),
-  });
+  const [projects, banner] = await Promise.all([
+    getProjects({
+      projectType: filters.projectType ?? undefined,
+      status: toCmsProjectStatus(filters.status),
+    }),
+    getBanner("projects"),
+  ]);
 
-  return <ProjectsListing projects={projects} filters={filters} />;
+  return <ProjectsListing projects={projects} filters={filters} banner={banner} />;
 }

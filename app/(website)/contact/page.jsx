@@ -1,5 +1,7 @@
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import ContactForm from "../../../components/contact/ContactForm";
+import PageBanner from "../../../components/ui/PageBanner";
+import { getBanner } from "../../../lib/website-banners";
 import { CONTACTS, CONTACT_EMAIL } from "../../../lib/siteConfig";
 import { DEFAULT_OG_IMAGE } from "../../../lib/seo/ogImage";
 
@@ -38,34 +40,11 @@ const namedContacts = CONTACTS.map((contact) => ({
 export default async function ContactPage({ searchParams }) {
   const params = await searchParams;
   const intent = typeof params?.intent === "string" ? params.intent : "";
+  const banner = await getBanner("contact");
 
   return (
     <main className="bg-white">
-      <section className="bg-[#081221]">
-        <div className="mx-auto max-w-7xl px-6 py-20 sm:px-10 sm:py-16 md:px-16 lg:px-8">
-          <div className="max-w-4xl">
-            <div className="mb-6 flex items-center gap-4">
-              <span className="h-px w-12 bg-[#B8862F]" />
-              <p className="text-xs font-medium uppercase tracking-[0.4em] text-[#D4AF37] sm:text-sm">
-                Get In Touch
-              </p>
-            </div>
-
-            <h1 className="font-serif text-5xl font-light leading-[0.95] tracking-tight text-white sm:text-6xl md:text-7xl">
-              Let&apos;s talk about
-              <span className="block italic text-[#D4AF37]">
-                your property.
-              </span>
-            </h1>
-
-            <p className="mt-7 max-w-2xl text-base font-light leading-8 text-slate-300 sm:text-lg">
-              Whether you are buying, selling, renting or exploring a new
-              project, our team is here to help. Reach out directly or send
-              us your requirements below.
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageBanner banner={banner} />
 
       <section className="bg-white py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-6 sm:px-10 md:px-16 lg:px-8">

@@ -7,6 +7,7 @@ import {
   PROJECT_STATUS_OPTIONS,
 } from "../../lib/projects/filterParams";
 import ProjectCard from "./ProjectCard";
+import PageBanner from "../ui/PageBanner";
 import { SHOWCASE_CARD_SIZES } from "../../lib/cardImageSizes";
 
 const TYPE_TABS = [
@@ -48,7 +49,7 @@ function emptyStateCopy(filters) {
   return "No projects match these filters.";
 }
 
-function ProjectsListing({ projects, filters }) {
+function ProjectsListing({ projects, filters, banner }) {
   const count = projects.length;
   const summary = describeProjectFilters(filters);
   const hasFilter = Boolean(filters.projectType || filters.status);
@@ -60,21 +61,7 @@ function ProjectsListing({ projects, filters }) {
 
   return (
     <main className="bg-white">
-      <section className="bg-[#081221]">
-        <div className="mx-auto max-w-7xl px-6 py-16 sm:px-10 md:px-16 lg:px-8">
-          <div className="max-w-3xl">
-            <h1 className="font-serif text-5xl font-light leading-[1.02] tracking-tight text-white sm:text-6xl">
-              New developments
-              <span className="block italic text-[#D4AF37]">in the Western Suburbs.</span>
-            </h1>
-
-            <p className="mt-6 max-w-2xl text-base font-light leading-8 text-slate-300">
-              Residential and commercial projects across Jogeshwari, Andheri,
-              Goregaon, Malad and the surrounding areas.
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageBanner banner={banner} />
 
       <section className="bg-white py-10 sm:py-12">
         <div className="mx-auto max-w-7xl px-6 sm:px-10 md:px-16 lg:px-8">

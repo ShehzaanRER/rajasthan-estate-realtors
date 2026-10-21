@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import PropertyCard from "./PropertyCard";
 import PropertyFilterBar from "./PropertyFilterBar";
+import PageBanner from "../ui/PageBanner";
 import { LISTING_CARD_SIZES } from "../../lib/cardImageSizes";
 import { describeFilters, propertiesHref } from "../../lib/properties/filterParams";
 import { CONTACT_PHONE_TEL, CONTACT_WHATSAPP_NUMBER } from "../../lib/siteConfig";
@@ -48,7 +49,7 @@ function emptyStateCopy(filters, localityLabel) {
   return `No properties match these filters${place}.`;
 }
 
-function PropertiesListing({ properties, filters, localities, activeLocality }) {
+function PropertiesListing({ properties, filters, localities, activeLocality, banner }) {
   const count = properties.length;
   const localityLabel = activeLocality?.label ?? null;
   const summary = describeFilters(filters, localityLabel);
@@ -64,22 +65,7 @@ function PropertiesListing({ properties, filters, localities, activeLocality }) 
 
   return (
     <main className="bg-white">
-      <section className="bg-[#081221]">
-        <div className="mx-auto max-w-7xl px-6 py-16 sm:px-10 md:px-16 lg:px-8">
-          <div className="max-w-3xl">
-            <h1 className="font-serif text-5xl font-light leading-[1.02] tracking-tight text-white sm:text-6xl">
-              Properties in Mumbai&apos;s
-              <span className="block italic text-[#D4AF37]">Western Suburbs.</span>
-            </h1>
-
-            <p className="mt-6 max-w-2xl text-base font-light leading-8 text-slate-300">
-              Residential and commercial properties available through Rajasthan
-              Estate Realtors, across Jogeshwari, Andheri, Goregaon and the
-              surrounding areas.
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageBanner banner={banner} />
 
       <section className="bg-white py-10 sm:py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-10 md:px-16 lg:px-8">

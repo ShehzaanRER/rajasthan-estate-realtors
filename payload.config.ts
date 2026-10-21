@@ -12,6 +12,7 @@ import { Media } from './collections/Media';
 import { Projects } from './collections/Projects';
 import { Properties } from './collections/Properties';
 import { Users } from './collections/Users';
+import { WebsiteBanners } from './collections/WebsiteBanners';
 import { brochureConvertCreateHandler } from './collections/endpoints/brochureConvertCreate';
 import { brochureConvertValidateHandler } from './collections/endpoints/brochureConvertValidate';
 import { ensureProjectIdSequence } from './collections/hooks/assignProjectId';
@@ -117,7 +118,16 @@ export default buildConfig({
     },
   },
 
-  collections: [Users, Properties, Projects, Amenities, ChannelPartners, Media, ContactInquiries],
+  collections: [
+    Users,
+    Properties,
+    Projects,
+    Amenities,
+    ChannelPartners,
+    Media,
+    ContactInquiries,
+    WebsiteBanners,
+  ],
 
   editor: lexicalEditor({}),
 

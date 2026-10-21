@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { BannerBackdrop } from "../ui/PageBanner";
 
 /**
  * A homepage introduction, not a second About page. Two facts and one sentence
@@ -13,6 +14,9 @@ const FACTS = [
 ];
 
 /**
+ * Interim Unsplash photograph, shown only while the `our-story` placement has
+ * no published, enabled Website Banners record — the same rule as the hero's.
+ *
  * Same reasoning as the hero in Hero.jsx: left as a plain <img> served by
  * Unsplash's CDN, but given a srcSet so it stops being a single w=1000 file
  * doing duty at every width. The lg column is 576px wide (max-w-7xl, two
@@ -29,7 +33,15 @@ const TEASER_SRCSET = [480, 640, 800, 1200, 1600]
   .map((width) => `${teaserSrc(width)} ${width}w`)
   .join(", ");
 
-function AboutTeaser() {
+/** The lg column is 576px wide; below lg the image runs the full width. */
+const TEASER_SIZES = "(min-width: 1024px) 576px, 100vw";
+
+/**
+ * `banner` is the `our-story` placement from lib/website-banners
+ * (getHomeBanners). Only its photograph is CMS-managed; the section's text is
+ * not part of the banner.
+ */
+function AboutTeaser({ banner }) {
   return (
     <section
       id="about"
@@ -109,16 +121,27 @@ function AboutTeaser() {
 
             <div className="absolute -bottom-4 -right-4 hidden h-full w-full border border-[#B8862F]/40 lg:block" />
 
-            <div className="relative overflow-hidden bg-[#081221]">
-              <img
-                src={teaserSrc(1200)}
-                srcSet={TEASER_SRCSET}
-                sizes="(min-width: 1024px) 576px, 100vw"
-                alt="Premium Mumbai residential property"
-                loading="lazy"
-                decoding="async"
-                className="h-[240px] w-full object-cover sm:h-[320px] lg:h-[360px]"
-              />
+            {/* Fixed height either way, so the photograph cannot shift the
+                layout as it loads. */}
+            <div className="relative h-[240px] overflow-hidden bg-[#081221] sm:h-[320px] lg:h-[360px]">
+              {banner.image ? (
+                <BannerBackdrop
+                  image={banner.image}
+                  priority={false}
+                  sizes={TEASER_SIZES}
+                  alt={banner.image.alt || "Rajasthan Estate Realtors"}
+                />
+              ) : banner.source === "default" ? (
+                <img
+                  src={teaserSrc(1200)}
+                  srcSet={TEASER_SRCSET}
+                  sizes={TEASER_SIZES}
+                  alt="Premium Mumbai residential property"
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                />
+              ) : null}
             </div>
 
           </div>

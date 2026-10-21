@@ -10,6 +10,7 @@ import {
   toCmsPurpose,
 } from "../../../../lib/properties";
 import PropertiesListing from "../../../../components/properties/PropertiesListing";
+import { getBanner, propertiesBannerPlacement } from "../../../../lib/website-banners";
 import { DEFAULT_OG_IMAGE } from "../../../../lib/seo/ogImage";
 
 const title = "Properties";
@@ -48,11 +49,13 @@ export default async function PropertiesPage({ searchParams }) {
   const category = filters.category ?? undefined;
 
   // Locality options reflect the current purpose/category scope, so the filter
-  // never offers a place with nothing behind it.
+  // never offers a place with nothing behind it. The banner follows the
+  // filters too: rent/lease and commercial views have their own placements.
   const scope = { purpose, category };
-  const [localities, activeLocality] = await Promise.all([
+  const [localities, activeLocality, banner] = await Promise.all([
     getPropertyLocalities(scope),
     resolveLocalitySlug(filters.locality, scope),
+    getBanner(propertiesBannerPlacement(filters)),
   ]);
 
   const band = findBudgetBand(filters.purpose, filters.budget);
@@ -72,6 +75,7 @@ export default async function PropertiesPage({ searchParams }) {
       filters={filters}
       localities={localities}
       activeLocality={activeLocality}
+      banner={banner}
     />
   );
 }

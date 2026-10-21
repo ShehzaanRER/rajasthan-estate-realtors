@@ -53,3 +53,6 @@ graphify-out/
 *.sql.gz
 *-snapshot.json
 rer-migration-backup*/
+
+# Local staging for scripts/prepare-banner.mjs; banners are uploaded to Media.
+banner-exports/

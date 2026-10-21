@@ -267,6 +267,32 @@ until a logo is uploaded.
 Seeded and re-seeded by `scripts/seed-channel-partners.ts`, which matches on
 `name`, updates in place (ids preserved) and never deletes.
 
+## Website Banners
+
+`website-banners` (`collections/WebsiteBanners.ts`). Photography and copy for
+the homepage hero, the homepage Our Story image and the four page headers.
+**Drafts enabled** (`versions.drafts`, `maxPerDoc: 25`).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `name` | text, required | Internal label |
+| `placement` | select, required, **unique** | `home`, `our-story`, `properties`, `rentals`, `commercial`, `projects`, `about`, `contact`. Locked once set (field `update` access). Stored values — never rename |
+| `desktopImage` / `mobileImage` | upload → `media` | SVG excluded. Desktop required to publish `home` and `our-story`. FK `ON DELETE SET NULL` |
+| `imageAlt` | text | `our-story` only; falls back to the Media `alt` |
+| `desktopPosition` / `mobilePosition` | select | Nine object-positions; mobile blank = desktop |
+| `eyebrow`, `heading`, `headingAccent`, `description` | text / textarea | `hero` and `page` kinds; heading required to publish |
+| `showCta`, `ctaLabel`, `ctaUrl` | checkbox / text | URL limited to site paths, http(s), `tel:`, `mailto:` (`lib/website-banners/links.ts`) |
+| `overlay` | select | `light` / `standard` / `strong` |
+| `textAlign` | select | `left` / `center`, `page` kind only |
+| `enabled` | checkbox, default `true` | **Show on Website**; applies when published |
+| `internalNotes` | textarea | Field-level read: signed-in only |
+
+Access: authenticated `create` / `update` / `delete` / `readVersions`; `read`
+is everything for staff and `_status = published AND enabled = true` for
+everyone else. `disableDuplicate`. A `beforeChange` hook requires a placement
+even on draft saves; `afterChange`/`afterDelete` revalidate the placement's
+page. Seeded (create-only, drafts) by `scripts/seed-website-banners.ts`.
+
 ## Amenities
 
 Master list shared by Properties and Projects: `name` (unique), `slug`

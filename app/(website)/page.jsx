@@ -7,23 +7,26 @@ import OfficialChannelPartners from "../../components/home/OfficialChannelPartne
 import { getFeaturedProperties, getPropertyLocalities } from "../../lib/properties";
 import { getProjects } from "../../lib/projects";
 import { getChannelPartners } from "../../lib/channel-partners";
+import { getHomeBanners } from "../../lib/website-banners";
 
 export default async function HomePage() {
-  const [featured, localities, newProjects, channelPartners] = await Promise.all([
+  const [featured, localities, newProjects, channelPartners, banners] = await Promise.all([
     getFeaturedProperties({ limit: 3 }),
     getPropertyLocalities(),
     // "New" is whatever the CMS says is a current launch — never a hardcoded list.
     getProjects({ isNew: true, limit: 3 }),
     getChannelPartners(),
+    // Hero and Our Story are independent placements, fetched in one query.
+    getHomeBanners(),
   ]);
 
   return (
     <>
-      <Hero localities={localities} />
+      <Hero banner={banners.hero} localities={localities} />
       <FloatingWhatsapp />
       <Services />
       <FeaturedShowcase properties={featured} projects={newProjects} />
-      <AboutTeaser />
+      <AboutTeaser banner={banners.ourStory} />
       <OfficialChannelPartners partners={channelPartners} />
     </>
   );

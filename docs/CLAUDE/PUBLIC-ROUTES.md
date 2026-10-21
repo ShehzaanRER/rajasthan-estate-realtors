@@ -21,6 +21,16 @@ route file and passed down as props.
 | `/icon.png`, `/apple-icon.png` | file conventions | Static brand mark |
 | *anything unmatched* | `[...notFound]/page.jsx` | Calls `notFound()` — HTTP 404, branded page |
 
+`/properties`, `/projects`, `/about` and `/contact` open with
+`components/ui/PageBanner`; the homepage `Hero` and Our Story photograph use
+the same Website Banners data (`lib/website-banners`, `getBanner()` /
+`getHomeBanners()`); see `ARCHITECTURE.md` › Page banners. Detail pages,
+Privacy, Terms and the 404 keep their own headers.
+
+Rendering: `/` and `/about` are prerendered static pages; publishing a banner
+revalidates exactly that path. `/properties`, `/projects` and `/contact` read
+search params and render per request.
+
 Supporting files: `properties/(listing)/loading.jsx` and
 `projects/(listing)/loading.jsx`, `error.jsx`, `not-found.jsx`.
 
@@ -88,6 +98,12 @@ access (signed-in users only) and is not referenced anywhere under `app/`,
 **Projects** are public for every status except `draft`
 (`PUBLIC_PROJECT_STATUSES`), with the same slug/404 and sitemap behaviour via
 `publicProjectSlugWhere()`.
+
+**Website banners** are used only when `_status` is `published` and `enabled`
+is checked (query, public read access, and `mapWebsiteBanner()`). Otherwise the
+placement renders its built-in design. `/properties?for=rent|lease` uses the
+`rentals` placement and `?category=commercial` the `commercial` one (commercial
+wins), each falling back to `properties`.
 
 **Channel partners** appear only when `active` is checked, ordered by
 `displayOrder` then `name`. They are homepage-only and have no route of their

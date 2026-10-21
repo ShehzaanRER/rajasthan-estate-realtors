@@ -6,6 +6,8 @@ import {
   CONTACT_WHATSAPP_NUMBER,
 } from "../../../lib/siteConfig";
 import { DEFAULT_OG_IMAGE } from "../../../lib/seo/ogImage";
+import PageBanner from "../../../components/ui/PageBanner";
+import { getBanner } from "../../../lib/website-banners";
 
 const title = "About";
 const description =
@@ -25,33 +27,16 @@ export const metadata = {
   },
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const banner = await getBanner("about");
+
   return (
     <main className="bg-white">
 
       {/* =========================================================
           1. INTRO
       ========================================================= */}
-      <section className="bg-[#081221] px-6 py-16 sm:px-10 sm:py-20 lg:px-8">
-        <div className="mx-auto max-w-3xl">
-          <p className="text-[11px] font-medium uppercase tracking-[0.35em] text-[#B8862F]">
-            Established 1988 · Jogeshwari
-          </p>
-
-          <h1 className="mt-5 font-serif text-4xl font-light leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl">
-            Rajasthan Estate Realtors,
-            <span className="mt-2 block italic text-[#B8862F]">
-              Jogeshwari since 1988.
-            </span>
-          </h1>
-
-          <p className="mt-6 max-w-2xl text-base font-light leading-8 text-slate-300 sm:text-lg">
-            Built on trust and rooted in Mumbai. A family-run consultancy
-            serving Jogeshwari and the Western Suburbs with local knowledge
-            and personal guidance.
-          </p>
-        </div>
-      </section>
+      <PageBanner banner={banner} />
 
 
       {/* =========================================================

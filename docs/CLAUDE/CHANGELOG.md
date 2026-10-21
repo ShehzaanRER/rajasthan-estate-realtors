@@ -3,6 +3,27 @@
 Significant changes only, newest first. Keep entries short — a few lines and
 the files that matter. Architectural reasoning belongs in `DECISIONS.md`.
 
+## 2026-10-21 — Website Banners managed in Payload
+
+**Added** the `website-banners` collection (admin › Website) and moved every
+page banner onto it: homepage hero, homepage Our Story image, `/properties`
+(plus rent/lease and commercial filter variants), `/projects`, `/about`,
+`/contact`. Nothing visible changes until a banner is published.
+
+- `collections/WebsiteBanners.ts`, `collections/hooks/revalidateWebsiteBanner.ts`
+  (new); registered in `payload.config.ts`; `payload-types.ts` regenerated.
+  Schema pushed by `next dev` after a verified additive dry run.
+- `lib/website-banners/` (new) data layer; `components/ui/PageBanner.jsx`
+  (single `banner` prop, overlay/alignment/CTA), `home/Hero`,
+  `home/AboutTeaser`, and the five route files now fetch banners.
+  `<h1>` text gains the missing space before its gold line; About's header
+  matches the other pages.
+- `scripts/seed-website-banners.ts` (new; run once — 8 drafts created);
+  `scripts/prepare-banner.mjs` now exports to gitignored `banner-exports/`.
+- `tests/website-banners.test.ts` (new, 48 tests). Removed the interim
+  `lib/banners.ts` registry and its test.
+- `docs/BANNER-ASSETS.md` is now the admin guide plus photography brief.
+
 ## 2026-10-19 — Fix: Create Draft Project failed on `rer_project_id_seq`
 
 **Fixed** `Failed query: SELECT nextval('rer_project_id_seq')`. Root cause: the

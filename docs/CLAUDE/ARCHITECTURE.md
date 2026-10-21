@@ -62,11 +62,11 @@ passed down as props. Client components never call the Payload API themselves.
 
 | Component | Data |
 | --- | --- |
-| `home/Hero` | `getPropertyLocalities()` |
+| `home/Hero` | `getPropertyLocalities()` + `getHomeBanners().hero` |
 | `FloatingWhatsapp` | static contact config |
 | `home/Services` | static (the four business intents) |
 | `home/FeaturedShowcase` | `getFeaturedProperties({ limit: 3 })` + `getProjects({ isNew: true, limit: 3 })` |
-| `home/AboutTeaser` | static — "A legacy built on trust", i.e. the legacy section |
+| `home/AboutTeaser` | static copy — "A legacy built on trust"; photograph from `getHomeBanners().ourStory` |
 | `home/OfficialChannelPartners` | `getChannelPartners()` |
 
 ### Styling
@@ -90,7 +90,8 @@ Lexical rich-text editor.
   brochure-convert endpoints, custom admin components, and an `onInit` that
   ensures the property/project ID sequences exist and seeds default amenities.
 - **Collections** (`collections/`): `Users`, `Properties`, `Projects`,
-  `Amenities`, `ChannelPartners`, `Media`, `ContactInquiries`. See
+  `Amenities`, `ChannelPartners`, `Media`, `ContactInquiries`,
+  `WebsiteBanners`. See
   `DATA-MODEL.md`.
 - **Supporting code:** `collections/hooks/` (ID assignment and sequence
   allocation/schema declaration — `idSequenceSchema.ts` keeps the dev push from
@@ -198,7 +199,49 @@ One `media` collection backs every image on the site.
   (`lib/channel-partners/mapChannelPartner.ts` sets `isVector`).
 - A plain `<img>` with a hand-written `srcSet` is used for the two
   Unsplash-hosted decorative photos (`home/Hero`, `home/AboutTeaser`), which are
-  not Media records.
+  not Media records. Both are interim fallbacks, shown only while their banner
+  placement has no published record (below).
+
+### Page banners
+
+Banner photography and copy are CMS content: the **`website-banners`**
+collection (`collections/WebsiteBanners.ts`, admin group *Website*), with
+images as upload relationships to `media`. Admin how-to:
+`docs/BANNER-ASSETS.md`.
+
+- **Placements** are a fixed list in `lib/website-banners/placements.ts`
+  (`home`, `our-story`, `properties`, `rentals`, `commercial`, `projects`,
+  `about`, `contact`), shared by the collection's select and the frontend.
+  Each has a `kind` (`hero` / `page` / `image`) that drives which admin fields
+  show, which are validated, and which the mapper keeps.
+- **Data:** `lib/website-banners/` — `getWebsiteBanners(placements)` (one
+  Local API query, `overrideAccess: false`, `draft: false`, published + enabled
+  only, `-updatedAt`), `mapWebsiteBanner()` (refuses non-published/disabled
+  docs, drops fields the placement does not use, re-checks CTA links with
+  `safeBannerHref()`, images via `toDeliveryImage()`), and `resolveBanner()`
+  (own record → for `rentals`/`commercial` the `properties` record →
+  `BANNER_DEFAULTS`). `getBanner(placement)` and `getHomeBanners()` are what
+  routes call. A failed read logs and degrades to the defaults.
+- **Rendering:** route files fetch and pass a `ResolvedBanner` down.
+  `components/ui/PageBanner.jsx` renders `/properties`, `/projects`, `/about`,
+  `/contact`; its `BannerBackdrop` also serves `home/Hero` and
+  `home/AboutTeaser` (Our Story). `/properties` picks its placement from the
+  filters with `propertiesBannerPlacement()` (`commercial` > `rentals` >
+  `properties`).
+- **No record** (`source: 'default'`) renders exactly the pre-CMS design: the
+  same copy, the navy header, and for the hero and Our Story the interim
+  Unsplash `<img>`. A published record whose image is gone renders without a
+  photograph — never the Unsplash one.
+- Images: `next/image` `fill`, quality 85, `sizes="100vw"` (Our Story: its
+  column sizes, lazy), `fetchPriority="high"` for the headers. With a mobile
+  image, a `<picture>` via `getImageProps()`; otherwise one source re-framed per
+  breakpoint through `--banner-pos` CSS variables. Overlay strength and
+  alignment are fixed class recipes in the components — no CSS reaches the CMS.
+- **Revalidation:** `collections/hooks/revalidateWebsiteBanner.ts` calls
+  `revalidatePath()` for the placement's page when a published version changes.
+- `scripts/seed-website-banners.ts` — create-only draft per placement.
+  `scripts/prepare-banner.mjs` — sharp export of a master to
+  `banner-exports/` for upload.
 
 ## Fonts, icons and social images
 
@@ -290,6 +333,12 @@ because visibility is a single boolean:
   builds alt text from the partner name, re-validates that `websiteUrl` is
   http(s) before it can reach an `href`, and routes the logo through
   `toDeliveryImage()` unless it is an SVG.
+
+### Website banners — `lib/website-banners/`
+
+See *Page banners* above. Visibility is `_status: published` and
+`enabled: true`, applied in the query, in the collection's public read access
+and again in `mapWebsiteBanner()`.
 
 ### Admin console — `lib/admin-console/`
 

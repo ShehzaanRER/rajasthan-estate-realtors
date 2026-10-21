@@ -74,6 +74,7 @@ export interface Config {
     'channel-partners': ChannelPartner;
     media: Media;
     'contact-inquiries': ContactInquiry;
+    'website-banners': WebsiteBanner;
     'payload-kv': PayloadKv;
     'payload-folders': FolderInterface;
     'payload-locked-documents': PayloadLockedDocument;
@@ -93,6 +94,7 @@ export interface Config {
     'channel-partners': ChannelPartnersSelect<false> | ChannelPartnersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'contact-inquiries': ContactInquiriesSelect<false> | ContactInquiriesSelect<true>;
+    'website-banners': WebsiteBannersSelect<false> | WebsiteBannersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-folders': PayloadFoldersSelect<false> | PayloadFoldersSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -775,6 +777,89 @@ export interface ContactInquiry {
   createdAt: string;
 }
 /**
+ * Photography and text for the homepage hero, the homepage Our Story image and the Properties, Projects, About and Contact page headers. One banner per placement. Save Draft to prepare a change; only Publish puts it on the website. A placement with no published, enabled banner keeps the site’s built-in design.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "website-banners".
+ */
+export interface WebsiteBanner {
+  id: number;
+  /**
+   * Internal only — how this banner is listed in the admin.
+   */
+  name: string;
+  /**
+   * Where on the website this banner appears. Each placement can have only one banner, and it cannot be changed once saved.
+   */
+  placement: 'home' | 'our-story' | 'properties' | 'rentals' | 'commercial' | 'projects' | 'about' | 'contact';
+  /**
+   * Used on every screen size unless a mobile image is added. Landscape, at least 2400px wide (see docs/BANNER-ASSETS.md for each placement’s size). Required for the homepage hero and the Our Story image; optional for page headers, which show the plain navy design without one.
+   */
+  desktopImage?: (number | null) | Media;
+  /**
+   * A portrait crop shown below 768px wide. Only needed when the desktop photograph loses its subject on a phone — otherwise the Mobile Focal Position below is enough.
+   */
+  mobileImage?: (number | null) | Media;
+  /**
+   * What the photograph shows, for screen readers and search engines. Leave blank to use the Media record’s own description.
+   */
+  imageAlt?: string | null;
+  /**
+   * Which part of the photograph stays in frame when the banner crops it.
+   */
+  desktopPosition?:
+    ('center' | 'top' | 'bottom' | 'left' | 'right' | 'left top' | 'right top' | 'left bottom' | 'right bottom') | null;
+  /**
+   * Optional. Leave blank to use the Focal Position on phones too.
+   */
+  mobilePosition?:
+    ('center' | 'top' | 'bottom' | 'left' | 'right' | 'left top' | 'right top' | 'left bottom' | 'right bottom') | null;
+  /**
+   * Optional small gold label above the heading, e.g. “Get In Touch”.
+   */
+  eyebrow?: string | null;
+  /**
+   * The first, white line of the page heading.
+   */
+  heading?: string | null;
+  /**
+   * Optional second line, shown in gold italics beneath the heading.
+   */
+  headingAccent?: string | null;
+  /**
+   * Optional supporting paragraph. One or two sentences reads best.
+   */
+  description?: string | null;
+  /**
+   * On the homepage hero this is the gold “Explore Properties” button; the “Speak With Us” phone button is always shown.
+   */
+  showCta?: boolean | null;
+  ctaLabel?: string | null;
+  /**
+   * A site path such as /properties?for=rent, a full https:// address, or a tel: / mailto: link.
+   */
+  ctaUrl?: string | null;
+  /**
+   * The navy tint over the photograph that keeps the text readable. Check the result on a phone before choosing Light.
+   */
+  overlay?: ('light' | 'standard' | 'strong') | null;
+  /**
+   * Left keeps the photograph visible on the right on wide screens. Centred uses an even overlay across the whole image.
+   */
+  textAlign?: ('left' | 'center') | null;
+  /**
+   * Untick and publish to take this banner off the website without deleting it; the page falls back to its built-in design. Takes effect when published.
+   */
+  enabled?: boolean | null;
+  /**
+   * Staff only — never shown on the website or returned by the public API.
+   */
+  internalNotes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -825,6 +910,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'contact-inquiries';
         value: number | ContactInquiry;
+      } | null)
+    | ({
+        relationTo: 'website-banners';
+        value: number | WebsiteBanner;
       } | null)
     | ({
         relationTo: 'payload-folders';
@@ -1243,6 +1332,33 @@ export interface ContactInquiriesSelect<T extends boolean = true> {
   notes?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "website-banners_select".
+ */
+export interface WebsiteBannersSelect<T extends boolean = true> {
+  name?: T;
+  placement?: T;
+  desktopImage?: T;
+  mobileImage?: T;
+  imageAlt?: T;
+  desktopPosition?: T;
+  mobilePosition?: T;
+  eyebrow?: T;
+  heading?: T;
+  headingAccent?: T;
+  description?: T;
+  showCta?: T;
+  ctaLabel?: T;
+  ctaUrl?: T;
+  overlay?: T;
+  textAlign?: T;
+  enabled?: T;
+  internalNotes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

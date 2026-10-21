@@ -885,3 +885,61 @@ the allocator self-heals once on a missing sequence.
 holds only the `dev` batch), and `payload migrate` against a push-mode database
 prompts to wipe it; `NEW-LAPTOP-SETUP.md` already says not to run migrations.
 A one-off manual SQL fix was rejected as non-permanent.
+
+## Website banners are CMS records, one per placement (2026-10-21)
+
+Supersedes an earlier, never-shipped draft of the same day that kept banner
+photography in `public/images/banners/` behind a code registry
+(`lib/banners.ts`, now removed). Banners change often enough that a code change
+per photograph was the wrong cost, so they moved into Payload.
+
+- **One record per placement, enforced by a unique index.** The frontend never
+  chooses between competing records; prepared changes are Payload drafts of the
+  same record. `placement` doubles as the stable key, is locked once set, and
+  `disableDuplicate` stops the Duplicate action colliding with it. No sort
+  order exists because nothing is ever sorted between. If the index were ever
+  missing, `selectBanners()` still picks deterministically (`-updatedAt`, `-id`).
+- **Placements are code, not data.** A fixed select shared with the frontend
+  (`lib/website-banners/placements.ts`) — a free-text key could silently match
+  nothing. Values keep the old registry keys. No locality placement: there are
+  no locality pages, and none were added.
+- **Drafts + `enabled`.** Payload drafts (`versions.drafts`) hold unfinished
+  work: a draft over a published banner never touches the live row, and
+  draft saves skip validation, so publish is where required image/heading and
+  CTA rules apply. `enabled` is a separate published switch. Public visibility
+  needs both, enforced three times: the query, public read access, the mapper.
+- **Built-in defaults when there is no record.** `BANNER_DEFAULTS` is the
+  pre-CMS copy, used whole (never merged field by field into a record), so the
+  site is unchanged until something is published and survives an unpublish or a
+  missing table (`getWebsiteBanners()` logs and degrades). The hero and Our Story
+  keep the interim Unsplash photo only in that no-record case; a published
+  record with a missing image shows no photograph rather than a substitute.
+- **Media is reused, art direction lives on the banner.** Images are `media`
+  uploads through `toDeliveryImage()`; focal position, mobile crop, overlay and
+  alignment are constrained selects on the banner, mapped to fixed class
+  recipes. No CSS, HTML or free-form position reaches the CMS.
+- **Revalidation by path.** `/` and `/about` are prerendered, so an
+  `afterChange`/`afterDelete` hook calls `revalidatePath()` for the placement's
+  page only, and only when a published version is involved. It works because
+  admin saves run inside Next's `/api/[...slug]` route handler. Limits: a write
+  from `payload run` has no Next request and cannot revalidate (logged; the page
+  refreshes on the next deploy); revalidation is per instance, so a future
+  multi-instance deployment would need a shared cache handler. Side effect: a
+  homepage revalidation also refreshes its other CMS sections, which are
+  otherwise frozen at build time (see *Known issue* below).
+- **Schema by the project's push workflow, verified first.** The tables reached
+  the shared database through `next dev`'s push, as every collection here has.
+  Before registering the collection, the exact push SQL was dry-run
+  (`pushSchema` without `apply`, `PAYLOAD_MIGRATING=true`): only `CREATE TYPE`,
+  `CREATE TABLE`, indexes, FKs and one nullable column on
+  `payload_locked_documents_rels`; `hasDataLoss: false`. The collection
+  definition was finalised before registering it so HMR pushed once.
+
+*Known issue, not changed here:* `/` is fully static, so featured properties,
+new projects and channel partners on the homepage only refresh on a deploy (or
+now, a banner publish).
+
+*Not chosen:* a Payload global (no drafts per placement, one giant form);
+multiple records per placement with priority/scheduling (no current need, and
+it reintroduces selection ambiguity); `revalidateTag` (Local API reads are not
+`fetch`es, so there is nothing tagged to invalidate).
