@@ -25,6 +25,7 @@ import React from 'react'
 type RentHistoryRowData = {
   agreementTerm?: string
   agreementTermMonths?: number
+  agreementTermDays?: number
   licenseeName?: string
 }
 
@@ -43,11 +44,14 @@ export function RentHistoryRowLabel() {
 
   const isCurrent = rowCount > 0 && rowNumber === rowCount - 1
 
+  const termParts = [
+    data?.agreementTermMonths ? `${data.agreementTermMonths} months` : '',
+    data?.agreementTermDays ? `${data.agreementTermDays} days` : '',
+  ].filter(Boolean)
+
   const term = data?.agreementTerm?.trim()
     ? data.agreementTerm.trim()
-    : data?.agreementTermMonths
-      ? `${data.agreementTermMonths} months`
-      : ''
+    : termParts.join(' ')
 
   const name = data?.licenseeName?.trim() || 'New Tenancy'
   const label = term ? `${term} — ${name}` : name

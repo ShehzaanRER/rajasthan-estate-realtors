@@ -918,6 +918,7 @@ export const Properties: CollectionConfig = {
                     const calculated = calculateAgreementEndDate({
                       startDate: last.agreementStartDate ?? null,
                       termMonths: last.agreementTermMonths ?? null,
+                      termDays: last.agreementTermDays ?? null,
                     });
 
                     return calculated ? calculated.toISOString() : (last.agreementEndDate ?? null);
@@ -1190,9 +1191,46 @@ export const Properties: CollectionConfig = {
                   name: 'agreementTermMonths',
                   type: 'number',
                   label: 'Agreement Term (Months)',
+                  // Whole, non-negative numbers only. Optional — empty is
+                  // treated as zero when the end date is calculated.
+                  validate: (value: unknown) => {
+                    if (value == null || value === '') {
+                      return true;
+                    }
+                    if (!Number.isInteger(Number(value)) || Number(value) < 0) {
+                      return 'Agreement Term (Months) must be a whole number of 0 or more.';
+                    }
+
+                    return true;
+                  },
                   admin: {
+                    width: '50%',
+                    step: 1,
                     description:
-                      'Whole number of months (e.g. 11, 36). Drives the automatic Agreement End Date below — leave blank if the term is only described in the free-text Agreement Term field further down.',
+                      'Enter the number of complete calendar months. Drives the automatic Agreement End Date below — leave blank if the term is only described in the free-text Agreement Term field further down.',
+                  },
+                },
+                {
+                  name: 'agreementTermDays',
+                  type: 'number',
+                  label: 'Agreement Term (Days)',
+                  // Whole, non-negative numbers only. Optional — empty is
+                  // treated as zero. Added on top of the months term (or on
+                  // its own) by calculateAgreementEndDate().
+                  validate: (value: unknown) => {
+                    if (value == null || value === '') {
+                      return true;
+                    }
+                    if (!Number.isInteger(Number(value)) || Number(value) < 0) {
+                      return 'Agreement Term (Days) must be a whole number of 0 or more.';
+                    }
+
+                    return true;
+                  },
+                  admin: {
+                    width: '50%',
+                    step: 1,
+                    description: 'Add extra days to the agreement term, if applicable.',
                   },
                 },
                 {
@@ -1205,19 +1243,20 @@ export const Properties: CollectionConfig = {
                       pickerAppearance: 'dayOnly',
                     },
                     description:
-                      'Calculated automatically as the last day of the term — Agreement Start Date + Agreement Term (Months) − 1 day. Fill in both fields above to set it — it cannot be edited directly.',
+                      'Calculated automatically from the Agreement Start Date plus the Agreement Term (Months) and/or (Days). Fill in the start date and at least one term field above to set it — it cannot be edited directly.',
                   },
-                  // Identical to the legacy group's own hook — sibling
-                  // scoping for an array row works exactly like a group's
-                  // (confirmed against Payload's beforeDuplicate traversal,
-                  // which passes `siblingDoc: row` for each array row just
-                  // like a group's own siblingDoc).
+                  // Same recompute rule as the legacy group's own hook —
+                  // sibling scoping for an array row works exactly like a
+                  // group's (confirmed against Payload's beforeDuplicate
+                  // traversal, which passes `siblingDoc: row` for each array
+                  // row just like a group's own siblingDoc).
                   hooks: {
                     beforeChange: [
                       ({ siblingData, value }) => {
                         const calculated = calculateAgreementEndDate({
                           startDate: siblingData?.agreementStartDate ?? null,
                           termMonths: siblingData?.agreementTermMonths ?? null,
+                          termDays: siblingData?.agreementTermDays ?? null,
                         });
 
                         return calculated ? calculated.toISOString() : value;

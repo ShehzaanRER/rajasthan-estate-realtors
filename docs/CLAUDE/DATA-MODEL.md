@@ -204,6 +204,7 @@ are reported as unmapped by the script — the CSV's `Source`, `Source Contact`,
 | `Licensee Name` / `Licensee Contact Number` | `rentHistory[].licenseeName` / `licenseeContactNumber` | |
 | `Agreement Term` | `rentHistory[].agreementTermMonths` | Not the free-text `agreementTerm` field — the CSV's term is already a clean number of months. |
 | `Agreement Start Date` | `rentHistory[].agreementStartDate` | |
+| *(no CSV column)* | `rentHistory[].agreementTermDays` | Optional extra days entered in the admin form (whole, ≥ 0). The import never writes it; blank/absent counts as 0, so imported and pre-existing rows calculate exactly as before. |
 | `Agreement End Date` | **not written** | Compared against the value `calculateAgreementEndDate()` produces — the last calendar day of the term (Start Date + Term − 1 day) — and reported as MATCH/DISCREPANCY; the calculated value is what Payload's own field hook stores. See `DECISIONS.md`. |
 
 ## Projects

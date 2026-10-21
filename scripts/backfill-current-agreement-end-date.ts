@@ -62,6 +62,7 @@ async function main() {
       const calculated = calculateAgreementEndDate({
         startDate: last.agreementStartDate ?? null,
         termMonths: last.agreementTermMonths ?? null,
+        termDays: last.agreementTermDays ?? null,
       });
       computed = calculated ? calculated.toISOString() : (last.agreementEndDate ?? null);
     }

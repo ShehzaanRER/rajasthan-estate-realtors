@@ -385,11 +385,15 @@ export interface Property {
         securityDeposit?: number | null;
         agreementStartDate?: string | null;
         /**
-         * Whole number of months (e.g. 11, 36). Drives the automatic Agreement End Date below — leave blank if the term is only described in the free-text Agreement Term field further down.
+         * Enter the number of complete calendar months. Drives the automatic Agreement End Date below — leave blank if the term is only described in the free-text Agreement Term field further down.
          */
         agreementTermMonths?: number | null;
         /**
-         * Calculated automatically as the last day of the term — Agreement Start Date + Agreement Term (Months) − 1 day. Fill in both fields above to set it — it cannot be edited directly.
+         * Add extra days to the agreement term, if applicable.
+         */
+        agreementTermDays?: number | null;
+        /**
+         * Calculated automatically from the Agreement Start Date plus the Agreement Term (Months) and/or (Days). Fill in the start date and at least one term field above to set it — it cannot be edited directly.
          */
         agreementEndDate?: string | null;
         /**
@@ -1013,6 +1017,7 @@ export interface PropertiesSelect<T extends boolean = true> {
         securityDeposit?: T;
         agreementStartDate?: T;
         agreementTermMonths?: T;
+        agreementTermDays?: T;
         agreementEndDate?: T;
         agreementTerm?: T;
         rentalSource?: T;

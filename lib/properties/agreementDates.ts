@@ -10,6 +10,9 @@
  * Examples: 01 Feb 2026 + 11 months → 31 Dec 2026. 01 Feb 2028 + 1 month
  * (leap year) → 29 Feb 2028. 01 Jan 2026 + 1 month → 31 Jan 2026.
  *
+ * An optional `termDays` is added after the month step (months + days), or
+ * straight to the start date when there are no months (days only).
+ *
  * Pure `Date` arithmetic in UTC. `Date.UTC`/`setUTCFullYear` already
  * normalize an out-of-range month index into the correct year (month 13
  * becomes January of the following year), which is the engine's own
@@ -42,19 +45,38 @@ export function addMonthsClamped(date: Date, months: number): Date {
 export type AgreementEndDateInput = {
   startDate: Date | string | null | undefined;
   termMonths: number | null | undefined;
+  /**
+   * Optional extra calendar days on top of (or instead of) `termMonths`.
+   * Empty, zero, negative or non-numeric counts as no extra days.
+   */
+  termDays?: number | null | undefined;
 };
 
+/** Whole, non-negative count — anything else (empty, NaN, negative) is 0. */
+function toWholeCount(value: unknown): number {
+  if (value == null || value === '') {
+    return 0;
+  }
+  const count = Math.trunc(Number(value));
+  return Number.isFinite(count) && count > 0 ? count : 0;
+}
+
 /**
- * Returns the calculated Agreement End Date — the last calendar day of the
- * term, inclusive — or `null` when either input is missing or invalid.
+ * Returns the calculated Agreement End Date or `null` when it cannot be
+ * determined (no valid start date, or neither a usable month nor day term).
  * Callers must treat `null` as "cannot be determined" rather than falling
  * back to a guess.
+ *
+ * - Months only: the last calendar day of the term, inclusive.
+ * - Months + days: the months-only result, then `termDays` calendar days added.
+ * - Days only: `termDays` calendar days added to the start date.
  */
 export function calculateAgreementEndDate({
   startDate,
   termMonths,
+  termDays,
 }: AgreementEndDateInput): Date | null {
-  if (startDate == null || termMonths == null || termMonths === ('' as unknown)) {
+  if (startDate == null) {
     return null;
   }
 
@@ -64,18 +86,28 @@ export function calculateAgreementEndDate({
   }
 
   // Whole months only — a lease term isn't fractional. Anything else
-  // (zero, negative, non-numeric) means there isn't a usable term yet.
-  const months = Math.trunc(Number(termMonths));
-  if (!Number.isFinite(months) || months <= 0) {
+  // (zero, negative, non-numeric) counts as no months.
+  const months = toWholeCount(termMonths);
+  const days = toWholeCount(termDays);
+  if (months === 0 && days === 0) {
     return null;
   }
 
-  // Start + N months lands on the day the NEXT term would begin; the last
-  // day of THIS term is one day before that. setUTCDate naturally rolls back
-  // across a month/year boundary (e.g. 1 Mar minus 1 day → the last day of
-  // February, leap years included).
-  const dayAfterTerm = addMonthsClamped(start, months);
-  const lastDayOfTerm = new Date(dayAfterTerm.getTime());
-  lastDayOfTerm.setUTCDate(lastDayOfTerm.getUTCDate() - 1);
-  return lastDayOfTerm;
+  let end: Date;
+  if (months > 0) {
+    // Start + N months lands on the day the NEXT term would begin; the last
+    // day of THIS term is one day before that. setUTCDate naturally rolls
+    // back across a month/year boundary (e.g. 1 Mar minus 1 day → the last
+    // day of February, leap years included).
+    const dayAfterTerm = addMonthsClamped(start, months);
+    end = new Date(dayAfterTerm.getTime());
+    end.setUTCDate(end.getUTCDate() - 1);
+  } else {
+    end = new Date(start.getTime());
+  }
+
+  if (days > 0) {
+    end.setUTCDate(end.getUTCDate() + days);
+  }
+  return end;
 }

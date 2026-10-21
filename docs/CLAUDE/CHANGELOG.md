@@ -22,6 +22,23 @@ property = 22, in sync with stored IDs).
   transaction.
 - ID formats, JSON import, amenity matching unchanged. No migration file.
 
+## 2026-10-19 — Agreement Term (Days)
+
+**Added**
+
+- `rentHistory[].agreementTermDays` (optional, whole number ≥ 0) shown beside
+  Agreement Term (Months) at 50% width each; `agreementTermMonths` now also
+  validates as a whole number ≥ 0.
+- `calculateAgreementEndDate()` accepts `termDays`; wired into the row's
+  `agreementEndDate` hook, `currentAgreementEndDate` hook and the backfill
+  script. Row label shows days. `payload-types.ts` updated by hand.
+- New Postgres column `agreement_term_days`: no migrations folder exists, so
+  it is created by Payload's schema push when the dev server next starts.
+
+**Files:** `lib/properties/agreementDates.ts`, `collections/Properties.ts`,
+`components/payload/RentHistoryRowLabel.tsx`,
+`scripts/backfill-current-agreement-end-date.ts`, `payload-types.ts`.
+
 ## 2026-09-26 — Laptop-migration audit, setup guide and backup bundle
 
 **Added**

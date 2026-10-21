@@ -286,6 +286,25 @@ pre-validated in ascending order — rather than writing directly to the ID
 column or relaxing the collection's own `update: () => false` access on that
 field.
 
+## Agreement term can include extra days (`agreementTermDays`)
+
+`rentHistory[]` gained an optional whole-number `agreementTermDays` beside
+`agreementTermMonths` (both validated as whole numbers ≥ 0; blank = 0).
+`calculateAgreementEndDate()` takes an optional `termDays` and applies, as
+specified by the product owner: months only → unchanged; months + days → the
+months result (already the inclusive last day) plus the days; days only →
+start date plus the days, literally; neither → `null` as before.
+
+*Consequence:* days-only is `start + N`, whereas months-only is
+`start + N months − 1`, so a days-only term ends one day later than the
+inclusive convention would give. This follows the explicit rule; changing it
+to `start + N − 1` is a one-line edit in `agreementDates.ts`.
+
+*Consequence:* the end date is still computed server-side by the field's
+`beforeChange` hook on save (and mirrored into `currentAgreementEndDate`); it
+is not live-recalculated in the form as the inputs change. The legacy hidden
+`rentDetails` group was deliberately left months-only.
+
 ## Agreement End Date is the last day of the term, inclusive
 
 `calculateAgreementEndDate()` (`lib/properties/agreementDates.ts`) originally
