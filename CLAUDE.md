@@ -11,7 +11,8 @@ public site and a Payload CMS admin panel running as one application.
    projects, amenities, partners and media are CMS records. Never hardcode
    inventory, partner logos or other editable content into React components.
 2. **Properties and Projects are separate concepts.** A Property is a single
-   unit RER transacts on; a Project is a development. They have separate
+   physical unit; a Listing is one sale/rent/lease of it (price, terms, status
+   and URL live on the Listing); a Project is a development. They have separate
    collections, separate data layers, separate routes and separate status
    vocabularies. Do not couple them casually.
 3. **Preserve the existing architecture** unless the requested change
@@ -46,6 +47,7 @@ public site and a Payload CMS admin panel running as one application.
 | `docs/CLAUDE/CHANGELOG.md` | Significant changes, newest first |
 | `docs/BANNER-ASSETS.md` | Website Banners admin guide (placements, publishing, fallbacks) and photography brief |
 | `docs/NEW-LAPTOP-SETUP.md` | Environment variables, prerequisites, where the database and media actually live |
+| `docs/LISTINGS-ROLLOUT.md` | Production procedure for the listings change (backup + restore check, reviewed SQL in `docs/listings-schema*.sql`, migration, verification SQL in `docs/listings-verify-*.sql`, rollback), day-to-day listing workflow, AppSheet/Sheets notes |
 
 `docs/MEMORY.md` is a separate, human-owned record of business and brand
 context. Do not edit it without explicit approval. `docs/PRD.md`,

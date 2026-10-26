@@ -6,6 +6,8 @@ import { generateNearbyLocationsHandler } from './endpoints/generateNearbyLocati
 import { createAssignMediaFolderHook, filterMediaByFolder } from './hooks/assignMediaFolder';
 import { assignPropertyId } from './hooks/assignPropertyId';
 import { assignPropertySlug } from './hooks/assignPropertySlug';
+import { createInitialListing, validateInitialListing } from './hooks/initialListing';
+import { protectPropertyWithListings } from './hooks/protectPropertyWithListings';
 
 const isAuthenticated: Access = ({ req: { user } }) => Boolean(user);
 
@@ -49,7 +51,7 @@ export const Properties: CollectionConfig = {
   admin: {
     group: 'Listings',
     useAsTitle: 'title',
-    defaultColumns: ['propertyId', 'title', 'purpose', 'propertyCategory', 'propertyType', 'pricing', 'status', 'currentAgreementEndDate', 'updatedAt'],
+    defaultColumns: ['propertyId', 'title', 'propertyCategory', 'propertyType', 'listingsSummary', 'status', 'currentAgreementEndDate', 'updatedAt'],
     components: {
       // Synchronized top scrollbar for the list table — see
       // components/payload/TableScrollSync.tsx.
@@ -67,11 +69,21 @@ export const Properties: CollectionConfig = {
   },
 
   hooks: {
+    // Create-only: checks the optional First listing group before anything is
+    // written or a Property ID is allocated — see collections/hooks/initialListing.ts.
+    beforeValidate: [validateInitialListing],
     // Order matters: assignPropertySlug reads the propertyId that
     // assignPropertyId allocates. Both run before field validation, which
     // Payload performs during its field-level beforeChange pass.
     beforeChange: [assignPropertyId, assignPropertySlug],
-    afterChange: [createAssignMediaFolderHook({ collectionSlug: 'properties', rerIdField: 'propertyId' })],
+    // createInitialListing runs last and inside the same transaction, so a failure
+    // rolls back the property and its media folder too.
+    afterChange: [
+      createAssignMediaFolderHook({ collectionSlug: 'properties', rerIdField: 'propertyId' }),
+      createInitialListing,
+    ],
+    // A property with listings cannot be deleted — see protectPropertyWithListings.
+    beforeDelete: [protectPropertyWithListings],
   },
 
   endpoints: [
@@ -166,8 +178,19 @@ export const Properties: CollectionConfig = {
       hooks: {
         beforeDuplicate: [() => 'draft'],
       },
+      // System-maintained roll-up of this property's listings — see
+      // lib/listings/rollup.ts. Each Listing owns its own status; this one only
+      // summarises them (and keeps public read access to the property working),
+      // so it is not editable here. The roll-up hook writes it with
+      // overrideAccess, which bypasses this field-level rule.
+      access: {
+        update: () => false,
+      },
       admin: {
         position: 'sidebar',
+        readOnly: true,
+        description:
+          "Summary of this property's listings, set automatically: Available if any listing is live, otherwise the most advanced listing status. Change a listing's own status in the Listings tab.",
         components: {
           Cell: '/components/payload/StatusBadge#StatusBadge',
         },
@@ -193,6 +216,43 @@ export const Properties: CollectionConfig = {
         components: {
           Field: '/components/payload/AgreementCountdownSidebar#AgreementCountdownSidebar',
         },
+      },
+    },
+
+    {
+      // Read-only list of this property's listings (Listing ID, type, status,
+      // price) with links — the list-view Cell is what lets staff see sale vs
+      // rent at a glance. The Listings tab holds the editable join.
+      name: 'listingsSummary',
+      type: 'ui',
+      label: 'Listings',
+      admin: {
+        position: 'sidebar',
+        components: {
+          Field: '/components/payload/PropertyListingsSummary#PropertyListingsSummary',
+          Cell: '/components/payload/PropertyListingsCell#PropertyListingsCell',
+        },
+      },
+    },
+    {
+      // Derived from the listings (see lib/listings/rollup.ts): true while any
+      // Rent or Lease listing of this property is marked Rented. A flat can be
+      // for sale and let to a tenant at once, which the single `status` above
+      // cannot express — renewal tracking and the tenancy checks key off this.
+      name: 'isTenanted',
+      type: 'checkbox',
+      label: 'Currently tenanted',
+      defaultValue: false,
+      index: true,
+      access: {
+        update: () => false,
+      },
+      hooks: {
+        beforeDuplicate: [() => false],
+      },
+      admin: {
+        hidden: true,
+        readOnly: true,
       },
     },
 
@@ -293,10 +353,20 @@ export const Properties: CollectionConfig = {
               },
             },
             {
+              // LEGACY — the transaction type now lives on each Listing. Kept in
+              // the schema (and populated for every pre-existing property) so
+              // the migration is expand-only and nothing is lost; hidden and no
+              // longer required so a property can be created before any listing
+              // exists. Nothing on the public site reads it. Drop it only in a
+              // separate, explicitly approved clean-up once every environment
+              // has been migrated — see docs/CLAUDE/DECISIONS.md.
               name: 'purpose',
               type: 'select',
-              required: true,
-              label: 'Transaction type',
+              required: false,
+              label: 'Transaction type (legacy)',
+              admin: {
+                hidden: true,
+              },
               options: [
                 { label: 'Sale', value: 'sale' },
                 { label: 'Rent', value: 'rent' },
@@ -349,6 +419,100 @@ export const Properties: CollectionConfig = {
               name: 'description',
               type: 'richText',
               editor: lexicalEditor(),
+            },
+            {
+              // Create-only, never stored on the property (`virtual`): lets an
+              // agent create the property and its first Sale or Rent listing in
+              // one save, without retyping anything. Turned into a real Listing
+              // by collections/hooks/initialListing.ts inside the same
+              // transaction. Further listings are added from the Listings tab.
+              name: 'initialListing',
+              type: 'group',
+              virtual: true,
+              label: 'First listing (optional)',
+              admin: {
+                // Payload renders virtual fields read-only unless told otherwise;
+                // this group is an input, not a computed value.
+                readOnly: false,
+                condition: (_data, _siblingData, { operation }) => operation === 'create',
+                description:
+                  "Choose Sale or Rent to create this property's first listing in the same save. Leave it empty to add listings later from the Listings tab. A second listing (e.g. Rent as well as Sale) is always added from the Listings tab.",
+              },
+              fields: [
+                {
+                  name: 'transactionType',
+                  type: 'select',
+                  label: 'Transaction type',
+                  options: [
+                    { label: 'Sale', value: 'sale' },
+                    { label: 'Rent', value: 'rent' },
+                  ],
+                },
+                {
+                  name: 'status',
+                  type: 'select',
+                  label: 'Listing status',
+                  options: [
+                    { label: 'Draft — not on the website yet', value: 'draft' },
+                    { label: 'Available — live on the website', value: 'available' },
+                  ],
+                  admin: {
+                    condition: (_data, siblingData) => Boolean(siblingData?.transactionType),
+                  },
+                },
+                {
+                  name: 'price',
+                  type: 'number',
+                  label: 'Asking price',
+                  min: 0,
+                  admin: {
+                    condition: (_data, siblingData) => siblingData?.transactionType === 'sale',
+                  },
+                },
+                {
+                  name: 'rentAmount',
+                  type: 'number',
+                  label: 'Monthly rent',
+                  min: 0,
+                  admin: {
+                    condition: (_data, siblingData) => siblingData?.transactionType === 'rent',
+                  },
+                },
+                {
+                  name: 'securityDeposit',
+                  type: 'number',
+                  label: 'Security deposit',
+                  min: 0,
+                  admin: {
+                    condition: (_data, siblingData) => siblingData?.transactionType === 'rent',
+                  },
+                },
+                {
+                  name: 'maintenanceCharges',
+                  type: 'number',
+                  label: 'Maintenance charges',
+                  min: 0,
+                  admin: {
+                    condition: (_data, siblingData) => siblingData?.transactionType === 'rent',
+                  },
+                },
+                {
+                  name: 'priceOnRequest',
+                  type: 'checkbox',
+                  label: 'Price on request',
+                  admin: {
+                    condition: (_data, siblingData) => Boolean(siblingData?.transactionType),
+                  },
+                },
+                {
+                  name: 'negotiable',
+                  type: 'checkbox',
+                  label: 'Negotiable',
+                  admin: {
+                    condition: (_data, siblingData) => Boolean(siblingData?.transactionType),
+                  },
+                },
+              ],
             },
           ],
         },
@@ -514,15 +678,34 @@ export const Properties: CollectionConfig = {
           ],
         },
         {
-          label: 'Transaction & Pricing',
+          label: 'Listings',
+          description:
+            'Each sale, rental or lease of this property is a separate listing with its own price, terms and status. Add a listing here — the address, specifications and photographs are shared and never re-entered.',
           fields: [
             {
+              name: 'listings',
+              type: 'join',
+              collection: 'listings',
+              on: 'property',
+              label: 'Listings of this property',
+              defaultSort: 'transactionType',
+              defaultLimit: 25,
+              admin: {
+                allowCreate: true,
+                defaultColumns: ['listingId', 'transactionType', 'status', 'pricing', 'updatedAt'],
+              },
+            },
+            {
+              // LEGACY — pricing moved to the Listing. Retained in the schema
+              // because the migration is expand-only: every pre-existing
+              // property keeps the price it was created with, and the migration
+              // copies (never moves) it onto the new listing. Hidden; nothing on
+              // the public site or the console reads it any more.
               name: 'pricing',
               type: 'group',
+              label: 'Pricing (legacy)',
               admin: {
-                components: {
-                  Cell: '/components/payload/PriceCell#PriceCell',
-                },
+                hidden: true,
               },
               fields: [
                 {
@@ -1133,13 +1316,16 @@ export const Properties: CollectionConfig = {
               hooks: {
                 beforeDuplicate: [() => []],
               },
-              // Array-appropriate replacement for the old group's per-field
-              // "required when Rented" rule: a property can't be marked
-              // Rented with zero tenancy history entries.
+              // The "can't be Rented with zero tenancy history" rule moved to
+              // the Listing (collections/hooks/validateListing.ts), which is
+              // where Rented is now set. What remains here is the reverse
+              // direction: tenancy history cannot be emptied while a Rent/Lease
+              // listing of this property is still marked Rented. An omitted
+              // value (a partial update, the roll-up write) is not an emptying.
               validate: (value: unknown, { data }: { data?: unknown }) => {
-                const status = (data as { status?: string } | undefined)?.status;
-                if (status === 'rented' && !(Array.isArray(value) && value.length > 0)) {
-                  return 'At least one Tenancy History entry is required when the property status is Rented.';
+                const isTenanted = (data as { isTenanted?: boolean } | undefined)?.isTenanted;
+                if (isTenanted === true && Array.isArray(value) && value.length === 0) {
+                  return 'A Rent or Lease listing of this property is marked Rented, so at least one Tenancy History entry is required.';
                 }
 
                 return true;

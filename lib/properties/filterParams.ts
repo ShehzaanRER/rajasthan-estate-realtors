@@ -1,4 +1,4 @@
-import type { Property } from '../../payload-types';
+import type { Listing } from '../../payload-types';
 
 /**
  * Single source of truth for property listing URL semantics.
@@ -23,7 +23,7 @@ export type PropertyFilters = {
 const PURPOSE_PARAMS: PurposeParam[] = ['buy', 'rent', 'lease'];
 const CATEGORY_PARAMS: CategoryParam[] = ['residential', 'commercial'];
 
-const PURPOSE_TO_CMS: Record<PurposeParam, Property['purpose']> = {
+const PURPOSE_TO_CMS: Record<PurposeParam, Listing['transactionType']> = {
   buy: 'sale',
   rent: 'rent',
   lease: 'lease',
@@ -192,7 +192,7 @@ export function propertiesHref(filters: Partial<PropertyFilters>): string {
   return query ? `/properties?${query}` : '/properties';
 }
 
-export function toCmsPurpose(purpose: PurposeParam | null): Property['purpose'] | undefined {
+export function toCmsPurpose(purpose: PurposeParam | null): Listing['transactionType'] | undefined {
   return purpose ? PURPOSE_TO_CMS[purpose] : undefined;
 }
 

@@ -1,7 +1,7 @@
 import type { Where } from 'payload';
-import type { Property } from '../../payload-types';
-import { getPayloadClient } from '../payload';
-import { mapProperty } from './mapProperty';
+import type { Listing } from '../../payload-types';
+import { onePerProperty } from '../listings/publicSelection';
+import { findPublicListings, MAX_LISTINGS_PER_PROPERTY, toPublicProperties } from './getPublicListings';
 import { publicStatusWhere } from './publicScope';
 import type { PublicProperty } from './types';
 
@@ -9,62 +9,56 @@ const SIMILAR_LIMIT = 3;
 
 /**
  * Simple, server-side "similar properties" lookup — no recommendation
- * engine. Tries locality + purpose first (most relevant), then broadens to
- * city + purpose if that doesn't find enough, excluding the current
- * property either way. Returns fewer than SIMILAR_LIMIT (even zero) rather
- * than padding with unrelated listings.
+ * engine. Tries locality + transaction type first (most relevant), then
+ * broadens to city + transaction type if that doesn't find enough.
+ *
+ * Excludes the current PROPERTY, not just the current listing: the unit being
+ * viewed must not come back as its own "similar" suggestion through its other
+ * listing. Returns fewer than SIMILAR_LIMIT (even zero) rather than padding
+ * with unrelated listings, and never the same physical property twice.
  */
 export async function getSimilarProperties(current: PublicProperty): Promise<PublicProperty[]> {
-  const payload = await getPayloadClient();
-  const excludeSelf: Where = { slug: { not_equals: current.slug } };
+  const excludeSelf: Where = { 'property.propertyId': { not_equals: current.propertyId } };
+  const sameType: Where = { transactionType: { equals: current.purpose } };
+  const limit = SIMILAR_LIMIT * MAX_LISTINGS_PER_PROPERTY;
 
-  const strict = await payload.find({
-    collection: 'properties',
+  const strict = await findPublicListings({
     where: {
       and: [
         publicStatusWhere(),
         excludeSelf,
-        { 'location.locality': { equals: current.location.locality } },
-        { purpose: { equals: current.purpose } },
+        { 'property.location.locality': { equals: current.location.locality } },
+        sameType,
       ],
     },
-    depth: 2,
-    limit: SIMILAR_LIMIT,
-    overrideAccess: false,
-    sort: '-updatedAt',
+    limit,
   });
 
-  const docs = [...strict.docs];
+  let candidates: Listing[] = strict;
 
-  if (docs.length < SIMILAR_LIMIT) {
-    const broader = await payload.find({
-      collection: 'properties',
+  if (onePerProperty(candidates, propertyKey, typeOf).length < SIMILAR_LIMIT) {
+    const broader = await findPublicListings({
       where: {
         and: [
           publicStatusWhere(),
           excludeSelf,
-          { 'location.city': { equals: current.location.city } },
-          { purpose: { equals: current.purpose } },
+          { 'property.location.city': { equals: current.location.city } },
+          sameType,
         ],
       },
-      depth: 2,
-      limit: SIMILAR_LIMIT,
-      overrideAccess: false,
-      sort: '-updatedAt',
+      limit,
     });
 
-    const seen = new Set(docs.map((doc) => doc.id));
-    for (const doc of broader.docs) {
-      if (docs.length >= SIMILAR_LIMIT) break;
-      if (!seen.has(doc.id)) {
-        docs.push(doc);
-        seen.add(doc.id);
-      }
-    }
+    candidates = [...strict, ...broader];
   }
 
-  return docs
-    .slice(0, SIMILAR_LIMIT)
-    .map((doc) => mapProperty(doc as Property))
-    .filter((property): property is PublicProperty => property !== null);
+  return toPublicProperties(candidates, SIMILAR_LIMIT);
+}
+
+function propertyKey(listing: Listing): number | null {
+  return typeof listing.property === 'object' && listing.property ? listing.property.id : null;
+}
+
+function typeOf(listing: Listing): string {
+  return listing.transactionType;
 }

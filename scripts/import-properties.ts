@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import { sql } from '@payloadcms/db-postgres';
 import { getPayloadClient } from '../lib/payload';
+import { createListingForLegacyProperty } from '../lib/listings/createFromLegacy';
 import { calculateAgreementEndDate } from '../lib/properties/agreementDates';
 import { RER_PROPERTY_ID_SEQUENCE } from '../collections/hooks/assignPropertyId';
 import type { Property } from '../payload-types';
@@ -867,6 +868,22 @@ async function main() {
       }
       console.log(`  + ${r.propertyId} — created`);
       created += 1;
+
+      // A property is only visible through a listing. The CSV still describes the
+      // old single-record shape (purpose/status/pricing on the property), so the
+      // listing it implies is created straight away by the same planner the
+      // one-time migration uses — an imported record cannot bypass the listings
+      // model. A failure here leaves the property in place and is reported.
+      try {
+        const { listingId, issues } = await createListingForLegacyProperty(payload, doc);
+        console.log(`      listing ${listingId ?? '(already present)'}`);
+        issues.forEach((issue) => console.log(`      ${issue.level}: ${issue.message}`));
+      } catch (error) {
+        failed += 1;
+        console.error(
+          `  ! ${r.propertyId} — property created but its listing was NOT: ${error instanceof Error ? error.message : String(error)}. Run scripts/migrate-property-listings.ts to retry.`,
+        );
+      }
       continue;
     }
 
@@ -881,6 +898,34 @@ async function main() {
       });
       console.log(`  ~ ${r.propertyId} — updated`);
       updated += 1;
+
+      // Parking charges are a listing-level term now. The importer still fills the
+      // legacy property field (kept for the migration's copy), so mirror a newly
+      // filled value onto the matching listing — never overwriting one that is set.
+      const parking = (r.updateData as { pricing?: { parkingCharges?: number } }).pricing?.parkingCharges;
+      if (typeof parking === 'number' && existing.purpose) {
+        const found = await payload.find({
+          collection: 'listings',
+          where: {
+            and: [{ property: { equals: existing.id } }, { transactionType: { equals: existing.purpose } }],
+          },
+          depth: 0,
+          limit: 1,
+          overrideAccess: true,
+        });
+        const listing = found.docs[0];
+        if (listing && listing.pricing?.parkingCharges == null) {
+          await payload.update({
+            collection: 'listings',
+            id: listing.id,
+            data: { pricing: { parkingCharges: parking } },
+            overrideAccess: true,
+            depth: 0,
+            context: { allowIncompleteListingPricing: true },
+          });
+          console.log(`      listing ${listing.listingId} — parking charges set`);
+        }
+      }
       continue;
     }
   }

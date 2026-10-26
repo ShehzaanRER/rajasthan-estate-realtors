@@ -14,7 +14,7 @@ import SimilarProperties from "./SimilarProperties";
 import { CONTACT_PHONE_TEL, CONTACT_WHATSAPP_NUMBER } from "../../lib/siteConfig";
 
 function whatsappHref(property) {
-  const text = `Hi Rajasthan Estate Realtors, I'm interested in ${property.title} in ${property.locationDisplay}. Property ID: ${property.propertyId}. Please share more details.`;
+  const text = `Hi Rajasthan Estate Realtors, I'm interested in ${property.title} (${PURPOSE_LABELS[property.purpose] ?? "For Sale"}) in ${property.locationDisplay}. Property ID: ${property.propertyId}. Listing ID: ${property.listingId}. Please share more details.`;
   return `https://wa.me/${CONTACT_WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 }
 
@@ -182,6 +182,25 @@ function PropertyDetail({ property, similarProperties = [] }) {
                 ) : null}
               </div>
 
+              {/* The same unit can be on offer in more than one way. Each way is
+                  its own page with its own price; the photographs and
+                  specifications below are the same because they belong to the
+                  property, not the listing. */}
+              {property.otherListings?.length > 0 ? (
+                <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600">
+                  <span>Also available:</span>
+                  {property.otherListings.map((other) => (
+                    <Link
+                      key={other.listingId}
+                      href={`/properties/${other.slug}`}
+                      className="font-medium text-[#081221] underline decoration-[#B8862F] underline-offset-4 hover:text-rer-gold-text"
+                    >
+                      {PURPOSE_LABELS[other.purpose] ?? other.purposeLabel} · {other.displayPrice}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+
               {specCells.length > 0 ? (
                 <div
                   className={`mt-8 grid max-w-2xl grid-cols-2 border-y border-slate-200 ${specColumns}`}
@@ -241,7 +260,7 @@ function PropertyDetail({ property, similarProperties = [] }) {
               </a>
 
               <p className="mt-5 text-xs text-slate-500">
-                Property ID {property.propertyId}
+                Property ID {property.propertyId} · Listing {property.listingId}
               </p>
             </aside>
           </div>

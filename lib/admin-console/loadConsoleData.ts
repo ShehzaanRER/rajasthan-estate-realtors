@@ -1,6 +1,7 @@
 import type { Payload, TypedUser, Where } from 'payload';
 import { describeAgreementCountdown } from '../properties/agreementCountdown';
 import { PUBLIC_PROJECT_STATUSES } from '../projects/publicScope';
+import { PUBLIC_LISTING_STATUSES, TRANSACTION_TYPE_LABELS, TRANSACTION_TYPES } from '../listings/vocabulary';
 import { PUBLIC_STATUSES } from '../properties/publicScope';
 import { collectionCreateUrl, collectionListUrl, documentUrl } from './adminUrls';
 import { ATTENTION_CHECKS } from './checks';
@@ -61,6 +62,7 @@ export async function loadConsoleData({
   const queryArgs = { overrideAccess: false, user } as const;
 
   const propertyStatuses = getSelectOptions(payload, 'properties', 'status');
+  const listingStatuses = getSelectOptions(payload, 'listings', 'status');
   const projectStatuses = getSelectOptions(payload, 'projects', 'status');
 
   /**
@@ -74,7 +76,7 @@ export async function loadConsoleData({
   const countMetric = async (
     key: string,
     label: string,
-    collection: 'projects' | 'properties',
+    collection: 'projects' | 'properties' | 'listings',
     where: Where | null,
     emphasis?: boolean,
   ): Promise<ConsoleMetric> => {
@@ -94,10 +96,11 @@ export async function loadConsoleData({
   };
 
   const buildGroup = async (
-    collection: 'projects' | 'properties',
+    collection: 'projects' | 'properties' | 'listings',
     title: string,
     statuses: { label: string; value: string }[],
     publicStatuses: readonly string[],
+    extra: Promise<ConsoleMetric>[] = [],
   ): Promise<MetricGroup> => {
     const metrics = await Promise.all([
       countMetric(`${collection}-total`, 'Total', collection, null, true),
@@ -108,6 +111,7 @@ export async function loadConsoleData({
         { status: { in: [...publicStatuses] } },
         true,
       ),
+      ...extra,
       ...statuses.map((status) =>
         countMetric(`${collection}-${status.value}`, status.label, collection, {
           status: { equals: status.value },
@@ -143,21 +147,46 @@ export async function loadConsoleData({
     };
   };
 
+  // Tenancies are tracked through `isTenanted`, not `status`: a property can be
+  // for sale (status Available) while a tenant is in place, and its renewal
+  // must not disappear from the list because of that.
   const rentedWithEndDate: Where = {
-    and: [{ status: { equals: 'rented' } }, { currentAgreementEndDate: { exists: true } }],
+    and: [{ isTenanted: { equals: true } }, { currentAgreementEndDate: { exists: true } }],
   };
 
   const [
     propertyGroup,
+    listingGroup,
     projectGroup,
     library,
     checkCounts,
     recentPropertyDocs,
+    recentListingDocs,
     recentProjectDocs,
     renewalDocs,
     renewalsCount,
   ] = await Promise.all([
+    // Properties are counted once however many listings they have; "Live on
+    // site" means at least one live listing (the property's roll-up status).
     buildGroup('properties', 'Properties', propertyStatuses, PUBLIC_STATUSES),
+    // Listings count individual transactions. The live sale / rent / lease split
+    // is the question this group exists to answer.
+    buildGroup(
+      'listings',
+      'Listings',
+      listingStatuses,
+      PUBLIC_LISTING_STATUSES,
+      TRANSACTION_TYPES.map((type) =>
+        countMetric(
+          `listings-live-${type}`,
+          `Live · ${TRANSACTION_TYPE_LABELS[type]}`,
+          'listings',
+          {
+            and: [{ status: { in: [...PUBLIC_LISTING_STATUSES] } }, { transactionType: { equals: type } }],
+          },
+        ),
+      ),
+    ),
     buildGroup('projects', 'Projects', projectStatuses, PUBLIC_PROJECT_STATUSES),
     Promise.all([
       libraryMetric('inquiries-new', 'New enquiries', 'contact-inquiries', { status: { equals: 'new' } }),
@@ -187,6 +216,14 @@ export async function loadConsoleData({
       depth: 0,
       limit: RECENT_LIMIT,
       select: { location: true, propertyId: true, status: true, title: true, updatedAt: true },
+      sort: '-updatedAt',
+      ...queryArgs,
+    }),
+    payload.find({
+      collection: 'listings',
+      depth: 1,
+      limit: RECENT_LIMIT,
+      select: { listingId: true, property: true, status: true, transactionType: true, updatedAt: true },
       sort: '-updatedAt',
       ...queryArgs,
     }),
@@ -225,6 +262,22 @@ export async function loadConsoleData({
     title: doc.title || '(untitled)',
     updatedAt: doc.updatedAt,
   }));
+
+  const recentListings: RecentRecord[] = recentListingDocs.docs.map((doc) => {
+    const property = typeof doc.property === 'object' && doc.property ? doc.property : null;
+    const type = TRANSACTION_TYPES.find((candidate) => candidate === doc.transactionType);
+
+    return {
+      href: documentUrl(adminRoute, 'listings', doc.id),
+      id: doc.id,
+      location: property ? `${property.propertyId ?? '—'} · ${property.title ?? ''}`.trim() : '—',
+      rerId: doc.listingId || '—',
+      status: doc.status || '',
+      statusLabel: labelForValue(listingStatuses, doc.status || ''),
+      title: type ? `${TRANSACTION_TYPE_LABELS[type]} listing` : 'Listing',
+      updatedAt: doc.updatedAt,
+    };
+  });
 
   const recentProjects: RecentRecord[] = recentProjectDocs.docs.map((doc) => ({
     href: documentUrl(adminRoute, 'projects', doc.id),
@@ -287,7 +340,18 @@ export async function loadConsoleData({
           },
         ]
       : []),
+    ...(canCreate(permissions, 'listings')
+      ? [
+          {
+            href: collectionCreateUrl(adminRoute, 'listings'),
+            key: 'add-listing',
+            label: 'Add listing',
+            primary: true,
+          },
+        ]
+      : []),
     { href: collectionListUrl(adminRoute, 'properties'), key: 'view-properties', label: 'All properties' },
+    { href: collectionListUrl(adminRoute, 'listings'), key: 'view-listings', label: 'All listings' },
     { href: collectionListUrl(adminRoute, 'projects'), key: 'view-projects', label: 'All projects' },
     { href: collectionListUrl(adminRoute, 'media'), key: 'media', label: 'Media library' },
     // The only import path that exists inside the admin. Bulk property import
@@ -314,15 +378,16 @@ export async function loadConsoleData({
     attention: checkCounts.filter((issue) => issue.count > 0),
     clearChecks: checkCounts.filter((issue) => issue.count === 0),
     collectionGroups,
-    groups: [propertyGroup, projectGroup],
+    groups: [propertyGroup, listingGroup, projectGroup],
     library,
     quickActions,
+    recentListings,
     recentProjects,
     recentProperties,
     renewals,
     renewalsHref: collectionListUrl(adminRoute, 'properties', {
       sort: 'currentAgreementEndDate',
-      where: { status: { equals: 'rented' } },
+      where: { isTenanted: { equals: true } },
     }),
     renewalsTotal: renewalsCount.totalDocs,
   };

@@ -1,6 +1,10 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import PropertyDetail from "../../../../components/properties/PropertyDetail";
-import { getPropertyBySlug, getSimilarProperties } from "../../../../lib/properties";
+import {
+  getPropertyBySlug,
+  getSimilarProperties,
+  resolvePropertySlugToListing,
+} from "../../../../lib/properties";
 import { toAbsoluteSiteUrl } from "../../../../lib/mediaUrl";
 import { propertySeoTitle } from "../../../../lib/seo/titles";
 import { DEFAULT_OG_IMAGE } from "../../../../lib/seo/ogImage";
@@ -168,9 +172,19 @@ function breadcrumbJsonLd(property, canonicalUrl) {
 
 export default async function PropertyPage({ params }) {
   const { slug } = await params;
-  const property = await getPropertyBySlug(typeof slug === "string" ? slug : "");
+  const requestedSlug = typeof slug === "string" ? slug : "";
+  const property = await getPropertyBySlug(requestedSlug);
 
   if (!property) {
+    // The slug may be a property's own master slug that no listing uses (after
+    // the property slug was rebuilt). Send it to that property's leading public
+    // listing — temporarily (307), because which listing leads can change. A
+    // closed listing's own URL, and anything else, is a genuine 404.
+    const listingSlug = await resolvePropertySlugToListing(requestedSlug);
+    if (listingSlug && listingSlug !== requestedSlug) {
+      redirect(`/properties/${listingSlug}`);
+    }
+
     notFound();
   }
 

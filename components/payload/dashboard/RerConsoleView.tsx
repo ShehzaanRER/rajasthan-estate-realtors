@@ -91,6 +91,14 @@ export async function RerConsoleView({ navGroups, payload, permissions, user }: 
           title="Recently updated properties"
         />
         <ConsoleRecent
+          action={{ href: collectionListUrl(adminRoute, 'listings'), label: 'All listings' }}
+          records={data.recentListings}
+          title="Recently updated listings"
+        />
+      </div>
+
+      <div className="rer-console__split">
+        <ConsoleRecent
           action={{ href: collectionListUrl(adminRoute, 'projects'), label: 'All projects' }}
           records={data.recentProjects}
           title="Recently updated projects"

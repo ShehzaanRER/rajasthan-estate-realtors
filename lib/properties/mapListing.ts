@@ -2,12 +2,19 @@ import { convertLexicalToHTML } from '@payloadcms/richtext-lexical/html';
 import { convertLexicalToPlaintext } from '@payloadcms/richtext-lexical/plaintext';
 import { CATEGORY_LABELS } from '../nearby-locations/categories';
 import type { ConnectionCategory } from '../nearby-locations/types';
-import type { Amenity, Media, Property } from '../../payload-types';
+import type { Amenity, Listing, Media, Property } from '../../payload-types';
+import { isListingLevelTag } from '../listings/vocabulary';
 import { toDeliveryImage } from '../mediaUrl';
 import { formatAreaDisplay, formatLocationDisplay, mapPublicLocation } from './formatLocation';
 import { formatInrDisplay, mapPricing } from './formatPrice';
 import { isPublicStatus } from './publicScope';
-import type { PublicAmenity, PublicConnection, PublicImage, PublicProperty } from './types';
+import type {
+  PublicAmenity,
+  PublicConnection,
+  PublicImage,
+  PublicListingLink,
+  PublicProperty,
+} from './types';
 
 const PROPERTY_TYPE_LABELS: Record<Property['propertyType'], string> = {
   apartment: 'Apartment',
@@ -21,13 +28,13 @@ const PROPERTY_TYPE_LABELS: Record<Property['propertyType'], string> = {
   other: 'Other',
 };
 
-const PURPOSE_LABELS: Record<Property['purpose'], string> = {
+const PURPOSE_LABELS: Record<Listing['transactionType'], string> = {
   sale: 'Sale',
   rent: 'Rent',
   lease: 'Lease',
 };
 
-const PURPOSE_BADGE_FALLBACK: Record<Property['purpose'], string> = {
+const PURPOSE_BADGE_FALLBACK: Record<Listing['transactionType'], string> = {
   sale: 'For Sale',
   rent: 'For Rent',
   lease: 'For Lease',
@@ -347,7 +354,7 @@ function buildDetailsRows(doc: Property, options: {
   return rows;
 }
 
-function resolveBadge(tags: NonNullable<Property['tags']>, purpose: Property['purpose']): string {
+function resolveBadge(tags: PublicProperty['tags'], purpose: Listing['transactionType']): string {
   for (const tag of BADGE_TAG_ORDER) {
     if (tags.includes(tag)) {
       return BADGE_TAG_LABELS[tag];
@@ -357,20 +364,68 @@ function resolveBadge(tags: NonNullable<Property['tags']>, purpose: Property['pu
   return PURPOSE_BADGE_FALLBACK[purpose];
 }
 
-export function mapProperty(doc: Property | null | undefined): PublicProperty | null {
-  if (!doc) {
+/** Label for a sibling-listing link ("Rent"), shared with the data layer. */
+export function purposeLabelFor(purpose: Listing['transactionType']): string {
+  return PURPOSE_LABELS[purpose];
+}
+
+/**
+ * Turns a populated sibling listing into the link shown beside the main one.
+ * Returns null for anything that is not a public, fully identified listing.
+ */
+export function mapListingLink(listing: Listing | null | undefined): PublicListingLink | null {
+  if (!listing || !isPublicStatus(listing.status)) {
     return null;
   }
 
+  const listingId = listing.listingId?.trim();
+  const slug = listing.slug?.trim();
+  if (!listingId || !slug) {
+    return null;
+  }
+
+  return {
+    listingId,
+    slug,
+    purpose: listing.transactionType,
+    purposeLabel: PURPOSE_LABELS[listing.transactionType],
+    displayPrice: mapPricing(listing.transactionType, listing.pricing).displayPrice,
+  };
+}
+
+/**
+ * The only place a CMS Listing (with its parent Property populated) becomes
+ * what the public site renders.
+ *
+ * Shared, physical facts — address, specifications, photographs, amenities —
+ * come from the property; the transaction — type, price, terms, status, URL,
+ * marketing tags — comes from the listing. A listing whose property is not
+ * populated (a bare id means the property was not readable to this visitor) or
+ * that is not public maps to null, so nothing half-visible can reach a page.
+ */
+export function mapListing(
+  listing: Listing | null | undefined,
+  options: { otherListings?: PublicListingLink[] } = {},
+): PublicProperty | null {
+  if (!listing) {
+    return null;
+  }
+
+  const doc = listing.property;
+  if (!doc || typeof doc !== 'object') {
+    return null;
+  }
+
+  const listingId = listing.listingId?.trim();
   const propertyId = doc.propertyId?.trim();
-  const slug = doc.slug?.trim();
+  const slug = listing.slug?.trim();
   const title = doc.title?.trim();
 
-  if (!propertyId || !slug || !title) {
+  if (!listingId || !propertyId || !slug || !title) {
     return null;
   }
 
-  if (!isPublicStatus(doc.status)) {
+  if (!isPublicStatus(listing.status)) {
     return null;
   }
 
@@ -379,8 +434,12 @@ export function mapProperty(doc: Property | null | undefined): PublicProperty | 
     return null;
   }
 
-  const tags = doc.tags ?? [];
-  const pricing = mapPricing(doc.purpose, doc.pricing);
+  const purpose = listing.transactionType;
+  // Listing tags drive the badge and "featured"; only the property-level tags
+  // that describe the unit itself are carried over, so a legacy `featured` left
+  // on the property never features a listing it was not set on.
+  const tags = [...(listing.tags ?? []), ...(doc.tags ?? []).filter((tag) => !isListingLevelTag(tag))];
+  const pricing = mapPricing(purpose, listing.pricing);
   const amenities = mapAmenities(doc.amenities);
   const description = mapDescription(doc.description);
   // Carpet Area is the precise, preferred figure; Built-up Area is the
@@ -397,12 +456,14 @@ export function mapProperty(doc: Property | null | undefined): PublicProperty | 
 
   return {
     propertyId,
+    listingId,
+    otherListings: (options.otherListings ?? []).filter((other) => other.listingId !== listingId),
     slug,
     title,
     descriptionHtml: description.html,
     descriptionText: description.text,
-    purpose: doc.purpose,
-    purposeLabel: PURPOSE_LABELS[doc.purpose],
+    purpose,
+    purposeLabel: PURPOSE_LABELS[purpose],
     category,
     categoryLabel,
     propertyType: doc.propertyType,
@@ -430,9 +491,9 @@ export function mapProperty(doc: Property | null | undefined): PublicProperty | 
     amenities,
     amenityNames: amenities.map((amenity) => amenity.name),
     images: mapImages(doc.media),
-    badge: resolveBadge(tags, doc.purpose),
-    status: doc.status,
-    statusLabel: STATUS_LABELS[doc.status],
+    badge: resolveBadge(tags, purpose),
+    status: listing.status,
+    statusLabel: STATUS_LABELS[listing.status],
     tags,
     featured: tags.includes('featured'),
     nearbyConnectivity: mapNearbyConnectivity(doc),

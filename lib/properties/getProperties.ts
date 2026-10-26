@@ -1,95 +1,32 @@
-import type { Where } from 'payload';
-import type { Property } from '../../payload-types';
+import type { Listing } from '../../payload-types';
 import { getPayloadClient } from '../payload';
-import { mapProperty } from './mapProperty';
+import { onePerProperty } from '../listings/publicSelection';
+import { MAX_LISTINGS_PER_PROPERTY, findPublicListings, toPublicProperties } from './getPublicListings';
+import { publicListingsWhere, type GetPropertiesOptions } from './listingsWhere';
 import { publicStatusWhere } from './publicScope';
 import { slugifyLocality } from './filterParams';
 import type { PublicProperty } from './types';
 
-const PUBLIC_PROPERTY_DEPTH = 2;
 const PUBLIC_PROPERTY_LIMIT = 100;
 
-export type GetPropertiesOptions = {
-  purpose?: Property['purpose'];
-  category?: NonNullable<Property['propertyCategory']>;
-  /** Exact CMS locality value, e.g. "Andheri West". */
-  locality?: string;
-  bhk?: number;
-  minPrice?: number | null;
-  maxPrice?: number | null;
-};
-
 /**
- * Sale, rent and lease each store their amount in a different field, so a
- * budget can only be applied once the purpose is known. Filtering the wrong
- * field would silently exclude everything.
+ * Public search. Returns one entry per PHYSICAL PROPERTY:
+ *
+ *  - a Buy search returns eligible sale listings, a Rent search eligible rental
+ *    listings, each with its own price and terms;
+ *  - a property with both appears in both searches;
+ *  - an unfiltered search returns it once (as its Sale listing) with the rental
+ *    listed under `otherListings`, rather than as two cards.
  */
-function priceFieldFor(purpose: Property['purpose'] | undefined): string | null {
-  if (purpose === 'sale') {
-    return 'pricing.price';
-  }
-
-  if (purpose === 'rent') {
-    return 'pricing.rentAmount';
-  }
-
-  if (purpose === 'lease') {
-    return 'pricing.monthlyLeasePayment';
-  }
-
-  return null;
-}
-
-function publicPropertiesWhere(options: GetPropertiesOptions): Where {
-  const { purpose, category, locality, bhk, minPrice, maxPrice } = options;
-  const clauses: Where[] = [publicStatusWhere()];
-
-  if (purpose) {
-    clauses.push({ purpose: { equals: purpose } });
-  }
-
-  if (category) {
-    clauses.push({ propertyCategory: { equals: category } });
-  }
-
-  if (locality) {
-    clauses.push({ 'location.locality': { equals: locality } });
-  }
-
-  if (typeof bhk === 'number') {
-    clauses.push({ 'details.bedrooms': { equals: bhk } });
-  }
-
-  const priceField = priceFieldFor(purpose);
-  if (priceField) {
-    if (typeof minPrice === 'number') {
-      clauses.push({ [priceField]: { greater_than_equal: minPrice } });
-    }
-
-    if (typeof maxPrice === 'number') {
-      clauses.push({ [priceField]: { less_than: maxPrice } });
-    }
-  }
-
-  return clauses.length === 1 ? clauses[0] : { and: clauses };
-}
-
 export async function getProperties(
   options: GetPropertiesOptions = {},
 ): Promise<PublicProperty[]> {
-  const payload = await getPayloadClient();
-  const result = await payload.find({
-    collection: 'properties',
-    where: publicPropertiesWhere(options),
-    depth: PUBLIC_PROPERTY_DEPTH,
-    limit: PUBLIC_PROPERTY_LIMIT,
-    overrideAccess: false,
-    sort: '-updatedAt',
+  const listings = await findPublicListings({
+    where: publicListingsWhere(options),
+    limit: PUBLIC_PROPERTY_LIMIT * MAX_LISTINGS_PER_PROPERTY,
   });
 
-  return result.docs
-    .map((doc) => mapProperty(doc as Property))
-    .filter((property): property is PublicProperty => property !== null);
+  return toPublicProperties(listings, PUBLIC_PROPERTY_LIMIT);
 }
 
 export type LocalityOption = {
@@ -100,24 +37,33 @@ export type LocalityOption = {
 
 /**
  * Locality options come from the inventory that is actually published, so the
- * filter can never offer a place with nothing behind it.
+ * filter can never offer a place with nothing behind it. `count` is the number
+ * of distinct properties — a flat for sale and for rent is one property.
  */
 export async function getPropertyLocalities(
   options: Pick<GetPropertiesOptions, 'purpose' | 'category'> = {},
 ): Promise<LocalityOption[]> {
   const payload = await getPayloadClient();
   const result = await payload.find({
-    collection: 'properties',
-    where: publicPropertiesWhere(options),
-    depth: 0,
-    limit: PUBLIC_PROPERTY_LIMIT,
+    collection: 'listings',
+    where: publicListingsWhere(options),
+    depth: 1,
+    limit: PUBLIC_PROPERTY_LIMIT * MAX_LISTINGS_PER_PROPERTY,
     overrideAccess: false,
+    select: { property: true, transactionType: true },
   });
+
+  const properties = onePerProperty(
+    result.docs as Listing[],
+    (listing) => (typeof listing.property === 'object' && listing.property ? listing.property.id : null),
+    (listing) => listing.transactionType,
+  );
 
   const byValue = new Map<string, LocalityOption>();
 
-  for (const doc of result.docs as Property[]) {
-    const label = doc.location?.locality?.trim();
+  for (const listing of properties) {
+    const property = typeof listing.property === 'object' ? listing.property : null;
+    const label = property?.location?.locality?.trim();
     if (!label) {
       continue;
     }

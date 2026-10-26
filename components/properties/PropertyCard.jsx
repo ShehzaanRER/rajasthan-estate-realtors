@@ -14,6 +14,12 @@ function highlightTag(tags = []) {
   return match ? match[1] : null;
 }
 
+const ALSO_LABELS = {
+  sale: "for sale",
+  rent: "for rent",
+  lease: "for lease",
+};
+
 /**
  * A property card answers "what is this exact unit, and what does it cost".
  * Price and location lead; the title supports them rather than repeating them.
@@ -114,6 +120,26 @@ function PropertyCard({ property, sizes, priority = false }) {
         <p className="text-lg font-semibold leading-none text-[#081221] @2xs:text-2xl">
           {displayPrice}
         </p>
+
+        {/* A property with another live transaction (a flat for sale AND for
+            rent) is one card, not two: the sibling listing is a quiet link
+            under the price instead of a duplicate result. */}
+        {property.otherListings?.length > 0 ? (
+          <p className="mt-1.5 text-[11px] leading-4 text-slate-500 @2xs:text-xs">
+            {property.otherListings.map((other, index) => (
+              <span key={other.listingId}>
+                {index > 0 ? " · " : null}
+                <Link
+                  href={`/properties/${other.slug}`}
+                  className="font-medium text-rer-gold-text underline-offset-2 hover:underline"
+                >
+                  Also {ALSO_LABELS[other.purpose] ?? other.purposeLabel.toLowerCase()}
+                </Link>{" "}
+                {other.displayPrice}
+              </span>
+            ))}
+          </p>
+        ) : null}
 
         {/* Clamped so one long locality cannot make a card taller than the one
             beside it in the two-up grid. */}

@@ -1,14 +1,22 @@
 import { getPayloadClient } from '../lib/payload';
-import { mapProperty } from '../lib/properties/mapProperty';
+import { mapListing } from '../lib/properties/mapListing';
 
+/**
+ * Debug helper: shows the raw media of one public listing's property and what
+ * the public mapper turns it into. The public site reads LISTINGS (a listing's
+ * slug is the public URL), with the physical property — and its media —
+ * populated, so that is what this inspects. Pass the slug as the first argument
+ * (defaults to the original `New1` test record).
+ */
 async function main() {
+  const slug = process.argv[2] ?? 'New1';
   const payload = await getPayloadClient();
 
   const result = await payload.find({
-    collection: 'properties',
+    collection: 'listings',
     where: {
       slug: {
-        equals: 'New1',
+        equals: slug,
       },
     },
     depth: 2,
@@ -19,24 +27,27 @@ async function main() {
   const doc = result.docs[0];
 
   if (!doc) {
-    console.log('Property not found');
+    console.log(`Listing not found (or not public): ${slug}`);
     return;
   }
+
+  const property = typeof doc.property === 'object' ? doc.property : null;
 
   console.log('\n========== RAW PROPERTY MEDIA (PUBLIC ACCESS) ==========\n');
 
   console.dir(
     {
       slug: doc.slug,
-      title: doc.title,
-      media: doc.media,
+      listingId: doc.listingId,
+      title: property?.title,
+      media: property?.media,
     },
     { depth: null }
   );
 
   console.log('\n========== MAPPED IMAGES (PUBLIC ACCESS) ==========\n');
 
-  const mapped = mapProperty(doc);
+  const mapped = mapListing(doc);
 
   console.dir(mapped?.images ?? null, { depth: null });
 

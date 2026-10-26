@@ -1,4 +1,4 @@
-import type { Property } from '../../payload-types';
+import type { Listing } from '../../payload-types';
 import type { PublicPricing } from './types';
 
 const PRICE_ON_REQUEST = 'Price on request';
@@ -80,8 +80,8 @@ function asPositiveNumber(value: number | null | undefined): number | null {
 }
 
 export function mapPricing(
-  purpose: Property['purpose'],
-  pricing: Property['pricing'] | null | undefined,
+  purpose: Listing['transactionType'],
+  pricing: Listing['pricing'] | null | undefined,
 ): PublicPricing {
   const priceOnRequest = pricing?.priceOnRequest === true;
   const rentPeriod = pricing?.rentPeriod ?? (purpose === 'rent' ? 'monthly' : null);

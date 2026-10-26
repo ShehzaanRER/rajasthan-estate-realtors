@@ -9,7 +9,7 @@ route file and passed down as props.
 | --- | --- | --- |
 | `/` | `page.jsx` | `getPropertyLocalities()`, `getFeaturedProperties({ limit: 3 })`, `getProjects({ isNew: true, limit: 3 })`, `getChannelPartners()` |
 | `/properties` | `properties/page.jsx` | `getProperties(filters)` + `getPropertyLocalities(scope)` + `resolveLocalitySlug()` |
-| `/properties/[slug]` | `properties/[slug]/page.jsx` | `getPropertyBySlug(slug)` + `getSimilarProperties()` |
+| `/properties/[slug]` | `properties/[slug]/page.jsx` | `getPropertyBySlug(slug)` (the slug names a **listing**) + `getSimilarProperties()`; a slug no listing uses but that is a property's own slug 307-redirects via `resolvePropertySlugToListing()` |
 | `/projects` | `projects/page.jsx` | `getProjects(filters)` |
 | `/projects/[slug]` | `projects/[slug]/page.jsx` | `getProjectBySlug(slug)` + `getRelatedProjects(project)` |
 | `/about` | `about/page.jsx` | Static content + `lib/siteConfig` |
@@ -75,21 +75,37 @@ never offers a place with nothing behind it.
 
 Visibility is decided in the query layer, not by hiding cards in the UI.
 
-**Properties** are public only when `status` is `available` or `under-offer`
-(`PUBLIC_STATUSES` in `lib/properties/publicScope.ts`). Therefore a `draft`,
-`sold` or **`rented`** property:
+**Listings** are public only when their own `status` is `available` or
+`under-offer` (`PUBLIC_STATUSES` in `lib/properties/publicScope.ts`), and only
+through a readable parent property. A property can have a live Sale listing and a
+closed Rent listing at once: the sale is public, the rental is not, and closing one
+never changes the other. A listing that is `draft`, `sold`, `withdrawn` or
+**`rented`**:
 
 - remains in Payload, fully intact, for staff;
 - is excluded from `/properties` and from every public feed
   (`getProperties`, `getFeaturedProperties`, `getSimilarProperties`);
 - does not render through its public slug — `getPropertyBySlug()` applies
   `publicSlugWhere()` and returns `null`, and the route calls `notFound()`, so
-  `/properties/<slug>` is a genuine 404;
-- does not appear in `/sitemap.xml`, which is built from `getProperties()`.
+  `/properties/<slug>` is a genuine 404 — also when that slug is shared with its
+  property, so a closed rental's URL is never silently redirected to the flat's
+  sale page (only a property slug that **no** listing uses redirects, with a
+  temporary 307, because the leading listing can change);
+- does not appear in `/sitemap.xml`, which lists public listings.
 
-This is enforced twice over: the collection's own `read` access already
+**One URL per listing, one card per property.** A flat for sale and for rent has
+two URLs (`/properties/<slug>` and `/properties/<slug>-rent`), each self-canonical
+with its own price and JSON-LD offer. Buy lists the sale, Rent the rental. An
+unfiltered `/properties` shows the property once (as its Sale listing) with an
+"Also for rent ₹…" link; the detail page carries the same "Also available" links.
+The first listing of every pre-existing property kept the property's slug, so no
+published URL changed.
+
+This is enforced twice over: the `listings` collection's own `read` access
 constrains unauthenticated reads to `PUBLIC_STATUSES`, and every public query
-additionally passes `publicStatusWhere()` with `overrideAccess: false`.
+additionally passes `publicStatusWhere()` with `overrideAccess: false`. The parent
+property must also be readable (its roll-up `status` is public while any listing
+is), otherwise the listing is not mapped.
 
 The internal `rentDetails` group is separately protected by field-level read
 access (signed-in users only) and is not referenced anywhere under `app/`,

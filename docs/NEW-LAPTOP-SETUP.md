@@ -105,6 +105,8 @@ cp .env.example .env
 | `S3_SECRET_ACCESS_KEY` | `payload.config.ts` | **yes** | server | Same. Shown once at creation; regenerate if lost |
 | `NEXT_PUBLIC_SITE_URL` | `next.config.mjs`, `lib/siteConfig.ts` | **yes for `npm run build`** | public | `http://localhost:3000` locally; `https://rajasthanestaterealtors.in` in production |
 | `GOOGLE_MAPS_API_KEY` | admin Nearby Search endpoint | for that feature | server | Google Cloud Console → Places API (New). **See the security note below** |
+| `RER_ALLOW_LIVE_SCHEMA_PUSH` | `payload.config.ts` | **no — never in `.env`** | server | Unset. `next dev` does not push the schema to a non-local database; set `=true` on one command line only for a reviewed schema step (`docs/LISTINGS-ROLLOUT.md`) |
+| `RER_CONFIRM_DATABASE_HOST` | `scripts/migrate-property-listings.ts` | only when applying that migration to a remote DB | shell only | The host part of `DATABASE_URL`, typed deliberately |
 | `NEXT_PUBLIC_ANALYTICS_SRC` | `components/Analytics.jsx` | no | public | Intentionally blank — keeps the site cookie-banner-free |
 | `NEXT_PUBLIC_ANALYTICS_DOMAIN` | `components/Analytics.jsx` | no | public | Intentionally blank |
 | `VITE_GOOGLE_API_KEY`, `VITE_GOOGLE_PLACE_ID` | nothing | **no** | — | Dead. Leftovers from the pre-Next Vite build; safe to omit |
@@ -124,6 +126,10 @@ Payload owns the schema and creates what it needs on boot. There are **no
 `migrations/` files** in this repo and no migrate script; the database already
 exists remotely with its schema in place. Do not run migrations against it
 looking for something to do.
+
+(The one exception is the listings change — it needs a data migration after the
+schema push; see `docs/LISTINGS-ROLLOUT.md`. Until it has been run, the public site
+shows no properties.)
 
 Start the app (Step 8) and confirm `/admin` lists your properties. That single
 check proves the connection string, the schema and the data all work.

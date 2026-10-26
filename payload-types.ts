@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     users: User;
     properties: Property;
+    listings: Listing;
     projects: Project;
     amenities: Amenity;
     'channel-partners': ChannelPartner;
@@ -82,6 +83,9 @@ export interface Config {
     'payload-migrations': PayloadMigration;
   };
   collectionsJoins: {
+    properties: {
+      listings: 'listings';
+    };
     'payload-folders': {
       documentsAndFolders: 'payload-folders' | 'media';
     };
@@ -89,6 +93,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     properties: PropertiesSelect<false> | PropertiesSelect<true>;
+    listings: ListingsSelect<false> | ListingsSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
     amenities: AmenitiesSelect<false> | AmenitiesSelect<true>;
     'channel-partners': ChannelPartnersSelect<false> | ChannelPartnersSelect<true>;
@@ -175,13 +180,17 @@ export interface Property {
    * Media folder auto-created for this property's permanent Property ID. System-managed — cannot be changed here.
    */
   mediaFolder?: (number | null) | FolderInterface;
+  /**
+   * Summary of this property's listings, set automatically: Available if any listing is live, otherwise the most advanced listing status. Change a listing's own status in the Listings tab.
+   */
   status: 'draft' | 'available' | 'under-offer' | 'sold' | 'rented';
+  isTenanted?: boolean | null;
   title: string;
   /**
    * Leave blank on a new property — generated automatically from BHK, property type, locality and the RER ID (e.g. 2-bhk-apartment-andheri-west-rer-00042). It is the public URL, so it is never rewritten by later edits. Use "Slug Update" to rebuild it from the current values — after duplicating a property, or after correcting its locality, BHK or type.
    */
   slug: string;
-  purpose: 'sale' | 'rent' | 'lease';
+  purpose?: ('sale' | 'rent' | 'lease') | null;
   propertyCategory?: ('residential' | 'commercial') | null;
   propertyType: 'apartment' | 'house' | 'villa' | 'office' | 'shop' | 'showroom' | 'warehouse' | 'land' | 'other';
   tags?:
@@ -212,6 +221,19 @@ export interface Property {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * Choose Sale or Rent to create this property's first listing in the same save. Leave it empty to add listings later from the Listings tab. A second listing (e.g. Rent as well as Sale) is always added from the Listings tab.
+   */
+  initialListing?: {
+    transactionType?: ('sale' | 'rent') | null;
+    status?: ('draft' | 'available') | null;
+    price?: number | null;
+    rentAmount?: number | null;
+    securityDeposit?: number | null;
+    maintenanceCharges?: number | null;
+    priceOnRequest?: boolean | null;
+    negotiable?: boolean | null;
+  };
   location: {
     locality: string;
     area?: string | null;
@@ -263,6 +285,11 @@ export interface Property {
           id?: string | null;
         }[]
       | null;
+  };
+  listings?: {
+    docs?: (number | Listing)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
   };
   pricing?: {
     currency?: 'INR' | null;
@@ -501,6 +528,72 @@ export interface Media {
       filename?: string | null;
     };
   };
+}
+/**
+ * One sale, rental or lease offered on a property. The property holds the address, specifications and photographs; each listing holds its own price, terms and status.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "listings".
+ */
+export interface Listing {
+  id: number;
+  /**
+   * Identifies this transaction only (RER-L-…). The property keeps its own permanent Property ID (RER-…).
+   */
+  listingId?: string | null;
+  /**
+   * Draft or Withdrawn = not on the website. Available / Under offer = live. Sold / Rented closes this listing only.
+   */
+  status: 'draft' | 'available' | 'under-offer' | 'sold' | 'rented' | 'withdrawn';
+  /**
+   * The physical property this listing is for. Fixed once the listing is saved. Add listings from the property's Listings tab to skip this step.
+   */
+  property: number | Property;
+  /**
+   * A property can have one active Sale, one active Rent and one active Lease listing at the same time.
+   */
+  transactionType: 'sale' | 'rent' | 'lease';
+  /**
+   * Generated on create. The first listing of a property uses the property's own slug, so existing links keep working; later listings add -sale / -rent / -lease. This is the public URL — it is never rewritten by later edits.
+   */
+  slug: string;
+  /**
+   * Marketing tags for this listing only. "Featured" on the rental does not feature the sale.
+   */
+  tags?: ('featured' | 'new' | 'premium' | 'price-reduced')[] | null;
+  pricing?: {
+    currency?: 'INR' | null;
+    price?: number | null;
+    priceOnRequest?: boolean | null;
+    negotiable?: boolean | null;
+    pricePerSqFt?: number | null;
+    additionalCharges?: number | null;
+    rentAmount?: number | null;
+    rentPeriod?: ('monthly' | 'quarterly' | 'yearly') | null;
+    /**
+     * Independent of any other listing on this property.
+     */
+    securityDeposit?: number | null;
+    maintenanceCharges?: number | null;
+    maintenanceIncluded?: boolean | null;
+    brokerageFee?: number | null;
+    totalLeaseAmount?: number | null;
+    monthlyLeasePayment?: number | null;
+    /**
+     * Separate from the price/rent above — a one-off or recurring charge for parking, when applicable.
+     */
+    parkingCharges?: number | null;
+  };
+  /**
+   * The RER team member handling enquiries and negotiation for this listing.
+   */
+  assignedAgent?: (number | null) | User;
+  /**
+   * Negotiation notes, owner instructions, migration remarks.
+   */
+  internalNotes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Master amenity library. Properties select from these reusable records; add new amenities here rather than duplicating them on each listing.
@@ -892,6 +985,10 @@ export interface PayloadLockedDocument {
         value: number | Property;
       } | null)
     | ({
+        relationTo: 'listings';
+        value: number | Listing;
+      } | null)
+    | ({
         relationTo: 'projects';
         value: number | Project;
       } | null)
@@ -992,6 +1089,7 @@ export interface PropertiesSelect<T extends boolean = true> {
   propertyId?: T;
   mediaFolder?: T;
   status?: T;
+  isTenanted?: T;
   title?: T;
   slug?: T;
   purpose?: T;
@@ -999,6 +1097,18 @@ export interface PropertiesSelect<T extends boolean = true> {
   propertyType?: T;
   tags?: T;
   description?: T;
+  initialListing?:
+    | T
+    | {
+        transactionType?: T;
+        status?: T;
+        price?: T;
+        rentAmount?: T;
+        securityDeposit?: T;
+        maintenanceCharges?: T;
+        priceOnRequest?: T;
+        negotiable?: T;
+      };
   location?:
     | T
     | {
@@ -1026,6 +1136,7 @@ export interface PropertiesSelect<T extends boolean = true> {
               id?: T;
             };
       };
+  listings?: T;
   pricing?:
     | T
     | {
@@ -1125,6 +1236,41 @@ export interface PropertiesSelect<T extends boolean = true> {
         openToSelling?: T;
         renewalCalledOn?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "listings_select".
+ */
+export interface ListingsSelect<T extends boolean = true> {
+  listingId?: T;
+  status?: T;
+  property?: T;
+  transactionType?: T;
+  slug?: T;
+  tags?: T;
+  pricing?:
+    | T
+    | {
+        currency?: T;
+        price?: T;
+        priceOnRequest?: T;
+        negotiable?: T;
+        pricePerSqFt?: T;
+        additionalCharges?: T;
+        rentAmount?: T;
+        rentPeriod?: T;
+        securityDeposit?: T;
+        maintenanceCharges?: T;
+        maintenanceIncluded?: T;
+        brokerageFee?: T;
+        totalLeaseAmount?: T;
+        monthlyLeasePayment?: T;
+        parkingCharges?: T;
+      };
+  assignedAgent?: T;
+  internalNotes?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -1,6 +1,4 @@
-import type { Property } from '../../payload-types';
-import { getPayloadClient } from '../payload';
-import { mapProperty } from './mapProperty';
+import { findPublicListings, MAX_LISTINGS_PER_PROPERTY, toPublicProperties } from './getPublicListings';
 import { publicFeaturedWhere } from './publicScope';
 import type { PublicProperty } from './types';
 
@@ -10,20 +8,19 @@ export type GetFeaturedPropertiesOptions = {
   limit?: number;
 };
 
+/**
+ * Featured is a listing-level tag, so a property whose rental is featured and
+ * whose sale is not appears here as the rental. A property with both featured
+ * appears once.
+ */
 export async function getFeaturedProperties(
   options: GetFeaturedPropertiesOptions = {},
 ): Promise<PublicProperty[]> {
-  const payload = await getPayloadClient();
-  const result = await payload.find({
-    collection: 'properties',
+  const limit = options.limit ?? DEFAULT_FEATURED_LIMIT;
+  const listings = await findPublicListings({
     where: publicFeaturedWhere(),
-    depth: 2,
-    limit: options.limit ?? DEFAULT_FEATURED_LIMIT,
-    overrideAccess: false,
-    sort: '-updatedAt',
+    limit: limit * MAX_LISTINGS_PER_PROPERTY,
   });
 
-  return result.docs
-    .map((doc) => mapProperty(doc as Property))
-    .filter((property): property is PublicProperty => property !== null);
+  return toPublicProperties(listings, limit);
 }

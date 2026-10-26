@@ -3,6 +3,63 @@
 Significant changes only, newest first. Keep entries short — a few lines and
 the files that matter. Architectural reasoning belongs in `DECISIONS.md`.
 
+## 2026-10-24 — Listings hardening (pre-rollout verification)
+
+- **Database guard:** partial unique index `listings_one_active_per_type_idx`
+  (`collections/hooks/listingIndexSchema.ts`), per-property advisory lock
+  (`listingLock.ts`), readable REST error (`listingErrors.ts`).
+- **One-save create:** create-only virtual "First listing (optional)" group on
+  Properties (`collections/hooks/initialListing.ts`), transactional.
+- **Fixes found in verification:** closed listing URL now 404 (was a cached 308 to
+  the sibling sale), property-slug fallback is a 307; roll-up context flag no
+  longer leaks across a shared request; virtual group was read-only in the admin;
+  migration warning for rent-with-only-sale-price no longer also claims "price on
+  request"; delete-guard message no longer suggests withdrawing helps; sidebar
+  spacing.
+- **Safety:** dev schema push disabled for non-local databases unless
+  `RER_ALLOW_LIVE_SCHEMA_PUSH=true` (`lib/databaseSafety.ts`); migration APPLY
+  needs `RER_CONFIRM_DATABASE_HOST`; `scripts/preview-schema-push.ts` can write the
+  full SQL.
+- **Rollout:** `docs/LISTINGS-ROLLOUT.md` rewritten (backup + restore check,
+  reviewed SQL, verification SQL, order, rollback levels); new
+  `docs/listings-schema.sql`, `listings-schema-undo.sql`,
+  `listings-verify-baseline.sql`, `listings-verify-after.sql`.
+- **Tests:** unit 93, real-PostgreSQL 29 (incl. direct-SQL duplicate rejection,
+  concurrent creates, one-save create and rollback, permissions).
+
+## 2026-10-23 — One property, many listings
+
+**Added** the `listings` collection (admin › Listings): one sale, rental or lease
+of a property, with its own ID (`RER-L-00001`), status, price and terms, URL, tags
+and agent. A property can now be for sale and for rent at once without duplicating
+its address, photos or owner. Properties are counted once; the console gained a
+Listings group (live Sale / Rent / Lease).
+
+- **Model:** `collections/Listings.ts`, `collections/hooks/{assignListingId,
+  assignListingSlug,validateListing,syncPropertyRollup,protectPropertyWithListings,
+  listingRelations}.ts`, `lib/listings/*` (vocabulary, rules, roll-up, slug, legacy
+  planner, public selection, summaries). `Properties`: `purpose`/`pricing` now
+  hidden legacy fields, `status` a read-only roll-up, new `isTenanted`, a Listings
+  tab (`join`), listings sidebar block + list column. New sequence
+  `rer_listing_id_seq`, declared in `idSequenceSchema.ts`.
+- **Public site:** `lib/properties/*` now query listings (`mapProperty` ->
+  `mapListing`, new `listingsWhere.ts`, `getPublicListings.ts`); one card per
+  property with "Also for rent"; detail pages show "Also available"; a property's
+  own slug 308-redirects to its leading listing; sitemap lists listings. Existing
+  URLs unchanged (first listing keeps the property slug).
+- **Admin console:** Listings group and recent listings; price check moved to
+  listings; renewals and tenancy checks use `isTenanted`.
+- **Migration:** `scripts/migrate-property-listings.ts` (dry run by default,
+  `LISTING_MIGRATE_APPLY=1` to write). Expand-only and idempotent. The CSV importer
+  and `seed-test-inventory.ts` create the implied listing.
+- **Schema:** additive push (29 statements, `hasDataLoss: false`) — **not yet
+  applied to the live database.** Production order and AppSheet notes:
+  `docs/LISTINGS-ROLLOUT.md`.
+- **Tests:** `tests/listings.test.ts` (77, no database) and
+  `tests/listings.integration.test.ts` (20, real PostgreSQL, opt-in via
+  `RER_LISTINGS_TEST_DATABASE_URL`). `npm test` runs the first.
+- `payload-types.ts` and `app/(payload)/admin/importMap.js` regenerated.
+
 ## 2026-10-21 — Website Banners managed in Payload
 
 **Added** the `website-banners` collection (admin › Website) and moved every

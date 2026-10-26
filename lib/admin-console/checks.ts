@@ -31,31 +31,6 @@ const PROPERTY_CHECKS: AttentionCheck[] = [
     where: { 'media.featuredImage': { exists: false } },
   },
   {
-    /**
-     * Purpose-aware, because the amount lives in a different field per
-     * transaction type — the same mapping `getProperties()` uses for budget
-     * filtering (sale → price, rent → rentAmount, lease → monthlyLeasePayment).
-     * A property explicitly marked Price on Request is not a gap.
-     */
-    key: 'property-price',
-    collection: 'properties',
-    label: 'Properties with no price for their transaction type',
-    detail: 'Sale needs Price, Rent needs Rent Amount, Lease needs Monthly Lease Payment.',
-    severity: 'high',
-    where: {
-      and: [
-        { 'pricing.priceOnRequest': { not_equals: true } },
-        {
-          or: [
-            { and: [{ purpose: { equals: 'sale' } }, { 'pricing.price': { exists: false } }] },
-            { and: [{ purpose: { equals: 'rent' } }, { 'pricing.rentAmount': { exists: false } }] },
-            { and: [{ purpose: { equals: 'lease' } }, { 'pricing.monthlyLeasePayment': { exists: false } }] },
-          ],
-        },
-      ],
-    },
-  },
-  {
     key: 'property-owner-contact',
     collection: 'properties',
     label: 'Properties missing an owner contact number',
@@ -67,10 +42,10 @@ const PROPERTY_CHECKS: AttentionCheck[] = [
     key: 'property-rented-no-history',
     collection: 'properties',
     label: 'Rented properties with no tenancy recorded',
-    detail: 'Status says rented, but there is no Tenancy History entry to renew against.',
+    detail: 'A rent or lease listing says rented, but there is no Tenancy History entry to renew against.',
     severity: 'high',
     where: {
-      and: [{ status: { equals: 'rented' } }, { 'rentHistory.licenseeName': { exists: false } }],
+      and: [{ isTenanted: { equals: true } }, { 'rentHistory.licenseeName': { exists: false } }],
     },
   },
   {
@@ -80,7 +55,7 @@ const PROPERTY_CHECKS: AttentionCheck[] = [
     detail: 'The current tenancy is missing a start date or term, so no renewal date can be calculated.',
     severity: 'high',
     where: {
-      and: [{ status: { equals: 'rented' } }, { currentAgreementEndDate: { exists: false } }],
+      and: [{ isTenanted: { equals: true } }, { currentAgreementEndDate: { exists: false } }],
     },
   },
   {
@@ -135,6 +110,35 @@ const PROPERTY_CHECKS: AttentionCheck[] = [
   },
 ];
 
+/**
+ * Listing checks. The transaction-specific gaps live here now that price and
+ * terms are per listing. Purpose-aware, because the amount lives in a different
+ * field per transaction type — the same mapping `getProperties()` uses for
+ * budget filtering (sale → price, rent → rentAmount, lease →
+ * monthlyLeasePayment). A listing marked Price on Request is not a gap.
+ */
+const LISTING_CHECKS: AttentionCheck[] = [
+  {
+    key: 'listing-price',
+    collection: 'listings',
+    label: 'Listings with no price for their transaction type',
+    detail: 'Sale needs Price, Rent needs Rent, Lease needs Monthly Lease Payment.',
+    severity: 'high',
+    where: {
+      and: [
+        { 'pricing.priceOnRequest': { not_equals: true } },
+        {
+          or: [
+            { and: [{ transactionType: { equals: 'sale' } }, { 'pricing.price': { exists: false } }] },
+            { and: [{ transactionType: { equals: 'rent' } }, { 'pricing.rentAmount': { exists: false } }] },
+            { and: [{ transactionType: { equals: 'lease' } }, { 'pricing.monthlyLeasePayment': { exists: false } }] },
+          ],
+        },
+      ],
+    },
+  },
+];
+
 const PROJECT_CHECKS: AttentionCheck[] = [
   {
     key: 'project-featured-image',
@@ -178,4 +182,4 @@ const PROJECT_CHECKS: AttentionCheck[] = [
   },
 ];
 
-export const ATTENTION_CHECKS: AttentionCheck[] = [...PROPERTY_CHECKS, ...PROJECT_CHECKS];
+export const ATTENTION_CHECKS: AttentionCheck[] = [...PROPERTY_CHECKS, ...LISTING_CHECKS, ...PROJECT_CHECKS];

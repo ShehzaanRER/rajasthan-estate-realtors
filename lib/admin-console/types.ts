@@ -1,8 +1,13 @@
 import type { Where } from 'payload';
 import type { CountdownTier } from '../properties/agreementCountdown';
 
-/** The two listing collections this console reports on. */
-export type ConsoleCollection = 'properties' | 'projects';
+/**
+ * The collections this console reports on. `properties` counts physical
+ * properties, `listings` counts individual transactions on them (a flat for
+ * sale and for rent is one property and two listings), `projects` counts
+ * developments.
+ */
+export type ConsoleCollection = 'properties' | 'listings' | 'projects';
 
 /**
  * Structural shape of the `navGroups` server prop Payload hands the dashboard
@@ -115,6 +120,7 @@ export type ConsoleData = {
   attention: AttentionIssue[];
   clearChecks: AttentionIssue[];
   recentProperties: RecentRecord[];
+  recentListings: RecentRecord[];
   recentProjects: RecentRecord[];
   renewals: RenewalRow[];
   /** Rented properties that have a calculable agreement end date. */

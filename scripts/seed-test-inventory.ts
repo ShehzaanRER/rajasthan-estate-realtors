@@ -4,6 +4,7 @@ import path from 'node:path';
 import type { RequiredDataFromCollectionSlug } from 'payload';
 import sharp from 'sharp';
 import { getPayloadClient } from '../lib/payload';
+import { createListingForLegacyProperty } from '../lib/listings/createFromLegacy';
 
 /**
  * Creates a persistent set of clearly-labelled QA records (5 properties,
@@ -407,8 +408,14 @@ async function main() {
       ? await payload.update({ collection: 'properties', id: existingId, data, overrideAccess: true })
       : await payload.create({ collection: 'properties', data, overrideAccess: true })) as SeededDoc;
 
+    // The inventory is described in the legacy single-record shape (purpose +
+    // pricing on the property). A property is only visible through a listing, so
+    // create the one it implies — the same planner the real migration uses.
+    const full = await payload.findByID({ collection: 'properties', id: doc.id, depth: 0, overrideAccess: true });
+    const { listingId } = await createListingForLegacyProperty(payload, full);
+
     propertyResults.push(
-      `${existingId ? 'updated' : 'created'} | id=${doc.id} | ${doc.propertyId} | ${property.slug} | ${property.purpose}/${property.propertyCategory}`,
+      `${existingId ? 'updated' : 'created'} | id=${doc.id} | ${doc.propertyId} | ${property.slug} | ${property.purpose}/${property.propertyCategory} | listing ${listingId ?? '(already present)'}`,
     );
   }
 

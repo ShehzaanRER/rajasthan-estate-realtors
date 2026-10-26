@@ -8,6 +8,7 @@ import sharp from 'sharp';
 import { Amenities } from './collections/Amenities';
 import { ChannelPartners } from './collections/ChannelPartners';
 import { ContactInquiries } from './collections/ContactInquiries';
+import { Listings } from './collections/Listings';
 import { Media } from './collections/Media';
 import { Projects } from './collections/Projects';
 import { Properties } from './collections/Properties';
@@ -15,13 +16,33 @@ import { Users } from './collections/Users';
 import { WebsiteBanners } from './collections/WebsiteBanners';
 import { brochureConvertCreateHandler } from './collections/endpoints/brochureConvertCreate';
 import { brochureConvertValidateHandler } from './collections/endpoints/brochureConvertValidate';
+import { ensureListingIdSequence } from './collections/hooks/assignListingId';
 import { ensureProjectIdSequence } from './collections/hooks/assignProjectId';
 import { ensurePropertyIdSequence } from './collections/hooks/assignPropertyId';
 import { ensureDefaultAmenities } from './collections/hooks/ensureDefaultAmenities';
 import { idSequenceSchemaHook } from './collections/hooks/idSequenceSchema';
+import { listingIndexSchemaHook } from './collections/hooks/listingIndexSchema';
+import { schemaPushDecision } from './lib/databaseSafety';
 import { SITE_URL } from './lib/siteConfig';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Dev and production share one live database, so Payload's dev schema push must
+ * never reach it by accident (a `next dev` on any branch would otherwise apply
+ * that branch's schema to production). Local databases push as before; the live
+ * one only with RER_ALLOW_LIVE_SCHEMA_PUSH=true. See lib/databaseSafety.ts and
+ * docs/LISTINGS-ROLLOUT.md.
+ */
+const schemaPush = schemaPushDecision({
+  nodeEnv: process.env.NODE_ENV,
+  databaseUrl: process.env.DATABASE_URL,
+  allowLiveSchemaPush: process.env.RER_ALLOW_LIVE_SCHEMA_PUSH,
+});
+
+if (process.env.NODE_ENV !== 'production' && !schemaPush.allowed) {
+  console.warn(`[RER] Payload dev schema push is OFF: ${schemaPush.reason}.`);
+}
 
 if (process.env.NODE_ENV === 'production' && !process.env.PAYLOAD_SECRET) {
   throw new Error(
@@ -121,6 +142,7 @@ export default buildConfig({
   collections: [
     Users,
     Properties,
+    Listings,
     Projects,
     Amenities,
     ChannelPartners,
@@ -142,9 +164,12 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URL,
     },
-    // Declares rer_property_id_seq / rer_project_id_seq so the dev schema push
-    // keeps them instead of dropping them as unknown. See idSequenceSchema.ts.
-    afterSchemaInit: [idSequenceSchemaHook],
+    // Declares rer_property_id_seq / rer_project_id_seq / rer_listing_id_seq so
+    // the dev schema push keeps them instead of dropping them as unknown (see
+    // idSequenceSchema.ts), and the partial unique index that backs "one active
+    // listing per type per property" (listingIndexSchema.ts).
+    afterSchemaInit: [idSequenceSchemaHook, listingIndexSchemaHook],
+    push: schemaPush.allowed,
   }),
 
   /**
@@ -188,13 +213,14 @@ export default buildConfig({
   ],
 
   /**
-   * Ensures PostgreSQL sequences `rer_property_id_seq` and `rer_project_id_seq`
-   * exist, then seeds missing predefined amenity master records (create-only,
+   * Ensures PostgreSQL sequences `rer_property_id_seq`, `rer_project_id_seq` and
+   * `rer_listing_id_seq` exist, then seeds missing predefined amenity master records (create-only,
    * never update/delete).
    */
   onInit: async (payload) => {
     await ensurePropertyIdSequence(payload);
     await ensureProjectIdSequence(payload);
+    await ensureListingIdSequence(payload);
     await ensureDefaultAmenities(payload);
   },
 

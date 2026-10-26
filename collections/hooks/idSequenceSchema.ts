@@ -1,12 +1,13 @@
 import type { PostgresAdapterArgs } from '@payloadcms/db-postgres';
 import { pgSequence } from '@payloadcms/db-postgres/drizzle/pg-core';
+import { RER_LISTING_ID_SEQUENCE } from './assignListingId';
 import { RER_PROJECT_ID_SEQUENCE } from './assignProjectId';
 import { RER_PROPERTY_ID_SEQUENCE } from './assignPropertyId';
 
 type PostgresSchemaHook = NonNullable<PostgresAdapterArgs['afterSchemaInit']>[number];
 
 /**
- * Declares the RER ID sequences to Drizzle so the dev schema push owns them.
+ * Declares the RER ID sequences (property, project, listing) to Drizzle so the dev schema push owns them.
  *
  * Why this exists: `next dev` runs Payload in push mode. Every push (the
  * initial boot AND every HMR reload that changes the schema) introspects every
@@ -41,5 +42,6 @@ export const idSequenceSchemaHook: PostgresSchemaHook = ({ schema }) => ({
     ...schema.enums,
     [RER_PROPERTY_ID_SEQUENCE]: pgSequence(RER_PROPERTY_ID_SEQUENCE, idSequenceOptions),
     [RER_PROJECT_ID_SEQUENCE]: pgSequence(RER_PROJECT_ID_SEQUENCE, idSequenceOptions),
+    [RER_LISTING_ID_SEQUENCE]: pgSequence(RER_LISTING_ID_SEQUENCE, idSequenceOptions),
   } as unknown as typeof schema.enums,
 });

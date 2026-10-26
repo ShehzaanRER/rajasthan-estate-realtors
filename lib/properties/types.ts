@@ -1,4 +1,4 @@
-import type { Amenity, Property } from '../../payload-types';
+import type { Amenity, Listing, Property } from '../../payload-types';
 import type { PublicPropertyStatus } from './publicScope';
 
 export type PublicImage = {
@@ -63,13 +63,34 @@ export type PublicBuildingDetails = {
   liftAvailable: boolean | null;
 };
 
+/**
+ * A sibling public listing of the same property — "also for rent, ₹75,000 /
+ * month" — shown on a card or detail page instead of a second card.
+ */
+export type PublicListingLink = {
+  listingId: string;
+  slug: string;
+  purpose: Listing['transactionType'];
+  purposeLabel: string;
+  displayPrice: string;
+};
+
+/**
+ * What the public site renders: ONE transaction listing merged with the
+ * physical property it is for. The name predates listings and is kept so every
+ * card, page and SEO helper keeps working; `propertyId` is the permanent
+ * master ID of the unit, `listingId` and `slug` identify this transaction.
+ */
 export type PublicProperty = {
   propertyId: string;
+  listingId: string;
+  /** Other public listings of this same property (never includes this one). */
+  otherListings: PublicListingLink[];
   slug: string;
   title: string;
   descriptionHtml: string | null;
   descriptionText: string | null;
-  purpose: Property['purpose'];
+  purpose: Listing['transactionType'];
   purposeLabel: string;
   category: NonNullable<Property['propertyCategory']> | null;
   categoryLabel: string | null;
@@ -90,7 +111,7 @@ export type PublicProperty = {
   badge: string;
   status: PublicPropertyStatus;
   statusLabel: string;
-  tags: NonNullable<Property['tags']>;
+  tags: Array<NonNullable<Property['tags']>[number] | NonNullable<Listing['tags']>[number]>;
   featured: boolean;
   nearbyConnectivity: PublicConnection[];
 };

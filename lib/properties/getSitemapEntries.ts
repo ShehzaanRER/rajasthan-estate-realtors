@@ -1,3 +1,4 @@
+import type { Listing } from '../../payload-types';
 import { getPayloadClient } from '../payload';
 import { publicStatusWhere } from './publicScope';
 
@@ -13,24 +14,33 @@ export type SitemapEntry = {
  */
 const SITEMAP_PAGE_SIZE = 500;
 
+function latest(a: string | null, b: string | null): string | null {
+  if (!a) {
+    return b;
+  }
+
+  if (!b) {
+    return a;
+  }
+
+  return new Date(a).getTime() >= new Date(b).getTime() ? a : b;
+}
+
 /**
- * Every published property, for `app/sitemap.ts`.
+ * Every public LISTING, for `app/sitemap.ts`: each listing is its own page and
+ * its own canonical URL, so a flat for sale and for rent contributes two
+ * entries, each with its own `lastModified`.
  *
- * Deliberately a separate query from `getProperties()` rather than the same one
- * with a larger limit, because the two have genuinely different requirements.
- * A sitemap has to be exhaustive; a listing page has to be fast and bounded.
- * Sharing one query meant they also shared a 100-record ceiling *and* a
- * `-updatedAt` sort, so the 101st property would have become simultaneously
- * unlinked and unlisted — undiscoverable, with no error anywhere.
+ * Deliberately a separate query from `getProperties()`: a sitemap has to be
+ * exhaustive, a listing page bounded and fast (see the 101st-property note in
+ * the project history). Visibility is unchanged and not reimplemented —
+ * `publicStatusWhere()` plus `overrideAccess: false`, so drafts, withdrawn and
+ * closed listings stay out.
  *
- * It is also far cheaper than what it replaces. The sitemap previously pulled
- * 100 fully-populated documents at `depth: 2` and ran the complete
- * `mapProperty()` over each one, in order to read `.slug` off the result.
- * This reads two columns at `depth: 0`.
- *
- * Visibility is unchanged and not reimplemented: `publicStatusWhere()` plus
- * `overrideAccess: false`, exactly as every other public query does, so drafts,
- * sold and rented properties stay out.
+ * `lastModified` is the later of the listing's and its property's `updatedAt`:
+ * new photographs or a corrected specification change the page just as a price
+ * change does. A listing whose property is not readable to a visitor is
+ * skipped, matching what the page itself would render.
  */
 export async function getPropertySitemapEntries(): Promise<SitemapEntry[]> {
   const payload = await getPayloadClient();
@@ -39,25 +49,29 @@ export async function getPropertySitemapEntries(): Promise<SitemapEntry[]> {
 
   for (;;) {
     const result = await payload.find({
-      collection: 'properties',
+      collection: 'listings',
       where: publicStatusWhere(),
-      depth: 0,
+      depth: 1,
       limit: SITEMAP_PAGE_SIZE,
       page,
       overrideAccess: false,
-      select: { slug: true, updatedAt: true },
+      select: { slug: true, updatedAt: true, property: true },
       sort: 'id',
     });
 
-    for (const doc of result.docs) {
+    for (const doc of result.docs as Listing[]) {
       const slug = typeof doc.slug === 'string' ? doc.slug.trim() : '';
-      if (!slug) {
+      const property = typeof doc.property === 'object' ? doc.property : null;
+      if (!slug || !property) {
         continue;
       }
 
       entries.push({
         slug,
-        updatedAt: typeof doc.updatedAt === 'string' ? doc.updatedAt : null,
+        updatedAt: latest(
+          typeof doc.updatedAt === 'string' ? doc.updatedAt : null,
+          typeof property.updatedAt === 'string' ? property.updatedAt : null,
+        ),
       });
     }
 

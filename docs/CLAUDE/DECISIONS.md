@@ -943,3 +943,161 @@ now, a banner publish).
 multiple records per placement with priority/scheduling (no current need, and
 it reintroduces selection ambiguity); `revalidateTag` (Local API reads are not
 `fetch`es, so there is nothing tagged to invalidate).
+
+## One property, many listings (2026-10-23)
+
+A property record used to *be* a transaction: `purpose`, `status` and `pricing`
+lived on it, so a flat for sale **and** for rent needed two property records —
+duplicated address, photographs and owner, two RER IDs, and an inventory count
+that double-counted the unit. Now a **Property** is the physical unit and a
+**Listing** (`listings`, `RER-L-00001`) is one sale, rental or lease of it. Full
+field and rule reference: `DATA-MODEL.md` › Listings.
+
+- **Split by "can it differ between two ways of offering the unit?"** Address,
+  specification, media, amenities, owner and **tenancy history** are the unit's
+  and stay on the property. Type, status, price and every term, the URL, marketing
+  tags and the agent are the transaction's and moved. Tenancy history stays on the
+  property because it is the unit's history: it must survive a rental listing being
+  closed and a new one opened, and a listing deleted by mistake must not delete it.
+- **Expand-only migration; nothing is moved, dropped or renamed.** `purpose` and
+  `pricing` stay on `properties` as hidden legacy fields (`purpose` just stops
+  being required); `status` stays. `scripts/migrate-property-listings.ts` *copies*
+  them onto a new listing per property. Reasons: dev and production share one live
+  database and `next dev`'s push applies the schema, so a destructive change would
+  hit live data the moment anyone started the app; a push that adds columns and
+  tables (verified: 29 statements, `hasDataLoss: false`, one `DROP NOT NULL`) can
+  be applied before the new code is deployed and the old code keeps working against
+  it; and if the data migration fails half-way the originals are untouched. The
+  legacy columns are removed only in a later, separately approved clean-up.
+- **Why `properties.status` is kept, as a system roll-up.** Public read access on
+  `properties` is a `where` on `status`, and populating a listing's `property` as a
+  visitor goes through it; the console, the list view and the filters also read it.
+  It is now written only by `syncPropertyRollup` (field `access.update: false`):
+  Available if any listing is live, then Under offer, Rented, Sold, else Draft.
+  The public pages decide visibility from the **listing's** status, not this.
+  *Not chosen:* dropping it and opening property read access to everyone (would
+  expose draft properties and their internal fields to the API); a join-based
+  access rule (Payload cannot express one in a collection `where`).
+- **Why `isTenanted` exists.** A flat can be for sale (roll-up Available) while a
+  tenant is in place. Keying renewals on `status = rented` would have dropped that
+  tenancy from the console the day a sale listing was added. `isTenanted` is a
+  second derived flag, set by the same hook, and renewals, the countdown sidebar and
+  the tenancy checks use it.
+- **Slugs: the first listing keeps the property's slug.** Every published URL
+  therefore still resolves to the same page with no redirect (redirects leak
+  ranking and add a hop). Later listings get `<property-slug>-<type>`. A property
+  slug with no listing of its own (after "Slug Update") redirects to the
+  property's leading public listing (Sale > Rent > Lease). Each listing page is
+  self-canonical: a sale and a rental are different offers with different prices,
+  so they are not duplicates of each other.
+- **Search returns one card per property.** Results are listings, but an unfiltered
+  search would show a dual-listed flat twice. `onePerProperty` keeps the
+  highest-priority listing and the rest appear as "Also for rent ₹…". A Buy or Rent
+  search is already narrowed to one type, so each qualifying property appears once
+  in each.
+- **Business rules live in a `beforeChange` hook, not the form** (`validateListing`
+  + pure `lib/listings/rules.ts`): property exists and is readable, never
+  re-parented, status fits the type, a live listing has an amount, a rental needs a
+  tenancy before it can be Rented, one *active* listing per type per property.
+  "Active" excludes sold / rented / withdrawn so a rental can be re-listed.
+  The hook is backed by a per-property advisory lock and a partial unique index —
+  see *Listings hardening* below.
+- **`withdrawn` is a new listing-only status** so a listing can be taken down
+  without deleting it. It maps to a Draft property.
+- **Deleting is safe in both directions.** A listing references its property, so
+  deleting a listing cannot reach the property or its siblings (it only refreshes
+  the roll-up). `protectPropertyWithListings` refuses to delete a property that
+  still has listings, rather than orphaning them.
+- **Lease is kept, nothing more.** The lease price fields already existed, so it is
+  a transaction type; no Leave & Licence workflow was added. Portal settings and
+  per-listing enquiry/negotiation data were *not* built: the repo has no portal
+  integration and `contact-inquiries` has no link to a property.
+- **Second and later listings come from the Listings tab** (a Payload `join`
+  field; the drawer pre-selects the property). The first listing can be created
+  with the property in one save — see *Hardening* below.
+- **Importers cannot bypass the model.** The CSV importer and the QA seed script
+  still describe the old shape, so they call the same planner the migration uses
+  (`lib/listings/createFromLegacy.ts`) right after creating a property.
+- **Own ID series.** `rer_listing_id_seq` is separate from the property and project
+  sequences (so property IDs stay gapless) and is declared to Drizzle in
+  `idSequenceSchema.ts` for the same reason the other two are.
+- **Migration reads, plans, then writes; and refuses to guess.** The planner is a
+  pure function (unit-tested). Unrepresentable values (unknown type, negative
+  amount, missing slug) are errors that leave the property alone; odd-but-valid
+  ones (a live listing with no price, a Sale marked Rented) are carried across and
+  reported — the latter as a Draft with the original status written in the
+  listing's internal notes.
+
+*Operational consequence:* until the migration is applied to a database, that
+database's public site shows **no properties** (a property is visible only through a
+listing). Order: push schema -> run migration -> deploy. See
+`docs/LISTINGS-ROLLOUT.md`.
+
+## Listings hardening: database guard, one-save create, push guard (2026-10-24)
+
+A verification pass before production rollout. Each item below was found or
+proven on scratch PostgreSQL 17 databases (built from the pre-change code with
+fictional data), never on the live database.
+
+- **Duplicate active listings are now impossible at the database level.** A
+  partial unique index `listings_one_active_per_type_idx` on
+  `(property_id, transaction_type) WHERE status IN ('draft','available',
+  'under-offer')`. Active = exactly `ACTIVE_LISTING_STATUSES`; sold, rented and
+  withdrawn rows are history and unconstrained, so re-listing works and any number
+  of past rentals can exist. Declared through `afterSchemaInit` (Payload's
+  `indexes` cannot express a partial index), WHERE clause written in the exact form
+  `pg_get_expr` returns it so the push does not re-create it on every boot
+  (verified: a second preview is clean). Direct SQL inserts that bypass every hook
+  are rejected (tested for each active status).
+- **Concurrent saves are serialised per property** with
+  `pg_advisory_xact_lock(731400, property_id)` taken in the first `beforeChange`
+  hook, through Payload's transaction session. Without it, the race test showed a
+  second, real bug: two simultaneous *different-type* first listings (Sale and
+  Rent at once) both claimed the property's bare slug and one failed on the slug
+  index. With it, the later save waits, reads committed state, and gets the normal
+  explained message; the index remains the guarantee. The lock is
+  transaction-scoped, per property, and releases at commit/rollback.
+- **Readable error on the index.** Payload reports a unique violation as "Value
+  must be unique" on a path parsed from the constraint. The index is mapped to
+  `transactionType` (`adapter.fieldConstraints`), and an `afterError` hook
+  replaces the REST message with an explanation. Local API callers get the raw
+  `ValidationError` on `transactionType`.
+- **Property + first listing in one save.** A create-only virtual group
+  `initialListing`, validated in `beforeValidate` (before the Property ID is
+  allocated — a bad price burns no ID) and turned into a real listing in
+  `afterChange` with the same `req`, i.e. the same transaction. Proven with a
+  test-only PostgreSQL trigger that fails the listing insert: no property, listing
+  or media folder survives. *Not chosen:* a custom endpoint or client component
+  (a second save path to keep in sync with the collection's rules). Found while
+  testing in the browser: Payload renders virtual fields read-only unless
+  `admin.readOnly: false`; and a `defaultValue` on a virtual field is echoed into
+  every API read, so the status has none.
+- **A closed listing's URL is a 404, not a redirect; the property-slug redirect is
+  temporary.** The first listing shares its property's slug, so when that
+  listing closed, the "property slug → leading listing" fallback started
+  308-redirecting the closed rental's URL to the flat's sale page — permanently
+  cached by browsers, so a re-published rental would have been unreachable.
+  Now the fallback applies only to a slug no listing (any status) owns, and uses
+  307 because its target depends on which listings are live.
+- **Roll-up context leak fixed.** The roll-up write passed `context:
+  {skipListingRollup}`; with a shared `req`, Payload merges that into
+  `req.context` permanently, so any later listing saved in the same request would
+  have skipped its roll-up (surfaced by the one-save create, where a property save
+  and a listing save share a request). The flag is no longer set there.
+- **Dev schema push cannot reach the live database by default.** `push` in
+  `payload.config.ts` comes from `schemaPushDecision()`: local databases push,
+  others only with `RER_ALLOW_LIVE_SCHEMA_PUSH=true`. Rationale: verified that a
+  pre-listings checkout's push against a migrated database proposes dropping
+  `listings`, `listings_tags` and `is_tenanted` (`hasDataLoss: true`) behind a
+  single confirmation prompt. The guard cannot protect old checkouts, which is why
+  the rollout requires every machine to be updated first. *Not chosen:* a separate
+  development database (the right long-term answer, but an infrastructure change
+  outside this feature).
+- **Write scripts must name their target.** The migration's APPLY mode refuses a
+  non-local database unless `RER_CONFIRM_DATABASE_HOST` matches it.
+- **Reviewed SQL as the preferred schema path.** `docs/listings-schema.sql` is the
+  push's own output (pre-existing unrelated drift removed), applied in one
+  transaction; `docs/listings-schema-undo.sql` reverses it (proven: the old code's
+  push then sees no listings difference). Verification is two read-only SQL files
+  (`docs/listings-verify-*.sql`) whose baseline fingerprint is byte-identical
+  before and after a rehearsed migration.

@@ -6,7 +6,8 @@ Generated types are in `payload-types.ts` (`npx payload generate:types`).
 | Collection | Slug | Admin group | Purpose |
 | --- | --- | --- | --- |
 | Users | `users` | Admin | Auth for RER staff |
-| Properties | `properties` | Listings | Individual units RER transacts on |
+| Properties | `properties` | Listings | Physical units RER transacts on — the shared facts (address, specification, photos, owner, tenancy history) |
+| Listings | `listings` | Listings | One sale, rental or lease offered on a property — price, terms, status, URL, tags, agent |
 | Projects | `projects` | Listings | Developments |
 | Amenities | `amenities` | Reference Data | Shared amenity master list |
 | Channel Partners | `channel-partners` | Reference Data | RER developer inventory; drives the homepage partner strip |
@@ -14,6 +15,14 @@ Generated types are in `payload-types.ts` (`npx payload generate:types`).
 | Contact Inquiries | `contact-inquiries` | Leads | Contact-form submissions |
 
 ## Properties
+
+> **A Property is one physical unit; it is not a transaction.** Since the
+> listings change, `purpose`, `pricing` and the editable `status` no longer
+> describe anything — the sale/rent/lease offered on the unit is a **Listing**
+> (next section). `purpose` and `pricing` remain in the schema as hidden *legacy*
+> fields (the migration copies them onto the listing; nothing reads them), and
+> `status` is a system-maintained roll-up of the listings. Read the Listings
+> section first.
 
 The largest collection. Fields sit in **unnamed** admin tabs, which are a
 UI grouping only — no tab adds a path segment, so a field is at
@@ -28,17 +37,34 @@ UI grouping only — no tab adds a path segment, so a field is at
   `collections/hooks/assignMediaFolder.ts`; `mediaFolderLink` is a UI field
   that links to it.
 - `status` (required, default `draft`) — `draft`, `available`, `under-offer`,
-  `sold`, `rented`. Rendered with the custom `StatusBadge` cell. **This field
-  alone decides public visibility** (see below).
+  `sold`, `rented`. **Read-only and system-maintained:** the roll-up of the
+  property's listings (`lib/listings/rollup.ts`, written by
+  `collections/hooks/syncPropertyRollup.ts`; field `access.update` is `false`).
+  Available if any listing is live, else Under offer, Rented, Sold, otherwise
+  Draft (a property with no listings, or only withdrawn ones, is Draft). Rendered
+  with the custom `StatusBadge` cell. It exists so the collection's public read
+  access (`status in available/under-offer`) keeps working and so the console and
+  list view keep their existing status counts — **public pages no longer use it
+  to decide what is shown; each listing's own status does.**
+- `isTenanted` (checkbox, hidden, read-only, indexed) — true while any Rent or
+  Lease listing is `rented`. A flat can be for sale *and* let to a tenant, which a
+  single status cannot say; renewal tracking, the agreement-countdown sidebar and
+  the tenancy attention checks key off this, not `status`.
+- `listingsSummary` (UI) — sidebar block and list-view Cell listing each
+  listing's ID, type, status and price with links
+  (`components/payload/PropertyListingsSummary.tsx`, `PropertyListingsCell.tsx`).
 
-**Overview tab** — `title`, `slug`, `purpose` (`sale` / `rent` / `lease`),
-`propertyCategory` (`residential` / `commercial`), `propertyType` (apartment,
+**Overview tab** — `title`, `slug`, `purpose` (legacy, hidden, optional — see
+above), `propertyCategory` (`residential` / `commercial`), `propertyType` (apartment,
 house, villa, office, shop, showroom, warehouse, land, other), `tags`
 (multi-select: `new`, `featured`, `new-development`, `under-construction`,
 `ready-to-move`, `premium`, `price-reduced`, `commercial`, `residential`),
 `description` (Lexical rich text).
 
-`slug` is generated on create only and is the public URL. The **Slug Update**
+`slug` is generated on create only. It is the unit's master slug: the first
+listing inherits it as *its* public URL (see Listings), and the route resolves a
+property slug with no listing of its own to the property's leading public
+listing. The **Slug Update**
 button beside the field (`components/payload/RegenerateSlugButton.tsx`) rebuilds
 it from the current BHK, property type, locality and RER ID — the way to fix a
 duplicate's inherited slug, or one left stale by a later correction.
@@ -49,15 +75,12 @@ with a `connections` array (place `name`, `category`, `travelTimeMinutes`,
 `distance` + `distanceUnit`, `displayOnWebsite`). Lat/long feed the
 generate-nearby-locations endpoint; they are not required to save.
 
-**Transaction & Pricing tab** — one `pricing` group covering all three
-purposes: `currency` (INR), `price`, `priceOnRequest`, `negotiable`,
-`pricePerSqFt`, `additionalCharges`, `rentAmount`, `rentPeriod`,
-`securityDeposit`, `maintenanceCharges`, `maintenanceIncluded`, `brokerageFee`,
-`totalLeaseAmount`, `monthlyLeasePayment`, `parkingCharges`. Because the amount
-lives in a different field per purpose, budget filtering picks the field from
-the purpose (see `ARCHITECTURE.md`). `parkingCharges` is unconditional
-(no purpose gate) — a parking charge can be a one-off (sale) or recurring
-(rent/lease) cost and is always separate from the price/rent fields above.
+**Listings tab** — a Payload `join` field (`listings`, collection `listings`,
+on `property`): the property's listings as a table (Listing ID, type, status,
+price) with Payload's **Add new** drawer, which pre-selects this property so the
+address, specification and photographs are never re-entered. A hidden legacy
+`pricing` group sits beside it (same shape the Listings `pricing` group has
+now): kept so the migration is expand-only, never read.
 
 **Property Details tab** — `details` group (`bedrooms`, `bathrooms`,
 `carpetArea` + `carpetAreaUnit` (default `sq-ft`), `builtUpArea` +
@@ -98,17 +121,20 @@ reads this group, so it has no path to the public site.
 
 ### Featured / public behaviour
 
-- Public = `status` in `['available', 'under-offer']`. Enforced twice: the
-  collection's `read` access returns that `where` constraint for unauthenticated
-  requests, and every public query in `lib/properties/` also applies
-  `publicStatusWhere()` with `overrideAccess: false`.
-- Featured = public **and** `tags` contains `featured` (`publicFeaturedWhere()`).
-  There is no separate boolean field.
+- A property is **readable by visitors only while it has a live listing** (its
+  roll-up `status` is `available` / `under-offer`): the collection's `read`
+  access returns that `where` for unauthenticated requests. What the public
+  *site* shows is decided per **listing** — see Listings and `PUBLIC-ROUTES.md`.
+- Featured is a **listing** tag (`publicFeaturedWhere()` on listings). The
+  property's own `tags` keep their full option list for schema compatibility, but
+  only the unit-level ones (`new-development`, `ready-to-move`, `commercial`, ...)
+  are read by the site; a legacy `featured` left on a property does nothing.
 
 ### Rental architecture (implemented)
 
-`Property Status = Rented` means the property is **retained in Payload but
-excluded from public inventory**. `rented` is not in `PUBLIC_STATUSES`, so the
+`Rented` is now a **listing** status (a Rent or Lease listing marked Rented);
+`properties.isTenanted` mirrors it on the property. A rented listing is **retained
+in Payload but excluded from public inventory**. `rented` is not in `PUBLIC_STATUSES`, so the
 record stops appearing in listings, feeds, the detail route and the sitemap
 while staying fully intact for staff. The same is true of `sold` and `draft` —
 `rented` is not a special case in the query layer, it is simply another
@@ -126,12 +152,16 @@ Two things protect it:
 - Nothing under `lib/`, `components/` or `app/` reads `rentDetails` at all, so
   it has no path to the public site.
 
-Conditional validation: `licenseeName` is required only once `status` is
-`rented`, and `agentName` only when `rentalSource` is `through-agent` — so
-incomplete historical inventory can still be saved.
+Conditional validation: a Rent/Lease listing cannot be marked `rented` until the
+property has a Tenancy History entry (`collections/hooks/validateListing.ts`), the
+reverse is enforced on the property (history cannot be emptied while
+`isTenanted`), and `agentName` is required only when `rentalSource` is
+`through-agent` — so incomplete historical inventory can still be saved.
+**Tenancy history stays on the Property**: it is the unit's history, and survives
+a rental listing being closed and a new one opened.
 
-Note that rental *pricing* for a property being advertised to rent lives in
-`pricing.rentAmount` / `rentPeriod` (purpose = `rent`), which is public.
+Note that rental *pricing* for a unit being advertised to rent lives on its Rent
+listing (`pricing.rentAmount` / `rentPeriod`), which is public.
 `rentDetails` is about an executed agreement and is not.
 
 **`currentAgreementEndDate`** (also in the Rent Details tab, above the
@@ -163,7 +193,14 @@ the list Cell via `lib/properties/agreementCountdown.ts`.
 
 `scripts/import-properties.ts` (`npm run import:properties -- "<csv path>"`,
 dry run by default — see the script header) bulk-imports property records,
-including `rentHistory`, from RER's spreadsheet-tracked inventory. It never
+including `rentHistory`, from RER's spreadsheet-tracked inventory. **It still
+writes the old single-record shape** (`purpose`, `status`, `pricing` on the
+property); immediately after each property is created it creates the listing that
+shape implies, through the same planner the migration uses
+(`lib/listings/createFromLegacy.ts`), so an imported record cannot bypass the
+listings model. The mapping table below is therefore "CSV column -> legacy
+property field, copied onto the listing" for `Listing Type`, `Status`, `Asking
+Price`, `Rent`, `Deposit`, `Maintenance`, `Brokerage`, `Parking Charges`. It never
 invents data and never overwrites a populated field with a blank CSV value.
 
 Column mapping (source columns not listed here have no destination field and
@@ -206,6 +243,101 @@ are reported as unmapped by the script — the CSV's `Source`, `Source Contact`,
 | `Agreement Start Date` | `rentHistory[].agreementStartDate` | |
 | *(no CSV column)* | `rentHistory[].agreementTermDays` | Optional extra days entered in the admin form (whole, ≥ 0). The import never writes it; blank/absent counts as 0, so imported and pre-existing rows calculate exactly as before. |
 | `Agreement End Date` | **not written** | Compared against the value `calculateAgreementEndDate()` produces — the last calendar day of the term (Start Date + Term − 1 day) — and reported as MATCH/DISCREPANCY; the calculated value is what Payload's own field hook stores. See `DECISIONS.md`. |
+
+## Listings
+
+`listings` (`collections/Listings.ts`, admin group *Listings*, `disableDuplicate`).
+One **transaction** — a sale, a rental or a lease — offered on a Property. A
+property has any number of listings; each is managed independently. Property = the
+unit and everything true of it whatever it is offered as; Listing = everything
+that can differ between two ways of offering it.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `listingId` | text, unique, read-only | `RER-L-00001`, from Postgres sequence `rer_listing_id_seq` (`collections/hooks/assignListingId.ts`). Never rewritten. A third permanent series beside `RER-00001` (property) and `RER-P-0001` (project) |
+| `property` | relationship → `properties`, required, indexed | Immutable: a save that changes it is rejected. FK is `ON DELETE SET NULL` on a NOT NULL column, so a property that still has listings cannot be deleted at all (also refused up front by `protectPropertyWithListings`) |
+| `transactionType` | select, required, indexed | `sale` / `rent` / `lease`. Lease is kept because the pricing fields for it already existed; no Leave & Licence workflow was added |
+| `status` | select, required, indexed, default `draft` | `draft`, `available`, `under-offer`, `sold`, `rented`, `withdrawn` (new; non-public, closed, lets a listing be taken down without deleting it) |
+| `slug` | text, unique, required | The public URL. First listing of a property = the property's own slug (existing URLs keep working); later ones `<property-slug>-<sale\|rent\|lease>[-n]` (`lib/listings/slug.ts`). Never rewritten |
+| `tags` | multi-select | Listing-level marketing tags only: `featured`, `new`, `premium`, `price-reduced` |
+| `pricing` | group | Same shape the property's pricing group had: `currency`, `price`, `priceOnRequest`, `negotiable`, `pricePerSqFt`, `additionalCharges`, `rentAmount`, `rentPeriod`, `securityDeposit`, `maintenanceCharges`, `maintenanceIncluded`, `brokerageFee`, `totalLeaseAmount`, `monthlyLeasePayment`, `parkingCharges`. Fields show per transaction type; all `min: 0` |
+| `assignedAgent` | relationship → `users`, staff-only read | Internal tab |
+| `internalNotes` | textarea, staff-only read | Internal tab |
+
+**What lives where.** On the Property: identity (`propertyId`, slug, title,
+category, type), location, nearby connectivity, `details`, `buildingDetails`,
+amenities, media, description, owner details, **tenancy history**
+(`rentHistory`, `currentAgreementEndDate`). On the Listing: transaction type,
+status, price and every transaction-specific term, URL, marketing tags, agent,
+notes. Nothing is duplicated between them; the public site reads the property's
+facts through the listing's `property` relationship.
+
+**Not built, because nothing in the repo supports it:** portal publishing
+settings and per-listing enquiry/negotiation records (no portal integration and
+no enquiry-to-property link exist; `contact-inquiries` is a free-standing form
+log), and any Lease / Leave & Licence workflow beyond the existing lease price
+fields.
+
+### Rules enforced on the server (not the form)
+
+`collections/hooks/validateListing.ts` (+ `lib/listings/rules.ts`), as a
+collection `beforeChange` hook, so the admin, REST, GraphQL, Local API and every
+script go through the same checks. Failures are `ValidationError`s attached to
+the offending field.
+
+- the parent property exists and is readable by the caller;
+- a listing is never moved to another property;
+- status fits the type: a Sale cannot be `rented`; a Rent/Lease cannot be `sold`;
+- a live listing (`available` / `under-offer`) has an amount for its type
+  (sale: `price`; rent: `rentAmount`; lease: a lease amount) or `priceOnRequest`;
+  drafts and closed listings may be incomplete;
+- a Rent/Lease listing cannot be `rented` until the property has a Tenancy
+  History entry;
+- **at most one *active* (draft / available / under-offer) listing per
+  transaction type per property.** Sold, rented and withdrawn listings are
+  history and never collide, so a rental can be re-listed after a tenancy.
+  Enforced three ways: the hook (with a message naming the existing listing), a
+  per-property **transaction advisory lock** (`collections/hooks/listingLock.ts`,
+  first `beforeChange` hook) that makes concurrent saves for one property run one
+  after the other so the hook sees the winner, and a **partial unique index**
+  `listings_one_active_per_type_idx` on `(property_id, transaction_type) WHERE
+  status IN ('draft','available','under-offer')`
+  (`collections/hooks/listingIndexSchema.ts`, declared via `afterSchemaInit` so the
+  push owns it). The index is the guarantee even for writes that bypass hooks;
+  its violation is reported on Transaction type and explained by the
+  `afterError` hook (`listingErrors.ts`).
+
+### Creating a property with its first listing
+
+The property create form has a **create-only, virtual** group `initialListing`
+("First listing (optional)": Sale or Rent, status Draft/Available, price or rent,
+deposit, maintenance, price on request, negotiable). It is never stored —
+`virtual: true`, no column; `admin.readOnly: false` because Payload renders
+virtual fields read-only by default. `collections/hooks/initialListing.ts`:
+
+- `validateInitialListing` (`beforeValidate`, create only) runs the same listing
+  rules before anything is written or a Property ID is allocated; errors land on
+  `initialListing.<field>`;
+- `createInitialListing` (`afterChange`, create only, last) creates the listing
+  through the Listings collection with the same `req`, i.e. inside the property's
+  transaction. If it fails, Payload rolls back the property and its media folder.
+
+Lease and second listings are added from the Listings tab.
+
+### Roll-up and independence
+
+Saving or deleting a listing recomputes its property's `status` and `isTenanted`
+(`syncPropertyRollup`, same transaction) and writes **only the property**. Closing
+the rental therefore cannot change the sale listing — nothing ever writes a
+sibling.
+
+### Access
+
+Same model as every other collection: authenticated staff create / update /
+delete; anonymous `read` is `status in available/under-offer`; `assignedAgent` and
+`internalNotes` are stripped for visitors. A property with any listings (including
+sold, rented and withdrawn ones) cannot be deleted (HTTP 409 from
+`protectPropertyWithListings`).
 
 ## Projects
 

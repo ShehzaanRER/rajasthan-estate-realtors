@@ -12,19 +12,20 @@ const TIER_COLORS: Record<CountdownTier, string> = {
 
 /**
  * Sidebar-only display, right under Status — reads the current form's own
- * `status` and `currentAgreementEndDate` values (no separate data field: a
+ * `isTenanted` and `currentAgreementEndDate` values (no separate data field: a
  * document field can only live at one path, and it already lives in the
- * Rent Details tab). Rented-only, since that's the only status a current
- * tenancy applies to; days-remaining math lives in
+ * Rent Details tab). Tenanted-only, since that's the only state a current
+ * tenancy applies to — `isTenanted` rather than `status` because a property can
+ * be for sale and let at once; days-remaining math lives in
  * lib/properties/agreementCountdown.ts, shared with the list-view Cell.
  */
 export function AgreementCountdownSidebar() {
-  const { status, currentAgreementEndDate } = useFormFields(([fields]) => ({
-    status: fields['status']?.value,
+  const { isTenanted, currentAgreementEndDate } = useFormFields(([fields]) => ({
+    isTenanted: fields['isTenanted']?.value,
     currentAgreementEndDate: fields['currentAgreementEndDate']?.value,
   }))
 
-  if (status !== 'rented') {
+  if (isTenanted !== true) {
     return null
   }
 

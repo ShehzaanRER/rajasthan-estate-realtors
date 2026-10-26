@@ -1,7 +1,8 @@
 export { getFeaturedProperties } from './getFeaturedProperties';
 export type { GetFeaturedPropertiesOptions } from './getFeaturedProperties';
 export { getProperties, getPropertyLocalities, resolveLocalitySlug } from './getProperties';
-export type { GetPropertiesOptions, LocalityOption } from './getProperties';
+export type { LocalityOption } from './getProperties';
+export type { GetPropertiesOptions } from './listingsWhere';
 export {
   budgetBandsFor,
   describeFilters,
@@ -16,9 +17,9 @@ export {
   PURPOSE_LABELS,
 } from './filterParams';
 export type { BudgetBand, CategoryParam, PropertyFilters, PurposeParam } from './filterParams';
-export { getPropertyBySlug } from './getPropertyBySlug';
+export { getPropertyBySlug, resolvePropertySlugToListing } from './getPropertyBySlug';
 export { getSimilarProperties } from './getSimilarProperties';
-export { mapProperty } from './mapProperty';
+export { mapListing } from './mapListing';
 export {
   PUBLIC_STATUSES,
   isPublicStatus,
@@ -31,6 +32,7 @@ export type {
   PublicBuildingDetails,
   PublicConnection,
   PublicImage,
+  PublicListingLink,
   PublicLocation,
   PublicPricing,
   PublicProperty,
